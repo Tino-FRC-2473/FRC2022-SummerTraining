@@ -24,7 +24,8 @@ public class TeleOp {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax frontLeftMotor;
+    private CANSparkMax frontRightMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,8 +35,8 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+        frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
+        frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -119,7 +120,14 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleop(TeleopInput input) {
-		exampleMotor.set(0);
+		if (input.getLeftJoystickX() > -0.0005 && input.getLeftJoystickX() < 0.0005){
+            frontLeftMotor.set(input.getRightJoystickX());
+            frontRightMotor.set(input.getRightJoystickX());
+        } else if (input.getLeftJoystickX() > 0.0005){
+            // turn right
+        } else if (input.getLeftJoystickX() < -0.0005){
+            // turn left
+        }
 	}
 	/**
 	 * Handle behavior in AUTO.
