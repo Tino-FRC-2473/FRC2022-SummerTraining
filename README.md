@@ -9,3 +9,5 @@ The primary base class for robot systems. Each robot system is defined in terms 
 
 ## TeleopInput
 Utility class with ownership of teleop input handling. The single global instance of this class mediates access to inputs during the teleoperated mode and abstracts control mappings.
+
+Siddharth Venkiteswaran
