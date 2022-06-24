@@ -36,6 +36,13 @@ public class TeleopInput {
 	// Getter methods for fetch input values should be defined here.
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
+	public double getThrottleJoystick() {
+		return leftJoystick.getThrottle();
+	}
+
+	public double getSteeringWheel() {
+		return rightJoystick.getX();
+	}
 
 	/* ------------------------ Left Joystick ------------------------ */
 	/**

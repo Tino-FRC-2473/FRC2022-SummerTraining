@@ -5,9 +5,10 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.MathUtil;
+import frc.robot.HardwareMap;
 // Robot Imports
 import frc.robot.TeleopInput;
-import frc.robot.HardwareMap;
 
 public class FSMSystem {
 	/* ======================== Constants ======================== */
@@ -110,8 +111,8 @@ public class FSMSystem {
 
 	private void handleTeleOpState(TeleopInput input) {
 		try {
-			rightMotor.set(input.getRightJoystickY());
-			leftMotor.set(input.getLeftJoystickY());
+			rightMotor.set(MathUtil.clamp(input.getThrottleJoystick() - input.getSteeringWheel(), -1.0, 1.0));
+			leftMotor.set(MathUtil.clamp(-input.getThrottleJoystick() - input.getSteeringWheel(), -1.0, 1.0));
 		} catch (Exception e) {
 		}
 	}
