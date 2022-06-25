@@ -5,6 +5,7 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -14,7 +15,7 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		START_STATE,
-		OTHER_STATE
+		DRIVE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +25,8 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,7 +36,9 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
@@ -75,8 +79,8 @@ public class FSMSystem {
 				handleStartState(input);
 				break;
 
-			case OTHER_STATE:
-				handleOtherState(input);
+			case DRIVE_STATE:
+				handleDriveState(input);
 				break;
 
 			default:
@@ -98,14 +102,14 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+				if (input.getLeftJoystickY() != 0 || input.getRightJoystickY() != 0) {
+					return FSMState.DRIVE_STATE;
 				} else {
 					return FSMState.START_STATE;
 				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case DRIVE_STATE:
+				return FSMState.DRIVE_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -119,14 +123,17 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+		leftMotor.set(0);
+		rightMotor.set(0);
 	}
 	/**
-	 * Handle behavior in OTHER_STATE.
+	 * Handle behavior in DRIVE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleDriveState(TeleopInput input) {
+		SlewRateLimiter filter = new SlewRateLimiter(0.5);
+		leftMotor.set(filter.calculate(input.getLeftJoystickY()));
+		rightMotor.set(filter.calculate(input.getRightJoystickY()));
 	}
 }
