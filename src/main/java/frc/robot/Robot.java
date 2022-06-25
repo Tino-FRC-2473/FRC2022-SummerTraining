@@ -7,8 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 // Systems
+import frc.robot.systems.TeleOp;
 import frc.robot.systems.FSMSystem;
-
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
@@ -17,8 +17,8 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private FSMSystem fsmSystem;
-
+	private TeleOp teleopSystem;
+	private FSMSystem fsmSystem = null;
 	/**
 	 * This function is run when the robot is first started up and should be used for any
 	 * initialization code.
@@ -29,7 +29,7 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new FSMSystem();
+		teleopSystem = new TeleOp();
 	}
 
 	@Override
@@ -46,12 +46,12 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		fsmSystem.reset();
+		teleopSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		fsmSystem.update(input);
+		teleopSystem.update(input);
 	}
 
 	@Override
