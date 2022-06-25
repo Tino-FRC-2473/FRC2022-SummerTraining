@@ -1,6 +1,7 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.math.filter.SlewRateLimiter;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -102,7 +103,7 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case START_STATE:
-				if (input != null) {
+				if (input.getLeftJoystickY() != 0 || input.getRightJoystickY() != 0) {
 					return FSMState.DRIVE_STATE;
 				} else {
 					return FSMState.START_STATE;
@@ -123,7 +124,8 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(input.getLeftJoystickY());
+		leftMotor.set(0);
+		rightMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -131,6 +133,8 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleDriveState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		SlewRateLimiter filter = new SlewRateLimiter(0.5); //limit the rate of change to 0.5
+		leftMotor.set(filter.calculate(input.getLeftJoystickY()));
+		rightMotor.set(filter.calculate(input.getRightJoystickY()));
 	}
 }
