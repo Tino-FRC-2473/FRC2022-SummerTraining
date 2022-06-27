@@ -97,10 +97,10 @@ public class TeleOp {
 	 */
 	private void handleMoveState(TeleopInput input) {
 		double leftJoystickInput = input.getLeftJoystickY();
-        double rightJoystickInput = input.getRightJoystickY();
+        	double rightJoystickInput = input.getRightJoystickY();
 
-        //acceleration
-        left.set(leftJoystickInput);
+        	//acceleration
+        	left.set(leftJoystickInput);
 		right.set(rightJoystickInput);
 	}
 
