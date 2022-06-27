@@ -121,12 +121,23 @@ public class TeleOp {
 	 */
 	private void handleTeleop(TeleopInput input) {
 		if (input.getLeftJoystickX() > -0.0005 && input.getLeftJoystickX() < 0.0005){
-            frontLeftMotor.set(input.getRightJoystickX());
-            frontRightMotor.set(input.getRightJoystickX());
+            if (input.getRightJoystickX() > 0){
+				frontLeftMotor.set(MOTOR_RUN_POWER);
+				frontRightMotor.set(MOTOR_RUN_POWER);
+			} else if (input.getRightJoystickX() > 0){
+				frontLeftMotor.set(-MOTOR_RUN_POWER);
+				frontRightMotor.set(-MOTOR_RUN_POWER);
+			}
         } else if (input.getLeftJoystickX() > 0.0005){
-            // turn right
+            if (input.getRightJoystickX() > 0){
+				frontLeftMotor.set(MOTOR_RUN_POWER*2);
+				frontRightMotor.set(MOTOR_RUN_POWER);
+			}
         } else if (input.getLeftJoystickX() < -0.0005){
-            // turn left
+            if (input.getRightJoystickX() > 0){
+				frontLeftMotor.set(MOTOR_RUN_POWER);
+				frontRightMotor.set(MOTOR_RUN_POWER*2);
+			}
         }
 	}
 	/**

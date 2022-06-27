@@ -8,7 +8,7 @@ I made the TeleOp class and set up the states, though there's no code in the han
 ## General
 Finite-state-machine based template project for WPILib based robot code.
 
-To provide a more structured framework for FIRST Robotics Competition robot development, this project defines subsystem behaviors strictly in terms of multiple separate finte state machines updated in a round-robin fashion. This will make scheduling behavior explicitly visible instead of hidden behind the command scheduler, and avoid ambiguous shared state between command and subsystems under the WPILib command based programming model.
+To provide a more structured framework for FIRST Robotics Competition robot development, this project defines subsystem behaviors strictly in terms oxf multiple separate finte state machines updated in a round-robin fashion. This will make scheduling behavior explicitly visible instead of hidden behind the command scheduler, and avoid ambiguous shared state between command and subsystems under the WPILib command based programming model.
 
 ## FSMSystem
 The primary base class for robot systems. Each robot system is defined in terms of a Mealy-style finte state machine with control over a well-defined set of robot hardware. 
