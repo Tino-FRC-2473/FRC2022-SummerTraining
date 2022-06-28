@@ -18,7 +18,7 @@ public class FSMSystem {
 		DRIVE_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -62,7 +62,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.DRIVE_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -74,6 +74,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		if (input==null) return;
 		switch (currentState) {
 			case START_STATE:
 				handleStartState(input);
@@ -123,6 +124,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
+		if (input==null) return;
 		leftMotor.set(0);
 		rightMotor.set(0);
 	}
@@ -132,8 +134,13 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleDriveState(TeleopInput input) {
-		SlewRateLimiter filter = new SlewRateLimiter(0.5);
-		leftMotor.set(filter.calculate(input.getLeftJoystickY()));
-		rightMotor.set(filter.calculate(input.getRightJoystickY()));
+		// SlewRateLimiter filter = new SlewRateLimiter(0.5);
+		// leftMotor.set(filter.calculate(input.getLeftJoystickY()));
+		// rightMotor.set(filter.calculate(input.getRightJoystickY()));
+		if (input==null) return;
+		long currTime = System.currentTimeMillis();
+
+		leftMotor.set(-input.getLeftJoystickY());
+		rightMotor.set(-input.getRightJoystickY());
 	}
 }
