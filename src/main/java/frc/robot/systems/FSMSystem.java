@@ -75,6 +75,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		if(input == null) return;
 		switch (currentState) {
 			case START_STATE:
 				handleStartState(input);
@@ -101,6 +102,7 @@ public class FSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		
 		switch (currentState) {
 			case START_STATE:
 				if (input.getLeftJoystickY() != 0 || input.getRightJoystickY() != 0) {
@@ -124,6 +126,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
+		if(input == null) return;
 		leftMotor.set(0);
 		rightMotor.set(0);
 	}
@@ -133,8 +136,13 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleDriveState(TeleopInput input) {
-		SlewRateLimiter filter = new SlewRateLimiter(0.5); //limit the rate of change to 0.5
-		leftMotor.set(filter.calculate(input.getLeftJoystickY()));
-		rightMotor.set(filter.calculate(input.getRightJoystickY()));
+		if(input == null) return;
+		
+		// SlewRateLimiter filter = new SlewRateLimiter(0.5); //limit the rate of change to 0.5
+		// leftMotor.set(filter.calculate(-input.getLeftJoystickY()));
+		// rightMotor.set(filter.calculate(input.getRightJoystickY()));
+
+		leftMotor.set(input.getLeftJoystickY());
+		rightMotor.set(-input.getRightJoystickY());
 	}
 }
