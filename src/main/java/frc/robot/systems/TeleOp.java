@@ -11,7 +11,7 @@ import frc.robot.HardwareMap;
 
 public class TeleOp {
 
-	final s
+	final static double ACCELERATION_CONSTANT = 0.5;
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -101,8 +101,8 @@ public class TeleOp {
 		double ld = input.getLeftJoystickY() - left.get();
 		double rd = input.getLeftJoystickY() - right.get();
 
-		left.set(left.get()+ld*);
-		right.set(right.get()+rd*)
+		left.set(left.get()+ld*ACCELERATION_CONSTANT);
+		right.set(right.get()+rd*ACCELERATION_CONSTANT);
 	}
 
 }
