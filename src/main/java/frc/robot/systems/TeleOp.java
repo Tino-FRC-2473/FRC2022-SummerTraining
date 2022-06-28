@@ -98,6 +98,8 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
+		if (input == null)
+			return;
 		double ld = input.getLeftJoystickY() - left.get();
 		double rd = input.getLeftJoystickY() - right.get();
 
