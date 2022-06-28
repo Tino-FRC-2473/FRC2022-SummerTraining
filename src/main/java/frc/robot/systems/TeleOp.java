@@ -25,7 +25,9 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
-
+	
+	private double currLpower=0;
+	private double currRpower=0;
 
 
 	/* ======================== Constructor ======================== */
@@ -106,15 +108,29 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handle(TeleopInput input) {
-		if(input.getRightJoystickX()==0){
-			//forward-backward
-			leftMotor.set(input.getLeftJoystickY());
-			rightMotor.set(input.getLeftJoystickY());
-		}else{
-			//turn
-			leftMotor.set(input.getRightJoystickX());
-			rightMotor.set(-input.getRightJoystickX());
-		}
+		//arcade drive
+		
+			double DesiredLpower = input.getLeftJoystickY()-input.getRightJoystickX();
+			double DesiredRpower =  -input.getLeftJoystickY()-input.getRightJoystickX();
+			if(DesiredLpower>1){
+				DesiredLpower = 1;
+			}else if(DesiredLpower<-1){
+				DesiredLpower = -1;
+			}
+			if(DesiredRpower>1){
+				DesiredLpower = 1;
+			}else if(DesiredRpower<-1){
+				DesiredRpower = -1;
+			}
+			currLpower+=(DesiredLpower-currLpower)/20;
+			currRpower+=(DesiredRpower-currRpower)/20;
+			leftMotor.set(currLpower);
+			rightMotor.set(currRpower);
+		
+
+		//tank drive
+		//leftMotor.set(-input.getLeftJoystickY());
+		//rightMotor.set(input.getRightJoystickY());
+		
 	}
-	
 }
