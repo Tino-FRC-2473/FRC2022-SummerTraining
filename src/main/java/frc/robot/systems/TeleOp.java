@@ -40,6 +40,7 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
         left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
+		right.setInverted(true);
 		// Reset state machine
 		reset();
 	}
@@ -63,7 +64,6 @@ public class TeleOp {
 	public void reset() {
 		currentState = FSMState.MOVE;
 		// Call one tick of update to ensure outputs reflect start state
-		update(null);
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -98,12 +98,16 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
+		/*
 		if (input == null)
 			return;
 		double ld = input.getLeftJoystickY() - left.get();
-		double rd = input.getLeftJoystickY() - right.get();
+		double rd = input.getRightJoystickY() - right.get();
 
 		left.set(left.get()+ld*ACCELERATION_CONSTANT);
 		right.set(right.get()+rd*ACCELERATION_CONSTANT);
+		*/
+		left.set(input.getLeftJoystickY());
+		right.set(input.getRightJoystickY());
 	}
 }
