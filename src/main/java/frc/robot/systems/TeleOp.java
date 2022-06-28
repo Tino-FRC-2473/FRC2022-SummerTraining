@@ -10,6 +10,8 @@ import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
 public class TeleOp {
+
+	final s
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -96,12 +98,11 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
-		double leftJoystickInput = input.getLeftJoystickY();
-        double rightJoystickInput = input.getRightJoystickY();
+		double ld = input.getLeftJoystickY() - left.get();
+		double rd = input.getLeftJoystickY() - right.get();
 
-        //acceleration
-        left.set(leftJoystickInput);
-		right.set(rightJoystickInput);
+		left.set(left.get()+ld*);
+		right.set(right.get()+rd*)
 	}
 
 }

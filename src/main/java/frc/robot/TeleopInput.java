@@ -28,7 +28,6 @@ public class TeleopInput {
 	 */
 	public TeleopInput() {
 		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
 		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
 	}
 
