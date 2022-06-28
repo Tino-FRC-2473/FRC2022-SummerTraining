@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.Joystick;
 public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int WHEEL_JOYSTICK_PORT = 1;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
@@ -29,7 +29,7 @@ public class TeleopInput {
 	public TeleopInput() {
 		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
 
-		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		rightJoystick = new Joystick(WHEEL_JOYSTICK_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -37,7 +37,7 @@ public class TeleopInput {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 	public double getThrottleJoystick() {
-		return leftJoystick.getThrottle();
+		return leftJoystick.getY();
 	}
 
 	public double getSteeringWheel() {
