@@ -111,7 +111,7 @@ public class FSMSystem {
 	private void handleTeleOpState(TeleopInput input) {
 		try {
 			rightMotor.set(input.getRightJoystickY());
-			leftMotor.set(input.getLeftJoystickY());
+			leftMotor.set(-input.getLeftJoystickY());
 		} catch (Exception e) {
 		}
 	}
