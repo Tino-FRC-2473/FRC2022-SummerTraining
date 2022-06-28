@@ -13,8 +13,9 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP_STATE
+// 		START_STATE,
+// 		OTHER_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -34,6 +35,8 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
+		
+		//FIXXXX
 		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
 
@@ -58,7 +61,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.TELEOP_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -71,13 +74,13 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case TELEOP_STATE:
+				handleTeleopState(input);
 				break;
 
-			case OTHER_STATE:
-				handleOtherState(input);
-				break;
+// 			case OTHER_STATE:
+// 				handleOtherState(input);
+// 				break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -97,15 +100,18 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
+			case TELEOP_STATE:
+				
+				return FSMState.TELEOP_STATE;
+				
+// 				if (input != null) {
+// 					return FSMState.OTHER_STATE;
+// 				} else {
+// 					return FSMState.START_STATE;
+// 				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+// 			case OTHER_STATE:
+// 				return FSMState.OTHER_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -113,20 +119,32 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+	
 	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleStartState(TeleopInput input) {
+ 	 * Handle behavior in STATE.
+ 	 * @param input Global TeleopInput if robot in teleop mode or null if
+ 	 *        the robot is in autonomous mode.
+ 	 */
+	private void handleTeleopState(TeleopInput input) {
+		
+		//FIXXX
 		exampleMotor.set(0);
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
-	}
+	
+// 	/**
+// 	 * Handle behavior in START_STATE.
+// 	 * @param input Global TeleopInput if robot in teleop mode or null if
+// 	 *        the robot is in autonomous mode.
+// 	 */
+// 	private void handleStartState(TeleopInput input) {
+// 		exampleMotor.set(0);
+// 	}
+// 	/**
+// 	 * Handle behavior in OTHER_STATE.
+// 	 * @param input Global TeleopInput if robot in teleop mode or null if
+// 	 *        the robot is in autonomous mode.
+// 	 */
+// 	private void handleOtherState(TeleopInput input) {
+// 		exampleMotor.set(MOTOR_RUN_POWER);
+// 	}
 }
