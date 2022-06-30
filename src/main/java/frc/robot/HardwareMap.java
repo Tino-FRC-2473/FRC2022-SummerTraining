@@ -16,6 +16,6 @@ public final class HardwareMap {
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_REVERSE = 2;
 
-	public static final int LEFT_MOTOR = 6;
-	public static final int RIGHT_MOTOR = 7;
+	public static final int LEFT_MOTOR = 3;
+	public static final int RIGHT_MOTOR = 1;
 }
