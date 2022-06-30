@@ -124,6 +124,22 @@ public class FSMSystem {
 		if(input.getRightJoystickY() < 0.1 && input.getRightJoystickY() > -0.1) {
 			rightMotor.set(0);
 		}
+		if(input.getRightJoystickY() > 0 && input.getLeftJoystickX() < 0) {
+			rightMotor.set(-MOTOR_RUN_POWER);
+			leftMotor.set(MOTOR_RUN_POWER);
+		} 
+		if(input.getRightJoystickY() < 0 && input.getLeftJoystickX() > 0) {
+			rightMotor.set(MOTOR_RUN_POWER);
+			leftMotor.set(-MOTOR_RUN_POWER);
+		} 
+		if(input.getRightJoystickY() < 0 && input.getLeftJoystickX() < 0) {
+			rightMotor.set(MOTOR_RUN_POWER);
+			leftMotor.set(MOTOR_RUN_POWER);
+		} 
+		if(input.getRightJoystickY() > 0 && input.getLeftJoystickX() > 0) {
+			rightMotor.set(-MOTOR_RUN_POWER);
+			leftMotor.set(MOTOR_RUN_POWER);
+		} 
 	} else {
 		rightMotor.set(0);
 		leftMotor.set(0);
