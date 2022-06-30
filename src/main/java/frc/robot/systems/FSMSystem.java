@@ -35,9 +35,9 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
@@ -73,7 +73,8 @@ public class FSMSystem {
 	 */
 
 	public void update(TeleopInput input) {
-		handleStartState();
+		
+		handleStartState(input);
 	}
 
 	/* ======================== Private methods ======================== */
@@ -93,7 +94,7 @@ public class FSMSystem {
 			case OTHER_STATE:
 				return FSMState.START_STATE;
 			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
+				throw new IllegalStateException("Invalid state: " + teleOpState.toString());
 		}
 	}
 
@@ -106,16 +107,22 @@ public class FSMSystem {
 	private void handleStartState(TeleopInput input) {
 	if(input != null) {
 		if(input.getLeftJoystickY() > 0) {
-			leftMotor.set(MOTOR_RUN_POWER);
+			leftMotor.set(-MOTOR_RUN_POWER);
 		} 
 		if(input.getLeftJoystickY() < 0) {
-			leftMotor.set(-MOTOR_RUN_POWER);
+			leftMotor.set(MOTOR_RUN_POWER);
+		}
+		if(input.getLeftJoystickY() < 0.1 && input.getLeftJoystickY() > -0.1) {
+			leftMotor.set(0);
 		}
 		if(input.getRightJoystickY() > 0) {
-			rightMotor.set(MOTOR_RUN_POWER);
+			rightMotor.set(-MOTOR_RUN_POWER);
 		} 
 		if(input.getRightJoystickY() < 0) {
-			rightMotor.set(-MOTOR_RUN_POWER);
+			rightMotor.set(MOTOR_RUN_POWER);
+		}
+		if(input.getRightJoystickY() < 0.1 && input.getRightJoystickY() > -0.1) {
+			rightMotor.set(0);
 		}
 	} else {
 		rightMotor.set(0);
