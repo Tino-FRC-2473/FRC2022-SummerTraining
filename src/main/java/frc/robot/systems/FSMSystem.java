@@ -105,8 +105,8 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTeleopState(TeleopInput input) {
 		if(input != null) {
-			double right = -input.getRightJoystickY()-input.getLeftJoystickX();
-			double left = input.getRightJoystickY()-input.getLeftJoystickX();
+			double right = -input.getRightJoystickX()-input.getLeftJoystickY();
+			double left = input.getRightJoystickX()-input.getLeftJoystickY();
 			rightMotor.set(right);
 			leftMotor.set(left);
 		}
