@@ -1,44 +1,40 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.DigitalOutput;
 
 // Third party Hardware Imports
-import com.revrobotics.CANSparkMax;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class FSMSystem {
+public class LightSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		lightOn, lightOff;
+		
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
-	private FSMState teleOpState;
+	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax leftMotor;
-	private CANSparkMax rightMotor;
+	private DigitalOutput lightRelay;
 
 	/* ======================== Constructor ======================== */
 	/**
-	 * Create FSMSystem and initialize to starting state. Also perform any
+	 * Create LightSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
+	public LightSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+		lightRelay = new DigitalOutput(HardwareMap.LIGHT_RELAY_CHANNEL); // TODO: Instantiate lightRelay
+	
 		// Reset state machine
 		reset();
 	}
@@ -49,7 +45,7 @@ public class FSMSystem {
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
-		return teleOpState;
+		return currentState;
 	}
 	/**
 	 * Reset this system to its start state. This may be called from mode init
@@ -60,7 +56,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		teleOpState = FSMState.START_STATE;
+		currentState = FSMState.lightOff;// TODO: Define start state
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -71,9 +67,21 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-
 	public void update(TeleopInput input) {
-		handleStartState();
+		switch (currentState) {
+			// TODO: Assign state handlers for each FSM state
+			case lightOn:
+				handleOn(input);
+				break;
+
+			case lightOff:
+			handleOff(input);
+			break;
+
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		}
+		currentState = nextState(input);
 	}
 
 	/* ======================== Private methods ======================== */
@@ -87,11 +95,25 @@ public class FSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch (teleOpState) {
-			case START_STATE:
-				return FSMState.OTHER_STATE;
-			case OTHER_STATE:
-				return FSMState.START_STATE;
+		// Do not run in Autonomous
+		if (input == null) {
+			return currentState;
+		}
+		// TODO: Define state transitions
+		switch (currentState) {
+			case lightOn:
+				if (input.isOnButtonPressed()) {
+					return FSMState.lightOn;
+				} else {
+					return FSMState.lightOff;
+				}
+
+			case lightOff:
+				if(input.isOnButtonPressed()) {
+					return FSMState.lightOn;
+				} else {
+					return FSMState.lightOff;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -99,29 +121,15 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in ABC_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-	if(input != null) {
-		if(input.getLeftJoystickY() > 0) {
-			leftMotor.set(MOTOR_RUN_POWER);
-		} 
-		if(input.getLeftJoystickY() < 0) {
-			leftMotor.set(-MOTOR_RUN_POWER);
-		}
-		if(input.getRightJoystickY() > 0) {
-			rightMotor.set(MOTOR_RUN_POWER);
-		} 
-		if(input.getRightJoystickY() < 0) {
-			rightMotor.set(-MOTOR_RUN_POWER);
-		}
-	} else {
-		rightMotor.set(0);
-		leftMotor.set(0);
+	private void handleOn (TeleopInput input) {
+		lightRelay.set(true);
 	}
-		
 
+	private void handleOff (TeleopInput input) {
+		lightRelay.set(false);
 	}
 }
