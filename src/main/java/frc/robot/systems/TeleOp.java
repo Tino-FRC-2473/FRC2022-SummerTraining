@@ -98,16 +98,12 @@ public class TeleOp {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			
-			/*
 			case AUTO:
-				
 				if (input != null) {
 					return FSMState.TELEOP;
 				} else {
 					return FSMState.AUTO;
 				}
-			*/
 
 			case TELEOP:
 				return FSMState.TELEOP;
@@ -129,46 +125,33 @@ public class TeleOp {
 		double wheelThreshold = 0.5;
 		double throttleThreshold = 0.1;
 
-		System.out.println("wheel: " + input.getLeftJoystickX());
-		System.out.println("throttle: " + input.getRightJoystickY());
-
 		if (input.getLeftJoystickX() > -wheelThreshold && input.getLeftJoystickX() < wheelThreshold){
             // Wheel Straight
-			System.out.println("moving straight");
 			if (input.getRightJoystickY() > throttleThreshold){
-				System.out.println("forward");
 				frontLeftMotor.set(MOTOR_RUN_POWER);
 				frontRightMotor.set(MOTOR_RUN_POWER);
 			} else if (input.getRightJoystickY() < -throttleThreshold){
-				System.out.println("backward");
 				frontLeftMotor.set(-MOTOR_RUN_POWER);
 				frontRightMotor.set(-MOTOR_RUN_POWER);
 			} else {
-				System.out.println("none");
 				frontLeftMotor.set(0);
 				frontRightMotor.set(0);
 			}
         } else if (input.getLeftJoystickX() >= wheelThreshold){
 			// Wheel right
-			System.out.println("turning right");
             if (input.getRightJoystickY() > throttleThreshold){
-				System.out.println("forward");
 				frontLeftMotor.set(MOTOR_RUN_POWER);
 				frontRightMotor.set(MOTOR_RUN_POWER/2);
 			} else {
-				System.out.println("none");
 				frontLeftMotor.set(0);
 				frontRightMotor.set(0);
 			}
         } else if (input.getLeftJoystickX() <= -wheelThreshold){
 			// Wheel left
-			System.out.println("turning left");
             if (input.getRightJoystickY() > throttleThreshold){
-				System.out.println("backward");
 				frontLeftMotor.set(MOTOR_RUN_POWER/2);
 				frontRightMotor.set(MOTOR_RUN_POWER);
 			} else {
-				System.out.println("none");
 				frontLeftMotor.set(0);
 				frontRightMotor.set(0);
 			}
@@ -180,6 +163,6 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleAuto(TeleopInput input) {
-		// do nothing
+		
 	}
 }

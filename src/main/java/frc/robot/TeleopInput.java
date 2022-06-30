@@ -81,7 +81,7 @@ public class TeleopInput {
 	 * @return Axis value
 	 */
 	public double getRightJoystickY() {
-		return rightJoystick.getY();
+		return -rightJoystick.getY();
 	}
 
 	/* ======================== Private methods ======================== */
