@@ -106,7 +106,7 @@ public class FSMSystem {
 	private void handleTeleopState(TeleopInput input) {
 		if(input != null) {
 			double right = input.getRightJoystickY()-input.getLeftJoystickX();
-			double left = -input.getRightJoystickY()-input.getLeftJoystickX();
+			double left = -(input.getRightJoystickY()+input.getLeftJoystickX());
 			if(right > 1) right = 1;
 			else if(right < - 1) right = -1;
 			if(left > 1) left = 1;
