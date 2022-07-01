@@ -25,7 +25,10 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+
+	// private CANSparkMax exampleMotor;
+	private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -35,10 +38,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		
-		//FIXXXX
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+
+		// exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -64,6 +67,8 @@ public class FSMSystem {
 		currentState = FSMState.TELEOP_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
+		leftMotor.set(MOTOR_RUN_POWER);
+		rightMotor.set(MOTOR_RUN_POWER);
 		update(null);
 	}
 	/**
@@ -126,9 +131,12 @@ public class FSMSystem {
  	 *        the robot is in autonomous mode.
  	 */
 	private void handleTeleopState(TeleopInput input) {
-		
-		//FIXXX
-		exampleMotor.set(0);
+
+		// exampleMotor.set(0);
+
+		if (input == null) return;
+		rightMotor.set(input.getRightJoystickY());
+		leftMotor.set(input.getLeftJoystickY());
 	}
 	
 // 	/**
