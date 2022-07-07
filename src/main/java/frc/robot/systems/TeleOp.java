@@ -17,8 +17,8 @@ public class TeleOp {
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
-	private double turnDeg = 175;
-	private double accelConstant = 10;
+	private static final float turnDeg = 175f;
+	private static final float accelConstant = 10f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
