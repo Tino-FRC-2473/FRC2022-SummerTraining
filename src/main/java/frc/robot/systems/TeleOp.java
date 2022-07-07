@@ -1,7 +1,6 @@
+
 package frc.robot.systems;
-
 // WPILib Imports
-
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 import com.kauailabs.navx.frc.AHRS;
@@ -99,9 +98,9 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		if(input == null){
+		if (input == null) {
 			return FSMState.AUTO;
-		}else{
+		} else {
 			return FSMState.TELEOP;
 		}
 	}
@@ -115,14 +114,14 @@ public class TeleOp {
 		//arcade drive
 		double DesiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
 		double DesiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
-		if(DesiredLpower > 1){
+		if (DesiredLpower > 1) {
 			DesiredLpower = 1;
-		}else if(DesiredLpower < -1){
+		} else if (DesiredLpower < -1) {
 			DesiredLpower = -1;
 		}
-		if(DesiredRpower > 1){
+		if(DesiredRpower > 1) {
 			DesiredRpower = 1;
-		}else if(DesiredRpower < -1){
+		} else if (DesiredRpower < -1) {  
 			DesiredRpower = -1;
 		}
 		currLpower += (DesiredLpower - currLpower) / 10;
@@ -133,13 +132,13 @@ public class TeleOp {
 		//leftMotor.set(-input.getLeftJoystickY());
 		//rightMotor.set(input.getRightJoystickY());
 	}
-	private void handleAuto(TeleopInput input){
-		if(rotating){
-			if(gyro.getAngle() < 175){
+	private void handleAuto(TeleopInput input) {
+		if (rotating) {
+			if (gyro.getAngle() < 175) {
 				//turn CW
 				leftMotor.set(-MOTOR_RUN_POWER);
 				rightMotor.set(-MOTOR_RUN_POWER);
-			}else{
+			} else {
 				leftMotor.set(0);
 				rightMotor.set(0);
 				rotating = false;
