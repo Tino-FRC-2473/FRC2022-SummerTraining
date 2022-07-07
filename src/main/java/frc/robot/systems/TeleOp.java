@@ -26,12 +26,10 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
-	
-	private double currLpower=0;
-	private double currRpower=0;
+	private double currLpower = 0;
+	private double currRpower = 0;
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
-	private double lastDeg=0;
-
+	private boolean rotating = true;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -68,7 +66,6 @@ public class TeleOp {
 		currentState = FSMState.AUTO;
 		gyro.reset();
 		gyro.calibrate();
-
 		// Call one tick of update to ensure outputs reflect start state
 		//update(null);
 	}
@@ -91,7 +88,6 @@ public class TeleOp {
 		}
 		currentState = nextState(input);
 	}
-
 	/* ======================== Private methods ======================== */
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs
@@ -109,7 +105,6 @@ public class TeleOp {
 			return FSMState.TELEOP;
 		}
 	}
-
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
@@ -118,38 +113,37 @@ public class TeleOp {
 	 */
 	private void handle(TeleopInput input) {
 		//arcade drive
-		
-			double DesiredLpower = input.getLeftJoystickY()-input.getRightJoystickX();
-			double DesiredRpower =  -input.getLeftJoystickY()-input.getRightJoystickX();
-			if(DesiredLpower>1){
-				DesiredLpower = 1;
-			}else if(DesiredLpower<-1){
-				DesiredLpower = -1;
-			}
-			if(DesiredRpower>1){
-				DesiredRpower = 1;
-			}else if(DesiredRpower<-1){
-				DesiredRpower = -1;
-			}
-			currLpower+=(DesiredLpower-currLpower)/10;
-			currRpower+=(DesiredRpower-currRpower)/10;
-			leftMotor.set(currLpower);
-			rightMotor.set(currRpower);
-		
-
+		double DesiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
+		double DesiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
+		if(DesiredLpower > 1){
+			DesiredLpower = 1;
+		}else if(DesiredLpower < -1){
+			DesiredLpower = -1;
+		}
+		if(DesiredRpower > 1){
+			DesiredRpower = 1;
+		}else if(DesiredRpower < -1){
+			DesiredRpower = -1;
+		}
+		currLpower += (DesiredLpower - currLpower) / 10;
+		currRpower += (DesiredRpower-currRpower) / 10;
+		leftMotor.set(currLpower);
+		rightMotor.set(currRpower);
 		//tank drive
 		//leftMotor.set(-input.getLeftJoystickY());
 		//rightMotor.set(input.getRightJoystickY());
-		
 	}
 	private void handleAuto(TeleopInput input){
-		if(gyro.getAngle()<175+lastDeg){
-			//turn CW
-			leftMotor.set(-MOTOR_RUN_POWER);
-			rightMotor.set(-MOTOR_RUN_POWER);
-		}else{
-			leftMotor.set(0);
-			rightMotor.set(0);
+		if(rotating){
+			if(gyro.getAngle() < 175){
+				//turn CW
+				leftMotor.set(-MOTOR_RUN_POWER);
+				rightMotor.set(-MOTOR_RUN_POWER);
+			}else{
+				leftMotor.set(0);
+				rightMotor.set(0);
+				rotating = false;
+			}
 		}
 	}
 }
