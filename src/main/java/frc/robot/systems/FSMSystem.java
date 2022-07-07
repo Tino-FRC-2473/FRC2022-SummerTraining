@@ -1,5 +1,8 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
 // WPILib Imports
 
 // Third party Hardware Imports
@@ -14,8 +17,9 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		DRIVE_STATE
+		IDLE_STATE,
+		DRIVE_STATE,
+		TURN_STATE,
 	}
 
 	//private static final float MOTOR_RUN_POWER = 0.1f;
@@ -27,6 +31,7 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -40,7 +45,7 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -62,8 +67,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.DRIVE_STATE;
-
+		currentState = FSMState.IDLE_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -76,12 +82,15 @@ public class FSMSystem {
 	public void update(TeleopInput input) {
 		if (input==null) return;
 		switch (currentState) {
-			case START_STATE:
+			case IDLE_STATE:
 				handleStartState(input);
 				break;
 
 			case DRIVE_STATE:
 				handleDriveState(input);
+				break;
+			case TURN_STATE:
+				handleTurnState(input);
 				break;
 
 			default:
@@ -102,22 +111,39 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input.getLeftJoystickY() != 0 || input.getRightJoystickY() != 0) {
-					return FSMState.DRIVE_STATE;
+			case IDLE_STATE:
+				if (gyro.getAngle() >= 175 && gyro.getAngle() <= 185) {
+					return FSMState.IDLE_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.TURN_STATE;
 				}
+				// if (Math.abs(input.getLeftJoystickY()) > 0.2 || Math.abs(input.getRightJoystickY()) > 0.2) {
+				// 	return FSMState.DRIVE_STATE;
+				// } else {
+				// 	return FSMState.IDLE_STATE;
+				// }
 
 			case DRIVE_STATE:
 				return FSMState.DRIVE_STATE;
-
+			case TURN_STATE:
+				if (gyro.getAngle() >= 175 && gyro.getAngle() <= 185) {
+					return FSMState.IDLE_STATE;
+				} else {
+					return FSMState.TURN_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+	private void handleTurnState(TeleopInput input) {
+		if (input == null) {
+			leftMotor.set(0.5);
+			rightMotor.set(-0.5);
+		}
+	}
+
 	/**
 	 * Handle behavior in START_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
@@ -134,13 +160,48 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleDriveState(TeleopInput input) {
-		// SlewRateLimiter filter = new SlewRateLimiter(0.5);
-		// leftMotor.set(filter.calculate(input.getLeftJoystickY()));
-		// rightMotor.set(filter.calculate(input.getRightJoystickY()));
 		if (input==null) return;
-		long currTime = System.currentTimeMillis();
+		// SlewRateLimiter filterL = new SlewRateLimiter(0.5);
+		// SlewRateLimiter filterR = new SlewRateLimiter(0.5);
+		// leftMotor.set(filterL.calculate(input.getLeftJoystickY()));
+		// rightMotor.set(filterR.calculate(input.getRightJoystickY()));
 
-		leftMotor.set(-input.getLeftJoystickY());
-		rightMotor.set(-input.getRightJoystickY());
+		long prevTime = System.currentTimeMillis();
+		double currentSpeedL = input.getLeftJoystickY();
+		double currentSpeedR = input.getRightJoystickY();
+		double targetSpeed = 0.5;
+		double change = 0.2;
+
+		while (true) {
+			if (System.currentTimeMillis() - prevTime >= 10) {
+				prevTime = System.currentTimeMillis();
+				//limiting left motor acceleration
+				if (Math.abs(currentSpeedL) < targetSpeed) {
+					currentSpeedL += change * (currentSpeedL/Math.abs(currentSpeedL));
+					if (Math.abs(currentSpeedL) > targetSpeed) currentSpeedL = targetSpeed;
+				}
+				if (Math.abs(currentSpeedL) > targetSpeed) {
+					currentSpeedL -= change * (currentSpeedL/Math.abs(currentSpeedL));
+					if (Math.abs(currentSpeedL) < targetSpeed) currentSpeedL = targetSpeed;
+				}
+				leftMotor.set(currentSpeedL);
+
+				//limiting right motor acceleration
+				if (Math.abs(currentSpeedR) < targetSpeed) {
+					currentSpeedR += change * (currentSpeedL/Math.abs(currentSpeedL));
+					if (Math.abs(currentSpeedR) > targetSpeed) currentSpeedR = targetSpeed;
+				}
+				if (Math.abs(currentSpeedR) > targetSpeed) {
+					currentSpeedR -= change * (currentSpeedL/Math.abs(currentSpeedL));
+					if (Math.abs(currentSpeedR) < targetSpeed) currentSpeedR = targetSpeed;
+				}
+				rightMotor.set(currentSpeedR);
+			}
+		}
+		// leftMotor.set(input.getLeftJoystickY());
+		// rightMotor.set(input.getRightJoystickY());
+
+
+
 	}
 }
