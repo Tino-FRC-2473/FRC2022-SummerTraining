@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.SPI;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
+//import edu.wpi.first.math.filter.SlewRateLimiter;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -25,6 +25,8 @@ public class FSMSystem {
 	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
+	private double TARGET = 180;
+	private double POWER = 0.5;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -80,7 +82,9 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		if (input==null) return;
+		if (input == null) {
+			return;
+		}
 		switch (currentState) {
 			case IDLE_STATE:
 				handleStartState(input);
@@ -117,7 +121,8 @@ public class FSMSystem {
 				} else {
 					return FSMState.TURN_STATE;
 				}
-				// if (Math.abs(input.getLeftJoystickY()) > 0.2 || Math.abs(input.getRightJoystickY()) > 0.2) {
+				// if (Math.abs(input.getLeftJoystickY()) > 0.2 || 
+				//Math.abs(input.getRightJoystickY()) > 0.2) {
 				// 	return FSMState.DRIVE_STATE;
 				// } else {
 				// 	return FSMState.IDLE_STATE;
@@ -126,7 +131,7 @@ public class FSMSystem {
 			case DRIVE_STATE:
 				return FSMState.DRIVE_STATE;
 			case TURN_STATE:
-				if (gyro.getAngle() >= 175 && gyro.getAngle() <= 185) {
+				if (gyro.getAngle() >= TARGET - 5 && gyro.getAngle() <= TARGET + 5) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
@@ -139,8 +144,8 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTurnState(TeleopInput input) {
 		if (input == null) {
-			leftMotor.set(0.5);
-			rightMotor.set(-0.5);
+			leftMotor.set(POWER);
+			rightMotor.set(-POWER);
 		}
 	}
 
