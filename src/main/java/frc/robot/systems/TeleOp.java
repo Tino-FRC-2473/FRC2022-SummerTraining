@@ -29,6 +29,8 @@ public class TeleOp {
 	private double currRpower = 0;
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 	private boolean rotating = true;
+	private double turnDeg = 175;
+	private double accelConstant = 10;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -112,20 +114,20 @@ public class TeleOp {
 	 */
 	private void handle(TeleopInput input) {
 		//arcade drive
-		double DesiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
-		double DesiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
-		if (DesiredLpower > 1) {
-			DesiredLpower = 1;
-		} else if (DesiredLpower < -1) {
-			DesiredLpower = -1;
+		double desiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
+		double desiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
+		if (desiredLpower > 1) {
+			desiredLpower = 1;
+		} else if (desiredLpower < -1) {
+			desiredLpower = -1;
 		}
-		if(DesiredRpower > 1) {
-			DesiredRpower = 1;
-		} else if (DesiredRpower < -1) {  
-			DesiredRpower = -1;
+		if (desiredRpower > 1) {
+			desiredRpower = 1;
+		} else if (desiredRpower < -1) {
+			desiredRpower = -1;
 		}
-		currLpower += (DesiredLpower - currLpower) / 10;
-		currRpower += (DesiredRpower-currRpower) / 10;
+		currLpower += (desiredLpower - currLpower) / accelConstant;
+		currRpower += (desiredRpower - currRpower) / accelConstant;
 		leftMotor.set(currLpower);
 		rightMotor.set(currRpower);
 		//tank drive
@@ -134,7 +136,7 @@ public class TeleOp {
 	}
 	private void handleAuto(TeleopInput input) {
 		if (rotating) {
-			if (gyro.getAngle() < 175) {
+			if (gyro.getAngle() < turnDeg) {
 				//turn CW
 				leftMotor.set(-MOTOR_RUN_POWER);
 				rightMotor.set(-MOTOR_RUN_POWER);
