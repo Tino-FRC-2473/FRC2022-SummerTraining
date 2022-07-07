@@ -1,7 +1,7 @@
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.math.filter.SlewRateLimiter;
+//import edu.wpi.first.math.filter.SlewRateLimiter;
 
 import edu.wpi.first.wpilibj.SPI;
 // Third party Hardware Imports
@@ -47,8 +47,7 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		gyro = new AHRS(SPI.Port.kMXP);
-										
+		gyro = new AHRS(SPI.Port.kMXP);							
 		// Reset state machine
 		reset();
 	}
@@ -84,7 +83,9 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		if(input == null) return;
+		if(input == null) {
+			return;
+		}
 		switch (currentState) {
 			case START_STATE:
 				handleStartState(input);
@@ -93,7 +94,7 @@ public class FSMSystem {
 			case DRIVE_STATE:
 				handleDriveState(input);
 				break;
-
+			
 			case IDLE_STATE:
 				handleIdleState(input);
 				break;
