@@ -1,6 +1,8 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -9,13 +11,14 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
+
 public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		TELEOP_STATE
-// 		START_STATE,
-// 		OTHER_STATE
+		TELEOP_STATE,
+ 		IDLE_STATE,
+ 		TURNING_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,10 +28,9 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-
-	// private CANSparkMax exampleMotor;
 	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,10 +40,9 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-
-		// exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -64,7 +65,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.TELEOP_STATE;
+		currentState = FSMState.IDLE_STATE;
+		gyro.reset();
+		gyro.calibrate();
 
 		// Call one tick of update to ensure outputs reflect start state
 		leftMotor.set(MOTOR_RUN_POWER);
@@ -83,9 +86,13 @@ public class FSMSystem {
 				handleTeleopState(input);
 				break;
 
-// 			case OTHER_STATE:
-// 				handleOtherState(input);
-// 				break;
+			case IDLE_STATE:
+				handleIdleState(input);
+				break;
+
+ 			case TURNING_STATE:
+ 				handleTurningState(input);
+ 				break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -106,17 +113,22 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case TELEOP_STATE:
-				
 				return FSMState.TELEOP_STATE;
-				
-// 				if (input != null) {
-// 					return FSMState.OTHER_STATE;
-// 				} else {
-// 					return FSMState.START_STATE;
-// 				}
 
-// 			case OTHER_STATE:
-// 				return FSMState.OTHER_STATE;
+			case IDLE_STATE:
+				
+				if (gyro.getAngle() < 180) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
+
+ 			case TURNING_STATE:
+				if (gyro.getAngle() < 180) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -126,33 +138,35 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	
 	/**
- 	 * Handle behavior in STATE.
+ 	 * Handle behavior in TELEOP_STATE.
  	 * @param input Global TeleopInput if robot in teleop mode or null if
  	 *        the robot is in autonomous mode.
  	 */
 	private void handleTeleopState(TeleopInput input) {
-
-		// exampleMotor.set(0);
-
 		if (input == null) return;
 		rightMotor.set(input.getRightJoystickY());
 		leftMotor.set(input.getLeftJoystickY());
 	}
 	
-// 	/**
-// 	 * Handle behavior in START_STATE.
-// 	 * @param input Global TeleopInput if robot in teleop mode or null if
-// 	 *        the robot is in autonomous mode.
-// 	 */
-// 	private void handleStartState(TeleopInput input) {
-// 		exampleMotor.set(0);
-// 	}
-// 	/**
-// 	 * Handle behavior in OTHER_STATE.
-// 	 * @param input Global TeleopInput if robot in teleop mode or null if
-// 	 *        the robot is in autonomous mode.
-// 	 */
-// 	private void handleOtherState(TeleopInput input) {
-// 		exampleMotor.set(MOTOR_RUN_POWER);
-// 	}
+	/**
+	 * Handle behavior in START_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	private void handleIdleState(TeleopInput input) {
+		if (input == null) return;
+	 	rightMotor.set(MOTOR_RUN_POWER);
+	 	leftMotor.set(MOTOR_RUN_POWER);
+	}
+	/**
+	 * Handle behavior in OTHER_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	private void handleTurningState(TeleopInput input) {
+		if (input == null) {
+			rightMotor.set(-MOTOR_RUN_POWER*5);
+			leftMotor.set(MOTOR_RUN_POWER*5);
+		}
+	}
 }
