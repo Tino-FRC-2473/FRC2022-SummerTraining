@@ -20,6 +20,7 @@ public class FSMSystem {
 		DRIVE_STATE,
 		IDLE_STATE,
 		TURNING_STATE,
+		ENDING_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -131,14 +132,19 @@ public class FSMSystem {
 				return FSMState.DRIVE_STATE;
 
 			case IDLE_STATE:
-				if((gyro.getAngle() >= 175 && gyro.getAngle() <= 185) || (gyro.getAngle() <= -175 && gyro.getAngle() >= -185)) {
+				if(gyro.getAngle() > 179 || gyro.getAngle() < -179) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
 				}
 				
 			case TURNING_STATE:
-				return FSMState.TURNING_STATE;
+				if(gyro.getAngle() > 179 || gyro.getAngle() < -179) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
+					
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -220,9 +226,6 @@ public class FSMSystem {
 			System.out.println("right speed: " + currentSpeedR);
 		}
 		rightMotor.set(currentSpeedR);
-				
-			
-		
 	}
 
 	private void handleIdleState(TeleopInput input) {
