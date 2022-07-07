@@ -11,7 +11,6 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-
 public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
