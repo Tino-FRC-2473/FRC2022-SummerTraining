@@ -43,7 +43,7 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		gyro = new AHRS(SPI.Port.kMXP);							
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -79,11 +79,10 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		if(input == null) {
+		if (input == null) {
 			return;
 		}
 		switch (currentState) {
-			
 			case IDLE_STATE:
 				handleIdleState(input);
 				break;
