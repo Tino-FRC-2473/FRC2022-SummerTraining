@@ -17,8 +17,8 @@ public class TeleOp {
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final float turnDeg = 175f;
-	private static final float accelConstant = 10f;
+	private static final float TURN_DEG = 175f;
+	private static final float ACCEL_CONSTANT = 10f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -126,8 +126,8 @@ public class TeleOp {
 		} else if (desiredRpower < -1) {
 			desiredRpower = -1;
 		}
-		currLpower += (desiredLpower - currLpower) / accelConstant;
-		currRpower += (desiredRpower - currRpower) / accelConstant;
+		currLpower += (desiredLpower - currLpower) / ACCEL_CONSTANT;
+		currRpower += (desiredRpower - currRpower) / ACCEL_CONSTANT;
 		leftMotor.set(currLpower);
 		rightMotor.set(currRpower);
 		//tank drive
@@ -136,7 +136,7 @@ public class TeleOp {
 	}
 	private void handleAuto(TeleopInput input) {
 		if (rotating) {
-			if (gyro.getAngle() < turnDeg) {
+			if (gyro.getAngle() < TURN_DEG) {
 				//turn CW
 				leftMotor.set(-MOTOR_RUN_POWER);
 				rightMotor.set(-MOTOR_RUN_POWER);
