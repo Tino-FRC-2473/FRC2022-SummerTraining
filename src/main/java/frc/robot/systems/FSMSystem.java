@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.SPI;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
-//import edu.wpi.first.math.filter.SlewRateLimiter;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -18,7 +17,6 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		IDLE_STATE,
-		DRIVE_STATE,
 		TURN_STATE,
 	}
 
@@ -89,10 +87,6 @@ public class FSMSystem {
 			case IDLE_STATE:
 				handleStartState(input);
 				break;
-
-			case DRIVE_STATE:
-				handleDriveState(input);
-				break;
 			case TURN_STATE:
 				handleTurnState(input);
 				break;
@@ -121,15 +115,6 @@ public class FSMSystem {
 				} else {
 					return FSMState.TURN_STATE;
 				}
-				// if (Math.abs(input.getLeftJoystickY()) > 0.2 || 
-				//Math.abs(input.getRightJoystickY()) > 0.2) {
-				// 	return FSMState.DRIVE_STATE;
-				// } else {
-				// 	return FSMState.IDLE_STATE;
-				// }
-
-			case DRIVE_STATE:
-				return FSMState.DRIVE_STATE;
 			case TURN_STATE:
 				if (gyro.getAngle() >= TARGET - 5 && gyro.getAngle() <= TARGET + 5) {
 					return FSMState.IDLE_STATE;
@@ -158,55 +143,5 @@ public class FSMSystem {
 		if (input==null) return;
 		leftMotor.set(0);
 		rightMotor.set(0);
-	}
-	/**
-	 * Handle behavior in DRIVE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleDriveState(TeleopInput input) {
-		if (input==null) return;
-		// SlewRateLimiter filterL = new SlewRateLimiter(0.5);
-		// SlewRateLimiter filterR = new SlewRateLimiter(0.5);
-		// leftMotor.set(filterL.calculate(input.getLeftJoystickY()));
-		// rightMotor.set(filterR.calculate(input.getRightJoystickY()));
-
-		long prevTime = System.currentTimeMillis();
-		double currentSpeedL = input.getLeftJoystickY();
-		double currentSpeedR = input.getRightJoystickY();
-		double targetSpeed = 0.5;
-		double change = 0.2;
-
-		while (true) {
-			if (System.currentTimeMillis() - prevTime >= 10) {
-				prevTime = System.currentTimeMillis();
-				//limiting left motor acceleration
-				if (Math.abs(currentSpeedL) < targetSpeed) {
-					currentSpeedL += change * (currentSpeedL/Math.abs(currentSpeedL));
-					if (Math.abs(currentSpeedL) > targetSpeed) currentSpeedL = targetSpeed;
-				}
-				if (Math.abs(currentSpeedL) > targetSpeed) {
-					currentSpeedL -= change * (currentSpeedL/Math.abs(currentSpeedL));
-					if (Math.abs(currentSpeedL) < targetSpeed) currentSpeedL = targetSpeed;
-				}
-				leftMotor.set(currentSpeedL);
-
-				//limiting right motor acceleration
-				if (Math.abs(currentSpeedR) < targetSpeed) {
-					currentSpeedR += change * (currentSpeedL/Math.abs(currentSpeedL));
-					if (Math.abs(currentSpeedR) > targetSpeed) currentSpeedR = targetSpeed;
-				}
-				if (Math.abs(currentSpeedR) > targetSpeed) {
-					currentSpeedR -= change * (currentSpeedL/Math.abs(currentSpeedL));
-					if (Math.abs(currentSpeedR) < targetSpeed) currentSpeedR = targetSpeed;
-				}
-				rightMotor.set(currentSpeedR);
-			}
-		}
-		// leftMotor.set(input.getLeftJoystickY());
-		// rightMotor.set(input.getRightJoystickY());
-
-
-
 	}
 }
