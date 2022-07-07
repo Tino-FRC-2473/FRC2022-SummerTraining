@@ -1,10 +1,13 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+
 // WPILib Imports
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -13,7 +16,7 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		TELEOP_STATE
+		TURNING_STATE, IDLE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,6 +28,7 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,6 +42,8 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
+
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -59,8 +65,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.TELEOP_STATE;
-
+		currentState = FSMState.IDLE_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -72,10 +79,12 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case TELEOP_STATE:
-				handleTeleopState(input);
+			case IDLE_STATE:
+				handleIdleState(input);
 				break;
-
+			case TURNING_STATE:
+				handleTurningState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -94,21 +103,33 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case TELEOP_STATE:
-				return FSMState.TELEOP_STATE;
-
+			case IDLE_STATE:
+				if(gyro.getAngle() < 180) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
+			case TURNING_STATE:
+				if(gyro.getAngle() > 180) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	private void handleTeleopState(TeleopInput input) {
-		if(input != null) {
-			double right = -input.getRightJoystickX()-input.getLeftJoystickY();
-			double left = input.getRightJoystickX()-input.getLeftJoystickY();
-			rightMotor.set(right);
-			leftMotor.set(left);
+	private void handleIdleState(TeleopInput input) {
+		rightMotor.set(0);
+		leftMotor.set(0);
+	}
+
+	private void handleTurningState(TeleopInput input) {
+		if(input == null) {
+			rightMotor.set(-0.5);
+			leftMotor.set(0.5);
 		}
 	}
 }
