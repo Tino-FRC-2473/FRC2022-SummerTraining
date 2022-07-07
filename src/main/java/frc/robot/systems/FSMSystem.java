@@ -17,11 +17,12 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE,
- 		IDLE_STATE,
- 		TURNING_STATE
+		IDLE_STATE,
+		TURNING_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final int MAX_TURN = 180;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -40,8 +41,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, 
+		CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, 
+		CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
@@ -90,7 +93,7 @@ public class FSMSystem {
 				handleIdleState(input);
 				break;
 
- 			case TURNING_STATE:
+			case TURNING_STATE:
  				handleTurningState(input);
  				break;
 
@@ -117,14 +120,14 @@ public class FSMSystem {
 
 			case IDLE_STATE:
 				
-				if (gyro.getAngle() < 180) {
+				if (gyro.getAngle() < MAX_TURN) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
 				}
 
  			case TURNING_STATE:
-				if (gyro.getAngle() < 180) {
+				if (gyro.getAngle() < MAX_TURN) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
