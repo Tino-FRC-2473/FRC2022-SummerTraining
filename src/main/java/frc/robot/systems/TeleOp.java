@@ -30,7 +30,7 @@ public class TeleOp {
 	private double currLpower=0;
 	private double currRpower=0;
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
-
+	private double lastDeg=0;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -44,7 +44,6 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		
 		// Reset state machine
 		reset();
 	}
@@ -144,11 +143,7 @@ public class TeleOp {
 		
 	}
 	private void handleAuto(TeleopInput input){
-		if(gyro.getAngle()>175){
-			//turn CCW
-			leftMotor.set(MOTOR_RUN_POWER);
-			rightMotor.set(MOTOR_RUN_POWER);
-		}else if(gyro.getAngle()<165){
+		if(gyro.getAngle()<175+lastDeg){
 			//turn CW
 			leftMotor.set(-MOTOR_RUN_POWER);
 			rightMotor.set(-MOTOR_RUN_POWER);
