@@ -1,7 +1,6 @@
 package frc.robot.systems;
 
 // WPILib Imports
-//import edu.wpi.first.math.filter.SlewRateLimiter;
 
 import edu.wpi.first.wpilibj.SPI;
 // Third party Hardware Imports
@@ -16,11 +15,8 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		DRIVE_STATE,
 		IDLE_STATE,
-		TURNING_STATE,
-		ENDING_STATE
+		TURNING_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -87,13 +83,6 @@ public class FSMSystem {
 			return;
 		}
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
-				break;
-
-			case DRIVE_STATE:
-				handleDriveState(input);
-				break;
 			
 			case IDLE_STATE:
 				handleIdleState(input);
@@ -122,15 +111,6 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		
 		switch (currentState) {
-			case START_STATE:
-				if (Math.abs(input.getLeftJoystickY()) >= 0.2 || Math.abs(input.getRightJoystickY()) >= 0.2) {
-					return FSMState.DRIVE_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case DRIVE_STATE:
-				return FSMState.DRIVE_STATE;
 
 			case IDLE_STATE:
 				if(gyro.getAngle() > 179 || gyro.getAngle() < -179) {
@@ -153,81 +133,6 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleStartState(TeleopInput input) {
-		if(input == null) return;
-		leftMotor.set(0);
-		rightMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleDriveState(TeleopInput input) {
-		if(input == null) return;
-		
-		// SlewRateLimiter filterL = new SlewRateLimiter(0.5); //limit the rate of change to 0.5
-		// SlewRateLimiter filterR = new SlewRateLimiter(0.5); //limit the rate of change to 0.5
-		// leftMotor.set(filterL.calculate(-input.getLeftJoystickY()));
-		// rightMotor.set(filterR.calculate(input.getRightJoystickY()));
-
-		// leftMotor.set(input.getLeftJoystickY());
-		// rightMotor.set(input.getRightJoystickY());
-
-		long prevTime = System.currentTimeMillis();
-		double currentSpeedL = input.getLeftJoystickY();
-		double currentSpeedR = input.getRightJoystickY();
-		System.out.println("left speed: " + currentSpeedL);
-		System.out.println("right speed: " + currentSpeedR);
-		double change = 0.2;
-		double targetSpeed = 0.5;
-
-		
-			
-
-		//limiting left motor acceleration
-		if (Math.abs(currentSpeedL) < targetSpeed)
-		{
-			currentSpeedL += change * (currentSpeedL/Math.abs(currentSpeedL));
-			if (Math.abs(currentSpeedL) > targetSpeed) currentSpeedL = targetSpeed;
-
-			System.out.println("left speed: " + currentSpeedL);
-			System.out.println("right speed: " + currentSpeedR);
-		}		
-		if (Math.abs(currentSpeedL) > targetSpeed)
-		{
-			currentSpeedL -= change * (currentSpeedL/Math.abs(currentSpeedL));
-			if (Math.abs(currentSpeedL) < targetSpeed) currentSpeedL = targetSpeed;
-
-			System.out.println("left speed: " + currentSpeedL);
-			System.out.println("right speed: " + currentSpeedR);
-		}
-		leftMotor.set(currentSpeedL);
-
-		//limiting right motor acceleration
-		if (Math.abs(currentSpeedR) < targetSpeed)
-		{
-			currentSpeedR += change * (currentSpeedR/Math.abs(currentSpeedR));
-			if (Math.abs(currentSpeedR) > targetSpeed) currentSpeedR = targetSpeed;
-
-			System.out.println("left speed: " + currentSpeedL);
-			System.out.println("right speed: " + currentSpeedR);
-		}	
-		if (Math.abs(currentSpeedR) > targetSpeed)
-		{
-			currentSpeedR -= change * (currentSpeedR/Math.abs(currentSpeedR));
-			if (Math.abs(currentSpeedR) < targetSpeed) currentSpeedR = targetSpeed;
-
-			System.out.println("left speed: " + currentSpeedL);
-			System.out.println("right speed: " + currentSpeedR);
-		}
-		rightMotor.set(currentSpeedR);
-	}
 
 	private void handleIdleState(TeleopInput input) {
 		if(input == null) 
