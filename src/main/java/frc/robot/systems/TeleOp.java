@@ -1,4 +1,5 @@
 package frc.robot.systems;
+import com.kauailabs.navx.frc.AHRS;
 
 // WPILib Imports
 
@@ -13,7 +14,8 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-        TELEOP_STATE
+        TELEOP_STATE,
+		TURN_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,6 +27,7 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
     private CANSparkMax leftMotor;
     private CANSparkMax rightMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -36,7 +39,8 @@ public class TeleOp {
 		// Perform hardware init
         leftMotor = new CANSparkMax(HardwareMap.LEFT_MOTOR, CANSparkMax.MotorType.kBrushless);
         rightMotor = new CANSparkMax(HardwareMap.RIGHT_MOTOR, CANSparkMax.MotorType.kBrushless);
-		rightMotor.setInverted(true);
+		leftMotor.setInverted(true);
+		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -59,7 +63,8 @@ public class TeleOp {
 	 */
 	public void reset() {
 		currentState = FSMState.TELEOP_STATE;
-
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -73,6 +78,9 @@ public class TeleOp {
 		switch (currentState) {
 			case TELEOP_STATE:
 				handleTeleOpState(input);
+				break;
+			case TURN_STATE:
+				handleTurnState(input);
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -93,8 +101,17 @@ public class TeleOp {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case TELEOP_STATE:
-				return FSMState.TELEOP_STATE;
-
+				if(input!=null){
+					return FSMState.TELEOP_STATE;
+				}else{
+					return FSMState.TURN_STATE;
+				}
+			case TURN_STATE:
+				if(input!=null){
+					return FSMState.TELEOP_STATE;
+				}else{
+					return FSMState.TURN_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -120,4 +137,19 @@ public class TeleOp {
 		leftMotor.set(l);
 		rightMotor.set(r);
     }
+
+	private void handleTurnState(TeleopInput input){
+		if(input!=null){
+			return;
+		}
+		double angle = Math.abs(gyro.getAngle());
+		angle%=180;
+		if(angle<=185||angle>=175){
+			return;
+		}else{
+			rightMotor.set(-1);
+			leftMotor.set(1);
+		}
+
+	}
 }
