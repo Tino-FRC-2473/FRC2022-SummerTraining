@@ -17,6 +17,8 @@ public class TeleOp {
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
+	private double turnDeg = 175;
+	private double accelConstant = 10;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -29,8 +31,6 @@ public class TeleOp {
 	private double currRpower = 0;
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 	private boolean rotating = true;
-	private double turnDeg = 175;
-	private double accelConstant = 10;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
