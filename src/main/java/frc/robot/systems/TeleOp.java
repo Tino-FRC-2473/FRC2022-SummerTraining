@@ -4,7 +4,8 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -13,7 +14,7 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		TELEOP
+		TELEOP, AUTO
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -28,6 +29,7 @@ public class TeleOp {
 	
 	private double currLpower=0;
 	private double currRpower=0;
+	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
 
 	/* ======================== Constructor ======================== */
@@ -64,7 +66,9 @@ public class TeleOp {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.TELEOP;
+		currentState = FSMState.AUTO;
+		gyro.reset();
+		gyro.calibrate();
 
 		// Call one tick of update to ensure outputs reflect start state
 		//update(null);
@@ -80,7 +84,9 @@ public class TeleOp {
 			case TELEOP:
 				handle(input);
 				break;
-
+			case AUTO:
+				handleAuto(null);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -98,7 +104,11 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		return FSMState.TELEOP;
+		if(input == null){
+			return FSMState.AUTO;
+		}else{
+			return FSMState.TELEOP;
+		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -118,12 +128,12 @@ public class TeleOp {
 				DesiredLpower = -1;
 			}
 			if(DesiredRpower>1){
-				DesiredLpower = 1;
+				DesiredRpower = 1;
 			}else if(DesiredRpower<-1){
 				DesiredRpower = -1;
 			}
-			currLpower+=(DesiredLpower-currLpower)/20;
-			currRpower+=(DesiredRpower-currRpower)/20;
+			currLpower+=(DesiredLpower-currLpower)/10;
+			currRpower+=(DesiredRpower-currRpower)/10;
 			leftMotor.set(currLpower);
 			rightMotor.set(currRpower);
 		
@@ -132,5 +142,19 @@ public class TeleOp {
 		//leftMotor.set(-input.getLeftJoystickY());
 		//rightMotor.set(input.getRightJoystickY());
 		
+	}
+	private void handleAuto(TeleopInput input){
+		if(gyro.getAngle()>175){
+			//turn CCW
+			leftMotor.set(MOTOR_RUN_POWER);
+			rightMotor.set(MOTOR_RUN_POWER);
+		}else if(gyro.getAngle()<165){
+			//turn CW
+			leftMotor.set(-MOTOR_RUN_POWER);
+			rightMotor.set(-MOTOR_RUN_POWER);
+		}else{
+			leftMotor.set(0);
+			rightMotor.set(0);
+		}
 	}
 }
