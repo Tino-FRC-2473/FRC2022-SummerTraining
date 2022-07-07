@@ -16,7 +16,7 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		TURNING_STATE, IDLE_STATE
+		/*TELEOP_STATE,*/ TURNING_STATE, IDLE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -85,6 +85,9 @@ public class FSMSystem {
 			case TURNING_STATE:
 				handleTurningState(input);
 				break;
+			// case TELEOP_STATE:
+			// 	handleTeleopState(input);
+			// 	break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -115,6 +118,8 @@ public class FSMSystem {
 				} else {
 					return FSMState.IDLE_STATE;
 				}
+			// case TELEOP_STATE:
+			// 	return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -132,4 +137,13 @@ public class FSMSystem {
 			leftMotor.set(0.5);
 		}
 	}
+
+	// private void handleTeleopState(TeleopInput input) {
+	// 	if(input != null) {
+	// 		double right = -input.getRightJoystickY()-input.getLeftJoystickX();
+	// 		double left = input.getRightJoystickY()-input.getLeftJoystickX();
+	// 		rightMotor.set(right);
+	// 		leftMotor.set(left);
+	// 	}
+	// }
 }
