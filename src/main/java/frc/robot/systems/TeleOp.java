@@ -1,42 +1,42 @@
+
 package frc.robot.systems;
-
 // WPILib Imports
-
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class FSMSystem {
+public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final float ACCEL_CONSTANT = 10f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
-
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
+	private double currLpower = 0;
+	private double currRpower = 0;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
+	public TeleOp() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -58,10 +58,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
+		currentState = FSMState.TELEOP;
 		// Call one tick of update to ensure outputs reflect start state
-		update(null);
+		//update(null);
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -71,20 +70,14 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case TELEOP:
+				handle(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
-				break;
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 		currentState = nextState(input);
 	}
-
 	/* ======================== Private methods ======================== */
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs
@@ -96,37 +89,34 @@ public class FSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
-			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
-		}
+		return FSMState.TELEOP;
 	}
-
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handle(TeleopInput input) {
+		//arcade drive
+		double desiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
+		double desiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
+		if (desiredLpower > 1) {
+			desiredLpower = 1;
+		} else if (desiredLpower < -1) {
+			desiredLpower = -1;
+		}
+		if (desiredRpower > 1) {
+			desiredRpower = 1;
+		} else if (desiredRpower < -1) {
+			desiredRpower = -1;
+		}
+		currLpower += (desiredLpower - currLpower) / ACCEL_CONSTANT;
+		currRpower += (desiredRpower - currRpower) / ACCEL_CONSTANT;
+		leftMotor.set(currLpower);
+		rightMotor.set(currRpower);
+		//tank drive
+		//leftMotor.set(-input.getLeftJoystickY());
+		//rightMotor.set(input.getRightJoystickY());
 	}
 }
