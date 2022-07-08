@@ -18,6 +18,7 @@ public class Auto {
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final float TURN_DEG = 180f;
+	private static final float TURN_THRESHOLD = 5f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -98,11 +99,11 @@ public class Auto {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case TURNING:
-				if (gyro.getAngle() > TURN_DEG - 5) {
-                    return FSMState.IDLE;
-                } else {
-                    return FSMState.TURNING;
-                }
+				if (gyro.getAngle() > TURN_DEG - TURN_THRESHOLD) {
+					return FSMState.IDLE;
+				} else {
+					return FSMState.TURNING;
+				}
 			case IDLE:
 				return FSMState.IDLE;
 			default:
@@ -115,13 +116,13 @@ public class Auto {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-    private void handleTurning(TeleopInput input) {
-        //CW turn
-        leftMotor.set(-MOTOR_RUN_POWER);
-        rightMotor.set(-MOTOR_RUN_POWER);
-    }
-    private void handleIdle(TeleopInput input) {
-        leftMotor.set(0);
-        rightMotor.set(0);
-    }
+	private void handleTurning(TeleopInput input) {
+		//CW turn
+		leftMotor.set(-MOTOR_RUN_POWER);
+		rightMotor.set(-MOTOR_RUN_POWER);
+	}
+	private void handleIdle(TeleopInput input) {
+		leftMotor.set(0);
+		rightMotor.set(0);
+	}
 }
