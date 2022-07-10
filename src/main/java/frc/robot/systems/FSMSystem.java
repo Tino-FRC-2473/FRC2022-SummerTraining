@@ -15,9 +15,8 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		//START_STATE,
 		TELEOP_STATE, 
-		DRIVE_STATE, 
+		IDLE_STATE
 		TURNING_STATE
 	}
 
@@ -85,8 +84,8 @@ public class FSMSystem {
 			case TELEOP_STATE:
 				handleTeleopState(input);
 				break;
-			case DRIVE_STATE:
-				handleDriveState(input);
+			case IDLE_STATE:
+				handleIdleState(input);
 				break;
 			case TURNING_STATE: 
 				handleTurningState(input);
@@ -124,10 +123,46 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+	
 	/**
-	 * Handle behavior in DRIVE_STATE.
+	 * Handle behavior in TELEOP_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
+	
+	private void handleTeleopState(TeleopInput input) {
+		if (input == null) {
+			return;
+		}
+		rightMotor.set(input.getRightJoystickY());
+		leftMotor.set(input.getLeftJoystickY());
+	}
+	
+	/**
+	 * Handle behavior in START_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	
+	private void handleIdleState(TeleopInput input) {
+		if (input == null) {
+			return;
+		}
+		rightMotor.set(MOTOR_RUN_POWER);
+		leftMotor.set(MOTOR_RUN_POWER);
+	}
+	
+	/**
+	 * Handle behavior in OTHER_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * the robot is in autonomous mode.
+	 */
+	
+	private void handleTurningState(TeleopInput input) {
+		if (input == null) {
+			rightMotor.set(-MOTOR_RUN_POWER * TURN_AMOUNT);
+			leftMotor.set(MOTOR_RUN_POWER * TURN_AMOUNT);
+		}
+	}
 	
 }
