@@ -37,7 +37,7 @@ public class FSMSystem {
 	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
-	
+
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
@@ -83,7 +83,7 @@ public class FSMSystem {
 		rightMotor.set(MOTOR_RUN_POWER);
 		update(null);
 	}
-	
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
