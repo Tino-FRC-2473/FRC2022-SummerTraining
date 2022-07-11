@@ -30,6 +30,9 @@ public class FSMSystem {
 	private CANSparkMax leftMotor;
 	private AHRS gyro;
 
+	private int angle = 180;
+	private double move = 0.5;
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -107,13 +110,13 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
-				if(gyro.getAngle() < 180) {
+				if (gyro.getAngle() < angle) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
 				}
 			case TURNING_STATE:
-				if(gyro.getAngle() > 180) {
+				if (gyro.getAngle() > angle) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
@@ -132,9 +135,9 @@ public class FSMSystem {
 	}
 
 	private void handleTurningState(TeleopInput input) {
-		if(input == null) {
-			rightMotor.set(-0.5);
-			leftMotor.set(0.5);
+		if (input == null) {
+			rightMotor.set(-move);
+			leftMotor.set(move);
 		}
 	}
 
