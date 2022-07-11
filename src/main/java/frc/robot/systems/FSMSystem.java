@@ -30,8 +30,8 @@ public class FSMSystem {
 	private CANSparkMax leftMotor;
 	private AHRS gyro;
 
-	private final int ANGLE = 180;
-	private final double MOVE = 0.5;
+	private static final int ANGLE = 180;
+	private static final double MOVE = 0.5;
 
 	/* ======================== Constructor ======================== */
 	/**
