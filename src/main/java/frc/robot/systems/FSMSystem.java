@@ -1,11 +1,12 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
 // WPILib Imports
 
-import edu.wpi.first.wpilibj.SPI;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -16,12 +17,15 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		IDLE_STATE,
-		TURNING_STATE
+		TURN_STATE,
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
+	private static final double THRESHOLD = 5;
+	private static final double ANGLE = 180;
+	private static final double POW = 0.5;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -29,7 +33,6 @@ public class FSMSystem {
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
 	private AHRS gyro;
-
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -39,9 +42,9 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
@@ -68,7 +71,6 @@ public class FSMSystem {
 		currentState = FSMState.IDLE_STATE;
 		gyro.reset();
 		gyro.calibrate();
-
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -79,16 +81,13 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		if (input == null) {
-			return;
-		}
+		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
 			case IDLE_STATE:
-				handleIdleState(input);
+				handleStartState(input);
 				break;
-			
-			case TURNING_STATE:
-				handleTurningState(input);
+			case TURN_STATE:
+				handleTurnState(input);
 				break;
 
 			default:
@@ -108,40 +107,41 @@ public class FSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		
 		switch (currentState) {
-
 			case IDLE_STATE:
-				if(gyro.getAngle() > 179 || gyro.getAngle() < -179) {
-					return FSMState.TURNING_STATE;
-				} else {
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
 					return FSMState.IDLE_STATE;
-				}
-				
-			case TURNING_STATE:
-				if(gyro.getAngle() > 179 || gyro.getAngle() < -179) {
-					return FSMState.TURNING_STATE;
 				} else {
-					return FSMState.IDLE_STATE;
+					return FSMState.TURN_STATE;
 				}
-					
-
+			case TURN_STATE:
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
+					return FSMState.IDLE_STATE;
+				} else {
+					return FSMState.TURN_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-
-	private void handleIdleState(TeleopInput input) {
-		if(input == null) 
-			leftMotor.set(0);
-			rightMotor.set(0);
+	private void handleTurnState(TeleopInput input) {
+		System.out.println("TURN_STATE:" + gyro.getAngle());
+		if (input == null) {
+			leftMotor.set(POW);
+			rightMotor.set(POW);
+		}
 	}
 
-	private void handleTurningState(TeleopInput input) {
-		if(input == null) 
-			leftMotor.set(0.5);
-			rightMotor.set(-0.5);
+	/**
+	 * Handle behavior in START_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	private void handleStartState(TeleopInput input) {
+		System.out.println("IDLE_STATE");
+		leftMotor.set(0);
+		rightMotor.set(0);
 	}
 }
