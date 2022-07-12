@@ -14,7 +14,7 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-    	TELEOP_STATE,
+		TELEOP_STATE,
 		TURN_STATE,
 		IDLE_STATE
 	}
@@ -103,17 +103,17 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch(currentState) {
+		switch (currentState) {
 			case TELEOP_STATE:
-				if(input!=null){
+				if (input != null) {
 					return FSMState.TELEOP_STATE;
-				}else{
+				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if(input!=null){
+				if (input != null) {
 					return FSMState.TELEOP_STATE;
-				}else{
+				} else {
 					return FSMState.TURN_STATE;
 				}
 			case IDLE_STATE:
@@ -134,13 +134,13 @@ public class TeleOp {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-    private void handleTeleOpState(TeleopInput input){
-        if(input==null){
+    private void handleTeleOpState(TeleopInput input) {
+        if (input==null) {
 			return;
 		}
-		if(input.isShooterButtonPressed()){
+		if(input.isShooterButtonPressed()) {
 			
-		}else{
+		} else {
 			double l = input.getLeftJoystickY();
 			double r = input.getRightJoystickY();
 			leftMotor.set(l);
@@ -148,32 +148,32 @@ public class TeleOp {
 		}
     }
 
-	private void handleTurnState(TeleopInput input){
-		if(input!=null){
+	private void handleTurnState(TeleopInput input) {
+		if(input != null) {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
-		if(angle>=175){
-			angle%=180;
-			if(angle<=5||angle>=175){
+		if (angle >= 175) {
+			angle %= 180;
+			if (angle <=5 || angle >= 175 ) {
 				currentState = FSMState.IDLE_STATE;
 				return;
-			}else{
+			} else {
 				rightMotor.set(-0.1);
 				leftMotor.set(0.1);
 			}
-		}else{
+		} else {
 			rightMotor.set(-0.1);
 			leftMotor.set(0.1);
 		}
 
 	}
 
-	private void handleIdleState(TeleopInput input){
+	private void handleIdleState(TeleopInput input) {
 		double angle = Math.abs(gyro.getAngle());
-		if(angle>=175){
-			angle%=180;
-			if(!(angle<=5||angle>=175)){
+		if (angle >= 175) {
+			angle %= 180;
+			if (!(angle <= 5 || angle >= 175)) {
 				currentState = FSMState.TURN_STATE;
 				return;
 			}
