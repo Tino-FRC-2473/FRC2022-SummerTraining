@@ -29,9 +29,9 @@ public class FSMSystem {
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
-	private int TURN_AMT = 180;
-	private double LEFT_TURN_VALUE = -0.5;
-	private double RIGHT_TURN_VALUE = 0.5;
+	private static final int TURN_AMT = 180;
+	private static final double LEFT_TURN_VALUE = -0.5;
+	private static final double RIGHT_TURN_VALUE = 0.5;
 
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -162,7 +162,7 @@ public class FSMSystem {
 	// private void handleOtherState(TeleopInput input) {
 	// 	exampleMotor.set(MOTOR_RUN_POWER);
 	// }
-		
+
 	private void handleTurnState(TeleopInput input) {
 		double angle = gyro.getAngle();
 		if (angle < 180) {
