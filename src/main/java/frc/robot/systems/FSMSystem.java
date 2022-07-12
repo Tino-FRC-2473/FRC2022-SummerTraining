@@ -31,6 +31,7 @@ public class FSMSystem {
 	private AHRS gyro;
 
 	private static final int ANGLE = 180;
+	private static final int THRESHOLD = 5;
 	private static final double MOVE = 0.5;
 
 	/* ======================== Constructor ======================== */
@@ -110,13 +111,13 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
-				if (gyro.getAngle() < ANGLE) {
+				if (gyro.getAngle()%ANGLE > THRESHOLD || gyro.getAngle()%ANGLE < ANGLE - THRESHOLD) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
 				}
 			case TURNING_STATE:
-				if (gyro.getAngle() > ANGLE) {
+				if (gyro.getAngle()%ANGLE > THRESHOLD || gyro.getAngle()%ANGLE < ANGLE - THRESHOLD) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
