@@ -24,7 +24,7 @@ public class FSMSystem {
 
 	private static final float MOTOR_RUN_POWER = 0.5f;
 	private static final int MAX_TURN = 180;
-	private static final int TURN_APPROXIMATION = 5;
+	private static final int THRESHOLD = 5;
 
 	/* ======================== Private variables ======================== */
 
@@ -91,6 +91,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
 			case TELEOP_STATE:
 				handleTeleopState(input);
@@ -127,17 +128,23 @@ public class FSMSystem {
 				return FSMState.TELEOP_STATE;
 
 			case IDLE_STATE:
-				if (gyro.getAngle() < MAX_TURN - TURN_APPROXIMATION) {
+				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
-				} else {
+				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD ||
+				gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
+				} else {
+					return FSMState.TURNING_STATE;
 				}
 
 			case TURNING_STATE:
-				if (gyro.getAngle() < MAX_TURN - TURN_APPROXIMATION) {
+				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
-				} else {
+				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD ||
+				gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
+				} else {
+					return FSMState.TURNING_STATE;
 				}
 
 			default:
@@ -176,7 +183,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTurningState(TeleopInput input) {
-		rightMotor.set(-MOTOR_RUN_POWER);
+		rightMotor.set(MOTOR_RUN_POWER);
 		leftMotor.set(MOTOR_RUN_POWER);
 	}
 }
