@@ -15,14 +15,14 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		TELEOP_STATE, 
+		TELEOP_STATE,
 		IDLE_STATE,
 		TURNING_STATE,
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final int MAX_TURN = 180; 
-	private static final int TURN_AMOUNT = 5; 
+	private static final int MAX_TURN = 180;
+	private static final int TURN_AMOUNT = 5;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
