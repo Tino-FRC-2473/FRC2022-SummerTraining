@@ -165,8 +165,8 @@ public class FSMSystem {
 
 	private void handleTurnState(TeleopInput input) {
 		double angle = gyro.getAngle();
-		if (angle < 180) {
-			// values should be from -1 to 1 
+		if (angle < TURN_AMT) {
+			// values should be from -1 to 1
 			exampleMotorLeft.set(LEFT_TURN_VALUE);
 			exampleMotorRight.set(RIGHT_TURN_VALUE);
 		}
