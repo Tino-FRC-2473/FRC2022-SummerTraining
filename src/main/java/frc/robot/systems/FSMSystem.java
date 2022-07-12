@@ -111,6 +111,7 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
+			
 				if (gyro.getAngle() < ANGLE - THRESHOLD
 					|| gyro.getAngle() > ANGLE + THRESHOLD) {
 					return FSMState.TURNING_STATE;
@@ -139,7 +140,7 @@ public class FSMSystem {
 
 	private void handleTurningState(TeleopInput input) {
 		if (input == null) {
-			rightMotor.set(-MOVE);
+			rightMotor.set(MOVE);
 			leftMotor.set(MOVE);
 		}
 	}
