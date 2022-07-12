@@ -23,9 +23,9 @@ public class FSMSystem {
 	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
-	private final double LOW_TARGET = 175;
-	private final double HIGH_TARGET = 185;
-	private final double POW = 0.5;
+	private final double low_target = 175;
+	private final double high_target = 185;
+	private final double pow = 0.5;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -111,13 +111,13 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
-				if (gyro.getAngle() >= 175 && gyro.getAngle() <= 185) {
+				if (gyro.getAngle() >= low_target && gyro.getAngle() <= high_target) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() >= LOW_TARGET && gyro.getAngle() <= HIGH_TARGET) {
+				if (gyro.getAngle() >= low_target && gyro.getAngle() <= high_target) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
@@ -130,8 +130,8 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTurnState(TeleopInput input) {
 		if (input == null) {
-			leftMotor.set(POW);
-			rightMotor.set(-POW);
+			leftMotor.set(pow);
+			rightMotor.set(-pow);
 		}
 	}
 
@@ -141,7 +141,9 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		if (input==null) return;
+		if (input == null) {
+			return;
+		}
 		leftMotor.set(0);
 		rightMotor.set(0);
 	}
