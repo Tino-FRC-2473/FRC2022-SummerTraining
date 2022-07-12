@@ -130,8 +130,8 @@ public class FSMSystem {
 			case IDLE_STATE:
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
-				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD ||
-				gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
+				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
+					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURNING_STATE;
@@ -140,8 +140,8 @@ public class FSMSystem {
 			case TURNING_STATE:
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
-				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD ||
-				gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
+				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
+					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURNING_STATE;
