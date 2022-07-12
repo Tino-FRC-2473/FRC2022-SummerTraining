@@ -15,7 +15,8 @@ public class TeleOp {
 	// FSM state definitions
 	public enum FSMState {
         TELEOP_STATE,
-		TURN_STATE
+		TURN_STATE,
+		IDLE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -82,6 +83,8 @@ public class TeleOp {
 			case TURN_STATE:
 				handleTurnState(input);
 				break;
+			case IDLE_STATE:
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -112,6 +115,8 @@ public class TeleOp {
 				}else{
 					return FSMState.TURN_STATE;
 				}
+			case IDLE_STATE:
+				return FSMState.IDLE_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -132,10 +137,14 @@ public class TeleOp {
         if(input==null){
 			return;
 		}
-		double l = input.getLeftJoystickY();
-		double r = input.getRightJoystickY();
-		leftMotor.set(l);
-		rightMotor.set(r);
+		if(input.isShooterButtonPressed()){
+			
+		}else{
+			double l = input.getLeftJoystickY();
+			double r = input.getRightJoystickY();
+			leftMotor.set(l);
+			rightMotor.set(r);
+		}
     }
 
 	private void handleTurnState(TeleopInput input){
@@ -143,12 +152,18 @@ public class TeleOp {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
-		angle%=180;
-		if(angle<=185||angle>=175){
-			return;
+		if(angle>=175){
+			angle%=180;
+			if(angle<=5||angle>=175){
+				currentState = FSMState.IDLE_STATE;
+				return;
+			}else{
+				rightMotor.set(-0.1);
+				leftMotor.set(0.1);
+			}
 		}else{
-			rightMotor.set(-1);
-			leftMotor.set(1);
+			rightMotor.set(-0.1);
+			leftMotor.set(0.1);
 		}
 
 	}
