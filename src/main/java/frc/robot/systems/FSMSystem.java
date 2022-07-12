@@ -1,5 +1,8 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
 // WPILib Imports
 
 // Third party Hardware Imports
@@ -13,18 +16,23 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		IDLE_STATE,
+		TURN_STATE,
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
+	private static final double THRESHOLD = 5;
+	private static final double ANGLE = 180;
+	private static final double POW = 0.5;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,9 +42,11 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -58,8 +68,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
+		currentState = FSMState.IDLE_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -70,13 +81,13 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
-			case START_STATE:
+			case IDLE_STATE:
 				handleStartState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case TURN_STATE:
+				handleTurnState(input);
 				break;
 
 			default:
@@ -97,36 +108,40 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+			case IDLE_STATE:
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
+					return FSMState.IDLE_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.TURN_STATE;
 				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case TURN_STATE:
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
+					return FSMState.IDLE_STATE;
+				} else {
+					return FSMState.TURN_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+	private void handleTurnState(TeleopInput input) {
+		System.out.println("TURN_STATE:" + gyro.getAngle());
+		if (input == null) {
+			leftMotor.set(POW);
+			rightMotor.set(POW);
+		}
+	}
+
 	/**
 	 * Handle behavior in START_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		System.out.println("IDLE_STATE");
+		leftMotor.set(0);
+		rightMotor.set(0);
 	}
 }
