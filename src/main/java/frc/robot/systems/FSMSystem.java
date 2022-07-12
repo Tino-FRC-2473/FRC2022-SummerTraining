@@ -24,8 +24,8 @@ public class FSMSystem {
 
 	private static final float MOTOR_RUN_POWER = 0.5f;
 	private static final int MAX_TURN = 180;
-	//for precision 
-	private static final int ERROR = 5;
+	//Precision; accounts for the error on the machine
+	private static final int THRESHOLD = 5;
 
 	/* ======================== Private variables ======================== */
 
@@ -76,6 +76,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
+		//set it to motionless
 		currentState = FSMState.IDLE_STATE;
 		gyro.reset();
 		gyro.calibrate();
@@ -130,8 +131,10 @@ public class FSMSystem {
 				return FSMState.TELEOP_STATE;
 
 			case IDLE_STATE:
+				//check if it is within a certain range, tells us if it still needs to turn
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
+				//check for multiple of 180 using %				
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
@@ -163,6 +166,7 @@ public class FSMSystem {
  	 */
 	private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
+			//return so we exit and are no longer in teleop, since we need to enter auto
 			return;
 		}
 		rightMotor.set(input.getRightJoystickY());
