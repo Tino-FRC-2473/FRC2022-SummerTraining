@@ -22,14 +22,18 @@ public class Auto {
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
 
+	private static final int STUPID = 180;
+	private static final int STUPID_2 = 5;
+	private static final int STUPID_3 = 175;
+
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax frontLeftMotor;
-    private CANSparkMax frontRightMotor;
-    private AHRS gyro;
+	private CANSparkMax frontRightMotor;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -40,8 +44,10 @@ public class Auto {
 	public Auto() {
 		// Perform hardware init
 		gyro = new AHRS(SPI.Port.kMXP);
-        frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
-        frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
+		frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+		CANSparkMax.MotorType.kBrushless);
+		frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+		CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -66,8 +72,8 @@ public class Auto {
 	public void reset() {
 		currentState = FSMState.IDLE;
 
-        gyro.reset();
-        gyro.calibrate();
+		gyro.reset();
+		gyro.calibrate();
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -81,11 +87,15 @@ public class Auto {
 	public void update(TeleopInput input) {
 		switch (currentState) {
 			case IDLE:
-				if (input == null) handleIdleState(input);
+				if (input == null) {
+					handleIdleState(input);
+				}
 				break;
 
 			case TURN:
-                if (input == null) handleTurnState(input);
+				if (input == null) {
+					handleTurnState(input);
+				}
 				break;
 
 			default:
@@ -107,18 +117,18 @@ public class Auto {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE:
-                if (inRange()){
-                    return FSMState.IDLE;
-                } else {
-                    return FSMState.TURN;
-                }
+				if (inRange()) {
+					return FSMState.IDLE;
+				} else {
+					return FSMState.TURN;
+				}
 
 			case TURN:
-                if (inRange()){
-                    return FSMState.IDLE;
-                } else {
-                    return FSMState.TURN;
-                }
+				if (inRange()) {
+					return FSMState.IDLE;
+				} else {
+					return FSMState.TURN;
+				}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -132,10 +142,10 @@ public class Auto {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
-		if (input != null){
-            frontLeftMotor.set(0);
-            frontRightMotor.set(0);
-        }
+		if (input != null) {
+			frontLeftMotor.set(0);
+			frontRightMotor.set(0);
+		}
 	}
 	/**
 	 * Handle behavior in TURN.
@@ -143,17 +153,13 @@ public class Auto {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTurnState(TeleopInput input) {
-		if (input != null){
-            frontLeftMotor.set(MOTOR_RUN_POWER);
-            frontRightMotor.set(MOTOR_RUN_POWER*2);
-        }
+		if (input != null) {
+			frontLeftMotor.set(MOTOR_RUN_POWER);
+			frontRightMotor.set(MOTOR_RUN_POWER * 2);
+		}
 	}
 
-    private boolean inRange(){
-        if (gyro.getAngle() % 180 <= 5 || gyro.getAngle() % 180 >= 175){
-            return true;
-        } else {
-            return false;
-        }
-    }
+	private boolean inRange() {
+		return gyro.getAngle() % STUPID <= STUPID_2 || gyro.getAngle() % STUPID >= STUPID_3;
+	}
 }
