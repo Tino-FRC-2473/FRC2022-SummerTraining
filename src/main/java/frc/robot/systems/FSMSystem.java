@@ -25,7 +25,7 @@ public class FSMSystem {
 	private static final float MOTOR_RUN_POWER = 0.5f;
 	private static final int MAX_TURN = 180;
 	//Precision; accounts for the error on the machine
-	private static final int THRESHOLD = 5;
+	private static final int ERROR = 5;
 
 	/* ======================== Private variables ======================== */
 
@@ -50,8 +50,7 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 			CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-			CANSparkMax.MotorType.kBrushless);		
-
+			CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -131,21 +130,21 @@ public class FSMSystem {
 
 			case IDLE_STATE:
 				//check if it is within a certain range, tells us if it still needs to turn
-				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
+				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
 					return FSMState.TURNING_STATE;
 				//check for multiple of 180 using %
-				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
-					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
+				} else if (gyro.getAngle() % MAX_TURN < ERROR
+					|| gyro.getAngle() % MAX_TURN > MAX_TURN - ERROR) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURNING_STATE;
 				}
 
 			case TURNING_STATE:
-				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
+				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
 					return FSMState.TURNING_STATE;
-				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
-					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
+				} else if (gyro.getAngle() % MAX_TURN < ERROR
+					|| gyro.getAngle() % MAX_TURN > MAX_TURN - ERROR) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURNING_STATE;
