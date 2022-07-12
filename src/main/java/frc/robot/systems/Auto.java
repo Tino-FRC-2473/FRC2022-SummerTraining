@@ -22,9 +22,8 @@ public class Auto {
 
 	private static final float MOTOR_RUN_POWER = 0.45f;
 
-	private static final int STUPID = 180;
-	private static final int STUPID_2 = 175;
-	private static final int STUPID_3 = 185;
+	private static final int STUPID_LOW = 175;
+	private static final int STUPID_HIGH = 185;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -143,7 +142,6 @@ public class Auto {
 	 */
 	private void handleIdleState(TeleopInput input) {
 		if (input == null) {
-			System.out.println(gyro.getAngle() + ", " + currentState);
 			frontLeftMotor.set(0);
 			frontRightMotor.set(0);
 		}
@@ -155,13 +153,12 @@ public class Auto {
 	 */
 	private void handleTurnState(TeleopInput input) {
 		if (input == null) {
-			System.out.println(gyro.getAngle() + ", " + currentState);
 			frontLeftMotor.set(MOTOR_RUN_POWER);
 			frontRightMotor.set(MOTOR_RUN_POWER);
 		}
 	}
 
 	private boolean inRange() {
-		return gyro.getAngle() >= STUPID_2 && gyro.getAngle() <= STUPID_3;
+		return gyro.getAngle() >= STUPID_LOW && gyro.getAngle() <= STUPID_HIGH;
 	}
 }
