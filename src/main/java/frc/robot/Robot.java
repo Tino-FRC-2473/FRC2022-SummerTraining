@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		fsmSystem.update(null);
+		fsmSystem.update(input);
 	}
 
 	@Override
