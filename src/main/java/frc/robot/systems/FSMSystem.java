@@ -23,9 +23,9 @@ public class FSMSystem {
 	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
-	private final double lowTarget = 175;
-	private final double highTarget = 185;
-	private final double pow = 0.5;
+	private static final double THRESHOLD = 5;
+	private static final double ANGLE = 180;
+	private static final double POW = 0.5;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -111,13 +111,13 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
-				if (gyro.getAngle() >= lowTarget && gyro.getAngle() <= highTarget) {
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() >= lowTarget && gyro.getAngle() <= highTarget) {
+				if (gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
@@ -130,8 +130,8 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTurnState(TeleopInput input) {
 		if (input == null) {
-			leftMotor.set(pow);
-			rightMotor.set(-pow);
+			leftMotor.set(POW);
+			rightMotor.set(-POW);
 		}
 	}
 
