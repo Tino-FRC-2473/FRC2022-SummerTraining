@@ -112,14 +112,14 @@ public class FSMSystem {
 		switch (currentState) {
 			case IDLE_STATE:
 				if (gyro.getAngle() < ANGLE - THRESHOLD
-					|| gyro.getAngle() > ANGLE+ THRESHOLD) {
+					|| gyro.getAngle() > ANGLE + THRESHOLD) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
 				}
 			case TURNING_STATE:
 				if (gyro.getAngle() < ANGLE - THRESHOLD
-					|| gyro.getAngle() > ANGLE+ THRESHOLD) {
+					|| gyro.getAngle() > ANGLE + THRESHOLD) {
 					return FSMState.TURNING_STATE;
 				} else {
 					return FSMState.IDLE_STATE;
