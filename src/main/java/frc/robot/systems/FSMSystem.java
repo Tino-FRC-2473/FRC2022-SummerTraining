@@ -24,6 +24,7 @@ public class FSMSystem {
 
 	private static final float MOTOR_RUN_POWER = 0.5f;
 	private static final int MAX_TURN = 180;
+	//for precision
 	private static final int THRESHOLD = 5;
 
 	/* ======================== Private variables ======================== */
@@ -45,11 +46,11 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
+		gyro = new AHRS(SPI.Port.kMXP);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 			CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 			CANSparkMax.MotorType.kBrushless);
-		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -92,6 +93,7 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		System.out.println(currentState + " " + gyro.getAngle());
+		
 		switch (currentState) {
 			case TELEOP_STATE:
 				handleTeleopState(input);
@@ -128,12 +130,16 @@ public class FSMSystem {
 				return FSMState.TELEOP_STATE;
 
 			case IDLE_STATE:
+				//checks to make sure to keep turning, accounting for threshold
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
+				// use % to check for multiples of 180. 
+				//if finished, continue to idle state as robot should finish turning 
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
+				//otherwise, the base case is to turn
 					return FSMState.TURNING_STATE;
 				}
 
@@ -142,6 +148,7 @@ public class FSMSystem {
 					return FSMState.TURNING_STATE;
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
+					//check to see if robot should change state 
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURNING_STATE;
@@ -161,6 +168,7 @@ public class FSMSystem {
  	 */
 	private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
+			//exit if it's supposed to be in auto, else continue with the rest of teleop code
 			return;
 		}
 		rightMotor.set(input.getRightJoystickY());
@@ -173,6 +181,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
+		//set speed to 0 to bring it to rest for both motors 
 		rightMotor.set(0);
 		leftMotor.set(0);
 	}
