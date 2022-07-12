@@ -1,10 +1,13 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+
 // WPILib Imports
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -13,8 +16,7 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		/*TELEOP_STATE,*/ TURNING_STATE, IDLE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +26,13 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor;
+	private AHRS gyro;
+
+	private static final int ANGLE = 180;
+	private static final int THRESHOLD = 5;
+	private static final double MOVE = 0.5;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,9 +42,12 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -58,8 +69,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
+		currentState = FSMState.IDLE_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -71,14 +83,15 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case IDLE_STATE:
+				handleIdleState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case TURNING_STATE:
+				handleTurningState(input);
 				break;
-
+			// case TELEOP_STATE:
+			// 	handleTeleopState(input);
+			// 	break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -97,36 +110,46 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+			case IDLE_STATE:
+				if (gyro.getAngle() < ANGLE - THRESHOLD
+					|| gyro.getAngle() > ANGLE + THRESHOLD) {
+					return FSMState.TURNING_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.IDLE_STATE;
 				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case TURNING_STATE:
+				if (gyro.getAngle() < ANGLE - THRESHOLD
+					|| gyro.getAngle() > ANGLE + THRESHOLD) {
+					return FSMState.TURNING_STATE;
+				} else {
+					return FSMState.IDLE_STATE;
+				}
+			// case TELEOP_STATE:
+			// 	return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+	private void handleIdleState(TeleopInput input) {
+		rightMotor.set(0);
+		leftMotor.set(0);
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+
+	private void handleTurningState(TeleopInput input) {
+		if (input == null) {
+			rightMotor.set(MOVE);
+			leftMotor.set(MOVE);
+		}
 	}
+
+	// private void handleTeleopState(TeleopInput input) {
+	// 	if(input != null) {
+	// 		double right = -input.getRightJoystickY()-input.getLeftJoystickX();
+	// 		double left = input.getRightJoystickY()-input.getLeftJoystickX();
+	// 		rightMotor.set(right);
+	// 		leftMotor.set(left);
+	// 	}
+	// }
 }
