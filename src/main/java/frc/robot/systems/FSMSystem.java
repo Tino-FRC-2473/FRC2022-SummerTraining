@@ -24,7 +24,8 @@ public class FSMSystem {
 
 	private static final float MOTOR_RUN_POWER = 0.5f;
 	private static final int MAX_TURN = 180;
-	private static final int THRESHOLD = 5;
+	//for precision 
+	private static final int ERROR = 5;
 
 	/* ======================== Private variables ======================== */
 
@@ -45,11 +46,12 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
+		gyro = new AHRS(SPI.Port.kMXP);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 			CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 			CANSparkMax.MotorType.kBrushless);
-		gyro = new AHRS(SPI.Port.kMXP);
+		
 
 		// Reset state machine
 		reset();
