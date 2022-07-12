@@ -14,7 +14,7 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-        TELEOP_STATE,
+    	TELEOP_STATE,
 		TURN_STATE,
 		IDLE_STATE
 	}
@@ -26,8 +26,8 @@ public class TeleOp {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-    private CANSparkMax leftMotor;
-    private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
 	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
@@ -38,8 +38,8 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-        leftMotor = new CANSparkMax(HardwareMap.LEFT_MOTOR, CANSparkMax.MotorType.kBrushless);
-        rightMotor = new CANSparkMax(HardwareMap.RIGHT_MOTOR, CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.LEFT_MOTOR, CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.RIGHT_MOTOR, CANSparkMax.MotorType.kBrushless);
 		leftMotor.setInverted(true);
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		// Reset state machine
@@ -84,6 +84,7 @@ public class TeleOp {
 				handleTurnState(input);
 				break;
 			case IDLE_STATE:
+				handleIdleState(input);
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -102,7 +103,7 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch (currentState) {
+		switch(currentState) {
 			case TELEOP_STATE:
 				if(input!=null){
 					return FSMState.TELEOP_STATE;
@@ -166,5 +167,16 @@ public class TeleOp {
 			leftMotor.set(0.1);
 		}
 
+	}
+
+	private void handleIdleState(TeleopInput input){
+		double angle = Math.abs(gyro.getAngle());
+		if(angle>=175){
+			angle%=180;
+			if(!(angle<=5||angle>=175)){
+				currentState = FSMState.TURN_STATE;
+				return;
+			}
+		}
 	}
 }
