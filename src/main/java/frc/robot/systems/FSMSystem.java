@@ -124,13 +124,13 @@ public class FSMSystem {
 			case START_STATE:
 				return FSMState.START_STATE;
 			case IDLE_STATE:
-				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) {
+				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) { 
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) {
+				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) { 
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
