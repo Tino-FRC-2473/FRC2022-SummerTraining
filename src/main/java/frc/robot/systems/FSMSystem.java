@@ -175,7 +175,8 @@ public class FSMSystem {
 		double angle = gyro.getAngle();
 		if (angle < TURN_AMT) {
 			// values should be from -1 to 1
-			exampleMotorLeft.set(TURN_VALUE);
+			exampleMotorLeft.set(-TURN_VALUE);
+			exampleMotorRight.set(-TURN_VALUE);
 		}
 	}
 
