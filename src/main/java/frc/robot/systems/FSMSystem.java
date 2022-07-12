@@ -81,9 +81,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		if (input == null) {
-			return;
-		}
+		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
 			case IDLE_STATE:
 				handleStartState(input);
@@ -129,9 +127,10 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTurnState(TeleopInput input) {
+		System.out.println("TURN_STATE:" + gyro.getAngle());
 		if (input == null) {
 			leftMotor.set(POW);
-			rightMotor.set(-POW);
+			rightMotor.set(POW);
 		}
 	}
 
@@ -141,9 +140,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		if (input == null) {
-			return;
-		}
+		System.out.println("IDLE_STATE");
 		leftMotor.set(0);
 		rightMotor.set(0);
 	}
