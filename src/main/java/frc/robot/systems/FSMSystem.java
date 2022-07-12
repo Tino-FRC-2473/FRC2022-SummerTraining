@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-
+	
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -114,12 +114,12 @@ public class FSMSystem {
 			case TELEOP_STATE: 
 				return FSMState.TELEOP_STATE; 
 			case IDLE_STATE: 
-				if (gyro.getAngle() < MAX_TURN){
+				if (gyro.getAngle() < MAX_TURN) {
 					return FSMState.TURNING_STATE;
 				}
 				return FSMState.IDLE_STATE;
 			case TURNING_STATE:
-				if (gyro.getAngle() < MAX_TURN){
+				if (gyro.getAngle() < MAX_TURN) {
 					return FSMState.TURNING_STATE;
 				}
 				return FSMState.IDLE_STATE;
