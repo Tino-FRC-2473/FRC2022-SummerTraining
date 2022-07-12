@@ -11,7 +11,7 @@ public class teleOp {
     public enum FSMState {
         MOVE
     }
-    private static final float MOTOR_RUN_POWER = 0.1f;
+    //private static final float MOTOR_RUN_POWER = 0.1f;
     /* ======================== Private variables ======================== */
     private FSMState currentState;
     // Hardware devices should be owned by one and only one system. They must
@@ -42,7 +42,7 @@ public class teleOp {
     }
     /**
      * Reset this system to its start state. This may be called from mode init
-     * when the robot is enabled.
+     * when the robot is enabled.a
      *
      * Note this is distinct from the one-time initialization in the constructor
      * as it may be called multiple times in a boot cycle,
