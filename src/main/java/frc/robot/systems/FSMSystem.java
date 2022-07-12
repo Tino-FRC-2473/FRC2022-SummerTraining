@@ -16,8 +16,8 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE, 
-		IDLE_STATE
-		TURNING_STATE
+		IDLE_STATE,
+		TURNING_STATE,
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
