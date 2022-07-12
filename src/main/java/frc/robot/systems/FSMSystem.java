@@ -15,11 +15,11 @@ import frc.robot.HardwareMap;
 public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
-	public enum FSMState { 
+	public enum FSMState {
 		START_STATE,
 		TURN_STATE,
 		IDLE_STATE
-		//OTHER_STATE 
+		//OTHER_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -28,6 +28,10 @@ public class FSMSystem {
 	private FSMState currentState;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
+
+	private int TURN_AMT = 180;
+	private double LEFT_TURN_VALUE = -0.5;
+	private double RIGHT_TURN_VALUE = 0.5;
 
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -45,7 +49,6 @@ public class FSMSystem {
 		// Perform hardware init
 		exampleMotorLeft = new CANSparkMax(HardwareMap.CAN_ID_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-										
 		exampleMotorRight = new CANSparkMax(HardwareMap.CAN_ID_RIGHT,
 		CANSparkMax.MotorType.kBrushless);
 
@@ -121,13 +124,13 @@ public class FSMSystem {
 			case START_STATE:
 				return FSMState.START_STATE;
 			case IDLE_STATE:
-				if (gyro.getAngle() >= 180) {
+				if (gyro.getAngle() >= TURN_AMT) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() >= 180) {
+				if (gyro.getAngle() >= TURN_AMT) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
@@ -159,15 +162,13 @@ public class FSMSystem {
 	// private void handleOtherState(TeleopInput input) {
 	// 	exampleMotor.set(MOTOR_RUN_POWER);
 	// }
-
+		
 	private void handleTurnState(TeleopInput input) {
 		double angle = gyro.getAngle();
 		if (angle < 180) {
 			// values should be from -1 to 1 
-			exampleMotorLeft.set(-0.5);
-			exampleMotorRight.set(0.8);
-
-			// make global values later
+			exampleMotorLeft.set(LEFT_TURN_VALUE);
+			exampleMotorRight.set(RIGHT_TURN_VALUE);
 		}
 	}
 
