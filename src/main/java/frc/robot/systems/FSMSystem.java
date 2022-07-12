@@ -31,7 +31,7 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
-	private AHRS gyro; 
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -41,8 +41,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, 
+					    CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, 
+					     CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
@@ -112,10 +114,14 @@ public class FSMSystem {
 			case TELEOP_STATE: 
 				return FSMState.TELEOP_STATE; 
 			case IDLE_STATE: 
-				if (gyro.getAngle() < MAX_TURN) return FSMState.TURNING_STATE;
+				if (gyro.getAngle() < MAX_TURN){
+					return FSMState.TURNING_STATE;
+				}
 				return FSMState.IDLE_STATE;
 			case TURNING_STATE:
-				if (gyro.getAngle() < MAX_TURN) return FSMState.TURNING_STATE;
+				if (gyro.getAngle() < MAX_TURN){
+					return FSMState.TURNING_STATE;
+				}
 				return FSMState.IDLE_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
