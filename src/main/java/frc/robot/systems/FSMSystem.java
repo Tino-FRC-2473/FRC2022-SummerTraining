@@ -73,7 +73,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.IDLE_STATE;
 
 		gyro.reset();
 
@@ -124,6 +124,9 @@ public class FSMSystem {
 			case START_STATE:
 				return FSMState.START_STATE;
 			case IDLE_STATE:
+				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
+					return FSMState.TURN_STATE;
+				}
 				if (gyro.getAngle() % TURN_AMT <= ERROR
 					|| gyro.getAngle() % TURN_AMT >= TURN_AMT - ERROR) {
 					return FSMState.IDLE_STATE;
@@ -131,6 +134,9 @@ public class FSMSystem {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
+				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
+					return FSMState.TURN_STATE;
+				}
 				if (gyro.getAngle() % TURN_AMT <= ERROR
 					|| gyro.getAngle() % TURN_AMT >= TURN_AMT - ERROR) {
 					return FSMState.IDLE_STATE;
