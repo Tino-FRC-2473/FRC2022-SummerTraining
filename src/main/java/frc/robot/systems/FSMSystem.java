@@ -30,8 +30,8 @@ public class FSMSystem {
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
 	private static final int TURN_AMT = 180;
-	private static final double LEFT_TURN_VALUE = -0.5;
-	private static final double RIGHT_TURN_VALUE = 0.5;
+	private static final double TURN_VALUE = 0.5;
+	private static final int ERROR = 5;
 
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -124,13 +124,13 @@ public class FSMSystem {
 			case START_STATE:
 				return FSMState.START_STATE;
 			case IDLE_STATE:
-				if (gyro.getAngle() % TURN_AMT <= 5 || gyro.getAngle() % TURN_AMT >= TURN_AMT-5) {
+				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() % TURN_AMT <= 5 || gyro.getAngle() % TURN_AMT >= TURN_AMT-5) {
+				if (gyro.getAngle() % TURN_AMT <= ERROR || gyro.getAngle() % TURN_AMT >= TURN_AMT-ERROR) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
@@ -167,8 +167,7 @@ public class FSMSystem {
 		double angle = gyro.getAngle();
 		if (angle < TURN_AMT) {
 			// values should be from -1 to 1
-			exampleMotorLeft.set(LEFT_TURN_VALUE);
-			exampleMotorRight.set(RIGHT_TURN_VALUE);
+			exampleMotorLeft.set(TURN_VALUE);
 		}
 	}
 
