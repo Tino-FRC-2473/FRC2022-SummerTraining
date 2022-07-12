@@ -23,8 +23,8 @@ public class FSMSystem {
 	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
-	private final double low_target = 175;
-	private final double high_target = 185;
+	private final double lowTarget = 175;
+	private final double highTarget = 185;
 	private final double pow = 0.5;
 	private FSMState currentState;
 
@@ -111,13 +111,13 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case IDLE_STATE:
-				if (gyro.getAngle() >= low_target && gyro.getAngle() <= high_target) {
+				if (gyro.getAngle() >= lowTarget && gyro.getAngle() <= highTarget) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if (gyro.getAngle() >= low_target && gyro.getAngle() <= high_target) {
+				if (gyro.getAngle() >= lowTarget && gyro.getAngle() <= highTarget) {
 					return FSMState.IDLE_STATE;
 				} else {
 					return FSMState.TURN_STATE;
