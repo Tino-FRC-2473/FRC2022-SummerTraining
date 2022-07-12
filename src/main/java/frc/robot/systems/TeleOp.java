@@ -15,7 +15,8 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		MOVE
+		MOVE,
+		AUTO
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -40,7 +41,7 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
         left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-		right.setInverted(true);
+		left.setInverted(true);
 		// Reset state machine
 		reset();
 	}
@@ -62,7 +63,7 @@ public class TeleOp {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.MOVE;
+		currentState = FSMState.AUTO;
 		// Call one tick of update to ensure outputs reflect start state
 	}
 	/**
@@ -72,7 +73,18 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		handleMoveState(input); //ONE STATE STATE MACHINE :D
+		switch (currentState) {
+			case MOVE:
+				handleMoveState(input);
+				break;
+
+			case AUTO:
+				handleAutoState(input);
+				break;
+
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		}
 		currentState = nextState(input);
 	}
 
@@ -98,16 +110,16 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
-		/*
-		if (input == null)
-			return;
 		double ld = input.getLeftJoystickY() - left.get();
 		double rd = input.getRightJoystickY() - right.get();
 
 		left.set(left.get()+ld*ACCELERATION_CONSTANT);
 		right.set(right.get()+rd*ACCELERATION_CONSTANT);
-		*/
 		left.set(input.getLeftJoystickY());
 		right.set(input.getRightJoystickY());
+	}
+	private void handleAutoState()
+	{
+
 	}
 }
