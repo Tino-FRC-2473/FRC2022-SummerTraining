@@ -50,8 +50,7 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 			CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-			CANSparkMax.MotorType.kBrushless);
-		
+			CANSparkMax.MotorType.kBrushless);		
 
 		// Reset state machine
 		reset();
@@ -134,7 +133,7 @@ public class FSMSystem {
 				//check if it is within a certain range, tells us if it still needs to turn
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
 					return FSMState.TURNING_STATE;
-				//check for multiple of 180 using %				
+				//check for multiple of 180 using %
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
