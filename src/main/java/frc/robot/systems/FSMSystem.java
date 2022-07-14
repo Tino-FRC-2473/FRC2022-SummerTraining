@@ -94,7 +94,6 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
 			case TELEOP_STATE:
 				handleTeleopState(input);
@@ -200,7 +199,7 @@ public class FSMSystem {
 				gyro.calibrate();
 			}
 		} else {
-			rightMotor.set(input.getRightJoystickY());
+			rightMotor.set(-input.getRightJoystickY());
 			leftMotor.set(input.getLeftJoystickY());
 		}
 	}
