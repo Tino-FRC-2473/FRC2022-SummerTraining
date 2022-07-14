@@ -124,21 +124,11 @@ public class TeleOp {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
     private void handleTeleOpState(TeleopInput input) {
-        if (input==null) {
+        if (input == null) {
 			return;
 		}
-		if(input.isShooterButtonPressed()) {
+		if (input.isShooterButtonPressed()) {
 			
 		} else {
 			double l = input.getLeftJoystickY();
@@ -149,7 +139,7 @@ public class TeleOp {
     }
 
 	private void handleTurnState(TeleopInput input) {
-		if(input != null) {
+		if (input != null) {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
