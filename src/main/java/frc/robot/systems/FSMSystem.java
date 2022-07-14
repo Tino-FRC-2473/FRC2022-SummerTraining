@@ -133,7 +133,7 @@ public class FSMSystem {
 		switch (currentState) {
 			case TELEOP_STATE:
 				return FSMState.TELEOP_STATE;
-				
+
 			case BUTTON_STATE:
 				return FSMState.BUTTON_STATE;
 
@@ -169,7 +169,7 @@ public class FSMSystem {
  	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
  	 */
-	  private void handleTeleopState(TeleopInput input) {
+	private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
 			return;
 		}
