@@ -37,21 +37,6 @@ public class TeleopInput {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 
-	/* ------------------------ Left Joystick ------------------------ */
-	/**
-	 * Get X axis of Left Joystick.
-	 * @return Axis value
-	 */
-	public double getLeftJoystickX() {
-		return leftJoystick.getX();
-	}
-	/**
-	 * Get Y axis of Left Joystick.
-	 * @return Axis value
-	 */
-	public double getLeftJoystickY() {
-		return leftJoystick.getY();
-	}
 	/**
 	 * Get the value of the shooter button.
 	 * @return True if button is pressed
@@ -67,6 +52,22 @@ public class TeleopInput {
 		return leftJoystick.getRawButton(2);
 	}
 
+	/* ------------------------ Left Joystick ------------------------ */
+	/**
+	 * Get X axis of Left Joystick.
+	 * @return Axis value
+	 */
+	public double getLeftJoystickX() {
+		return leftJoystick.getX();
+	}
+	/**
+	 * Get Y axis of Left Joystick.
+	 * @return Axis value
+	 */
+	public double getLeftJoystickY() {
+		return leftJoystick.getY();
+	}
+
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
 	 * Get X axis of Right Joystick.
@@ -80,7 +81,7 @@ public class TeleopInput {
 	 * @return Axis value
 	 */
 	public double getRightJoystickY() {
-		return rightJoystick.getY();
+		return -rightJoystick.getY();
 	}
 
 	/* ======================== Private methods ======================== */
