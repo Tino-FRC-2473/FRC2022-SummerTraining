@@ -1,7 +1,10 @@
 package frc.robot.systems;
+import com.kauailabs.navx.frc.AHRS;
 // WPILib Imports
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -9,14 +12,23 @@ public class teleOp {
     /* ======================== Constants ======================== */
     // FSM state definitions
     public enum FSMState {
-        MOVE
+        MOVE,
+		AUTO
     }
     //private static final float MOTOR_RUN_POWER = 0.1f;
     /* ======================== Private variables ======================== */
     private FSMState currentState;
     // Hardware devices should be owned by one and only one system. They must
     // be private to their owner system and may not be used elsewhere.
-    private CANSparkMax RightMotor, LeftMotor;
+    private CANSparkMax rightMotor, leftMotor;
+
+	private AHRS gyro = new AHRS(SPI.Port.kMXP);
+
+	double ang;
+	
+	//private final double MIN_ANG = 5;
+	private final double MAX_ANG = 180;
+	private final double SPEED = 0.2;
     /* ======================== Constructor ======================== */
     /**
      * Create FSMSystem and initialize to starting state. Also perform any
@@ -25,10 +37,11 @@ public class teleOp {
      */
     public teleOp() {
         // Perform hardware init
-        RightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+        rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
                                         CANSparkMax.MotorType.kBrushless);
-        LeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+        leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
                                         CANSparkMax.MotorType.kBrushless);
+		leftMotor.setInverted(true);
         // Reset state machine
         reset();
     }
@@ -49,7 +62,9 @@ public class teleOp {
      * Ex. if the robot is enabled, disabled, then reenabled.
      */
     public void reset() {
-        currentState = FSMState.MOVE;
+        currentState = FSMState.AUTO;
+		gyro.reset();
+		gyro.calibrate();
         // Call one tick of update to ensure outputs reflect start state
         //update(null);
     }
@@ -61,9 +76,12 @@ public class teleOp {
      */
     public void update(TeleopInput input) {
         switch (currentState) {
-            case MOVE:
-                handle(input);
-                break;
+            case AUTO:
+			if (input == null) handle();
+            	break;
+			case MOVE:
+				moveHandle(input);
+				break;
             default:
                 throw new IllegalStateException("Invalid state: " + currentState.toString());
         }
@@ -80,7 +98,7 @@ public class teleOp {
      * @return FSM state for the next iteration
      */
     private FSMState nextState(TeleopInput input) {
-        return FSMState.MOVE;
+        return FSMState.AUTO;
     }
     /* ------------------------ FSM state handlers ------------------------ */
     /**
@@ -88,10 +106,18 @@ public class teleOp {
      * @param input Global TeleopInput if robot in teleop mode or null if
      *        the robot is in autonomous mode.
      */
-    private void handle(TeleopInput input) {
-        RightMotor.set(0.2);
-        LeftMotor.set(0.2);
+    private void handle() {
+        rightMotor.set(SPEED);
+        leftMotor.set(SPEED);
+		ang = gyro.getAngle();
+		if(MAX_ANG + 5 / ang == 1){
+			gyro.reset();
+		}
     }
+	private void moveHandle(TeleopInput input){
+		rightMotor.set(0);
+		leftMotor.set(0);
+	}
     /**
      * Handle behavior in OTHER_STATE.
      * @param input Global TeleopInput if robot in teleop mode or null if
