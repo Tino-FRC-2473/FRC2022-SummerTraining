@@ -1,4 +1,4 @@
-# FSMBotTemplate
+# Daiji Uchino FSMBotTemplate
 
 Finite-state-machine based template project for WPILib based robot code.
 
