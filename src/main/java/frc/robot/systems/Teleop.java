@@ -108,18 +108,19 @@ public class Teleop {
 		switch (currentState) {
 			case TELEOP_STATE:
 				if (input != null && input.isShooterButtonPressed()) {
-                    return FSMState.TURN_STATE;
-                } else {
-                    return FSMState.TELEOP_STATE;
-                }
+					return FSMState.TURN_STATE;
+				} else {
+					return FSMState.TELEOP_STATE;
+				}
 			case TURN_STATE:
-                if (input != null && gyro.getAngle() >= ANGLE - THRESHOLD && gyro.getAngle() <= ANGLE + THRESHOLD) {
-                    gyro.reset();
+				if (input != null && gyro.getAngle() >= ANGLE - THRESHOLD
+					&& gyro.getAngle() <= ANGLE + THRESHOLD) {
+					gyro.reset();
 					gyro.calibrate();
 					return FSMState.TELEOP_STATE;
-                } else {
-                    return FSMState.TURN_STATE;
-                }
+				} else {
+					return FSMState.TURN_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
