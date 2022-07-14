@@ -13,6 +13,7 @@ public class TeleOp {
     // FSM state definitions
     public enum FSMState {
         MOVE,
+		IDLE,
 		AUTO
     }
     //private static final float MOTOR_RUN_POWER = 0.1f;
@@ -82,6 +83,8 @@ public class TeleOp {
 			case MOVE:
 				moveHandle(input);
 				break;
+			case IDLE:
+				break;
             default:
                 throw new IllegalStateException("Invalid state: " + currentState.toString());
         }
@@ -98,7 +101,20 @@ public class TeleOp {
      * @return FSM state for the next iteration
      */
     private FSMState nextState(TeleopInput input) {
-        return FSMState.AUTO;
+		switch (currentState) {
+			case AUTO:
+				if (input != null) {
+					return FSMState.AUTO;
+				} else {
+					return FSMState.IDLE;
+				}
+
+			// case OTHER_STATE:
+			// 	return FSMState.OTHER_STATE;
+
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		}
     }
     /* ------------------------ FSM state handlers ------------------------ */
     /**
