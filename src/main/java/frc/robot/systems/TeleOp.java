@@ -29,11 +29,11 @@ public class TeleOp {
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
 	private AHRS gyro;
-	private final double MAXANGLE = 5;
-	private final double MINANGLE = 175;
-	private final double SIMPLIFYNUM = 180;
-	private final double RIGHTSPEED = -0.1;
-	private final double LEFTSPEED = 0.1;
+	private double maxAngle = 5;
+	private double minAngle = 175;
+	private double simplifyNum = 180;
+	private double rightSpeed = -0.1;
+	private double leftSpeed = 0.1;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -144,27 +144,27 @@ public class TeleOp {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
-		if (angle >= MINANGLE) {
-			angle %= SIMPLIFYNUM;
-			if (angle <= MAXANGLE || angle >= MINANGLE) {
+		if (angle >= minAngle) {
+			angle %= simplifyNum;
+			if (angle <= maxAngle || angle >= minAngle) {
 				currentState = FSMState.IDLE_STATE;
 				return;
 			} else {
-				rightMotor.set(RIGHTSPEED);
-				leftMotor.set(LEFTSPEED);
+				rightMotor.set(rightSpeed);
+				leftMotor.set(leftSpeed);
 			}
 		} else {
-			rightMotor.set(RIGHTSPEED);
-			leftMotor.set(LEFTSPEED);
+			rightMotor.set(rightSpeed);
+			leftMotor.set(leftSpeed);
 		}
 
 	}
 
 	private void handleIdleState(TeleopInput input) {
 		double angle = Math.abs(gyro.getAngle());
-		if (angle >= MINANGLE) {
-			angle %= SIMPLIFYNUM;
-			if (angle <= MAXANGLE || angle >= MINANGLE) {
+		if (angle >= minAngle) {
+			angle %= simplifyNum;
+			if (angle <= maxAngle || angle >= minAngle) {
 				currentState = FSMState.TURN_STATE;
 				return;
 			}
