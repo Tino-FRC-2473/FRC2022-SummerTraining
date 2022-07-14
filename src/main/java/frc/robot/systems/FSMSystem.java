@@ -18,6 +18,7 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE,
+		ROTATE_STATE,
 		BUTTON_STATE,
 		IDLE_STATE,
 		TURN_STATE
@@ -99,6 +100,10 @@ public class FSMSystem {
 				handleTeleopState(input);
 				break;
 
+			case ROTATE_STATE:
+				handleRotateState(input);
+				break;
+
 			case BUTTON_STATE:
 				handleButtonState(input);
 				break;
@@ -130,11 +135,24 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case TELEOP_STATE:
-				return FSMState.TELEOP_STATE;
-
 			case BUTTON_STATE:
 				return FSMState.BUTTON_STATE;
+
+			case TELEOP_STATE:
+				if (input.isShooterButtonPressed()) {
+					return FSMState.ROTATE_STATE;
+				} else {
+					return FSMState.TELEOP_STATE;
+				}
+
+			case ROTATE_STATE:
+				if (gyro.getAngle() > MAX_TURN - THRESHOLD || gyro.getAngle() < THRESHOLD - MAX_TURN) {
+					gyro.reset();
+					gyro.calibrate();
+					return FSMState.TELEOP_STATE;
+				} else {
+					return FSMState.ROTATE_STATE;
+				}
 
 			case IDLE_STATE:
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
@@ -177,7 +195,7 @@ public class FSMSystem {
 	}
 
 	/**
- 	 * Handle behavior in AUTO_STATE.
+ 	 * Handle behavior in BUTTON_STATE.
  	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
  	 */
@@ -205,7 +223,17 @@ public class FSMSystem {
 	}
 
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in ROTATE_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	private void handleRotateState(TeleopInput input) {
+		rightMotor.set(MOTOR_RUN_POWER);
+		leftMotor.set(MOTOR_RUN_POWER);
+	}
+
+	/**
+	 * Handle behavior in IDLE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -215,7 +243,7 @@ public class FSMSystem {
 	}
 
 	/**
-	 * Handle behavior in OTHER_STATE.
+	 * Handle behavior in TURN_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
