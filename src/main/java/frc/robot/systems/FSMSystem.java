@@ -14,7 +14,7 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		START_STATE,
-		OTHER_STATE
+		OTHER_STATE, TELEOP_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,6 +25,8 @@ public class FSMSystem {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax exampleMotor;
+	private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,7 +36,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+										
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
@@ -58,7 +63,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.TELEOP_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -77,6 +82,10 @@ public class FSMSystem {
 
 			case OTHER_STATE:
 				handleOtherState(input);
+				break;
+
+			case TELEOP_STATE:
+				handleTeleOpState(input);
 				break;
 
 			default:
@@ -106,6 +115,8 @@ public class FSMSystem {
 
 			case OTHER_STATE:
 				return FSMState.OTHER_STATE;
+			case TELEOP_STATE:
+				return FSMState.TELEOP_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -128,5 +139,13 @@ public class FSMSystem {
 	 */
 	private void handleOtherState(TeleopInput input) {
 		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleTeleOpState(TeleopInput input) {
+		if (input == null) {
+			return; 
+		} 
+		leftMotor.set(input.getLeftJoystickY());
+		rightMotor.set(-input.getRightJoystickY());
 	}
 }
