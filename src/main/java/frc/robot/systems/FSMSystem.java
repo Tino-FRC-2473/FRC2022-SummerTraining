@@ -147,7 +147,7 @@ public class FSMSystem {
 
 			case ROTATE_STATE:
 				if (gyro.getAngle() > MAX_TURN - THRESHOLD
-				|| gyro.getAngle() < THRESHOLD - MAX_TURN) {
+					|| gyro.getAngle() < THRESHOLD - MAX_TURN) {
 					gyro.reset();
 					gyro.calibrate();
 					return FSMState.TELEOP_STATE;
