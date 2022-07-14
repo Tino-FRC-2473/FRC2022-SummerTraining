@@ -124,46 +124,50 @@ public class TeleOp {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-    private void handleTeleOpState(TeleopInput input) {
-        if (input == null) {
+	private void handleTeleOpState(TeleopInput input) {
+		if (input == null) {
 			return;
 		}
-		if (input.isShooterButtonPressed()) {
-			
-		} else {
-			double l = input.getLeftJoystickY();
-			double r = input.getRightJoystickY();
-			leftMotor.set(l);
-			rightMotor.set(r);
-		}
-    }
+		double l = input.getLeftJoystickY();
+		double r = input.getRightJoystickY();
+		leftMotor.set(l);
+		rightMotor.set(r);
+	}
 
 	private void handleTurnState(TeleopInput input) {
 		if (input != null) {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
-		if (angle >= 175) {
-			angle %= 180;
-			if (angle <=5 || angle >= 175 ) {
+		double maxAngle = 5;
+		double minAngle = 175;
+		double rightSpeed = -0.1;
+		double leftSpeed = 0.1;
+		double simplifyNum = 180;
+		if (angle >= minAngle) {
+			angle %= simplifyNum;
+			if (angle <= maxAngle || angle >= minAngle ) {
 				currentState = FSMState.IDLE_STATE;
 				return;
 			} else {
-				rightMotor.set(-0.1);
-				leftMotor.set(0.1);
+				rightMotor.set(rightSpeed);
+				leftMotor.set(leftSpeed);
 			}
 		} else {
-			rightMotor.set(-0.1);
-			leftMotor.set(0.1);
+			rightMotor.set(rightSpeed);
+			leftMotor.set(leftSpeed);
 		}
 
 	}
 
 	private void handleIdleState(TeleopInput input) {
 		double angle = Math.abs(gyro.getAngle());
-		if (angle >= 175) {
-			angle %= 180;
-			if (!(angle <= 5 || angle >= 175)) {
+		double maxAngle = 5;
+		double minAngle = 175;
+		double simplifyNum = 180;
+		if (angle >= minAngle) {
+			angle %= simplifyNum;
+			if (angle <= maxAngle || angle >= minAngle ) {
 				currentState = FSMState.TURN_STATE;
 				return;
 			}
