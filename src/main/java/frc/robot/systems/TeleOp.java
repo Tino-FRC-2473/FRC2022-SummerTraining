@@ -29,11 +29,11 @@ public class TeleOp {
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
 	private AHRS gyro;
-	private double maxAngle = 5;
-	private double minAngle = 175;
-	private double simplifyNum = 180;
-	private double rightSpeed = -0.1;
-	private double leftSpeed = 0.1;
+	private final double maxAngle = 5;
+	private final double minAngle = 175;
+	private final double simplifyNum = 180;
+	private final double rightSpeed = -0.1;
+	private final double leftSpeed = 0.1;
 
 	/* ======================== Constructor ======================== */
 	/**
