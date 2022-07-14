@@ -35,7 +35,11 @@ public class Teleop {
 	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
-
+	/**
+	 * Create Teleop and initialize to starting state. Also perform any
+	 * one-time initialization or configuration of hardware required. Note
+	 * the constructor is called only once when the robot boots.
+	 */
 	public Teleop() {
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -47,11 +51,21 @@ public class Teleop {
 	}
 
 	/* ======================== Public methods ======================== */
-
+	/**
+	 * Return current FSM state.
+	 * @return Current FSM state
+	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
-
+	/**
+	 * Reset this system to its start state. This may be called from mode init
+	 * when the robot is enabled.
+	 *
+	 * Note this is distinct from the one-time initialization in the constructor
+	 * as it may be called multiple times in a boot cycle,
+	 * Ex. if the robot is enabled, disabled, then reenabled.
+	 */
 	public void reset() {
 		currentState = FSMState.TELEOP_STATE;
 		gyro.reset();
@@ -59,7 +73,12 @@ public class Teleop {
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
-
+	/**
+	 * Update FSM based on new inputs. This function only calls the FSM state
+	 * specific handlers.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
 	public void update(TeleopInput input) {
 		System.out.println(currentState + ": " + gyro.getAngle());
 		switch (currentState) {
@@ -76,7 +95,15 @@ public class Teleop {
 	}
 
 	/* ======================== Private methods ======================== */
-
+	/**
+	 * Decide the next state to transition to. This is a function of the inputs
+	 * and the current state of this FSM. This method should not have any side
+	 * effects on outputs. In other words, this method should only read or get
+	 * values to decide what state to go to.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 * @return FSM state for the next iteration
+	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case TELEOP_STATE:
@@ -99,12 +126,21 @@ public class Teleop {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+	/**
+	 * Handle behavior in TURN_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
 	private void handleTurnState(TeleopInput input) {
 		System.out.println("TURN_STATE:" + gyro.getAngle());
 		leftMotor.set(-POW);
 		rightMotor.set(-POW);
 	}
-
+	/**
+	 * Handle behavior in TELEOP_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
 	private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
 			return;
