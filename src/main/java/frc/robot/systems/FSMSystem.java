@@ -18,8 +18,9 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE,
+		BUTTON_STATE,
 		IDLE_STATE,
-		TURNING_STATE
+		TURN_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.5f;
@@ -29,6 +30,7 @@ public class FSMSystem {
 	/* ======================== Private variables ======================== */
 
 	private FSMState currentState;
+	private boolean buttonPushed;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -50,6 +52,7 @@ public class FSMSystem {
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 			CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
+		buttonPushed = false;
 
 		// Reset state machine
 		reset();
@@ -74,7 +77,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.IDLE_STATE;
+		currentState = FSMState.BUTTON_STATE;
 		gyro.reset();
 		gyro.calibrate();
 
@@ -97,12 +100,16 @@ public class FSMSystem {
 				handleTeleopState(input);
 				break;
 
+			case BUTTON_STATE:
+				handleButtonState(input);
+				break;
+
 			case IDLE_STATE:
 				handleIdleState(input);
 				break;
 
-			case TURNING_STATE:
-				handleTurningState(input);
+			case TURN_STATE:
+				handleTurnState(input);
 				break;
 
 			default:
@@ -126,25 +133,28 @@ public class FSMSystem {
 		switch (currentState) {
 			case TELEOP_STATE:
 				return FSMState.TELEOP_STATE;
+				
+			case BUTTON_STATE:
+				return FSMState.BUTTON_STATE;
 
 			case IDLE_STATE:
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
-					return FSMState.TURNING_STATE;
+					return FSMState.TURN_STATE;
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
-					return FSMState.TURNING_STATE;
+					return FSMState.TURN_STATE;
 				}
 
-			case TURNING_STATE:
+			case TURN_STATE:
 				if (gyro.getAngle() >= -THRESHOLD && gyro.getAngle() <= THRESHOLD) {
-					return FSMState.TURNING_STATE;
+					return FSMState.TURN_STATE;
 				} else if (gyro.getAngle() % MAX_TURN < THRESHOLD
 					|| gyro.getAngle() % MAX_TURN > MAX_TURN - THRESHOLD) {
 					return FSMState.IDLE_STATE;
 				} else {
-					return FSMState.TURNING_STATE;
+					return FSMState.TURN_STATE;
 				}
 
 			default:
@@ -159,12 +169,40 @@ public class FSMSystem {
  	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
  	 */
-	private void handleTeleopState(TeleopInput input) {
+	  private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
 			return;
 		}
 		rightMotor.set(input.getRightJoystickY());
 		leftMotor.set(input.getLeftJoystickY());
+	}
+
+	/**
+ 	 * Handle behavior in AUTO_STATE.
+ 	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+ 	 */
+	private void handleButtonState(TeleopInput input) {
+		if (input == null) {
+			return;
+		}
+
+		if (input.isShooterButtonPressed()) {
+			buttonPushed = true;
+		}
+
+		if (buttonPushed) {
+			rightMotor.set(MOTOR_RUN_POWER);
+			leftMotor.set(MOTOR_RUN_POWER);
+			if (gyro.getAngle() > MAX_TURN - THRESHOLD || gyro.getAngle() < THRESHOLD - MAX_TURN) {
+				buttonPushed = false;
+				gyro.reset();
+				gyro.calibrate();
+			}
+		} else {
+			rightMotor.set(input.getRightJoystickY());
+			leftMotor.set(input.getLeftJoystickY());
+		}
 	}
 
 	/**
@@ -182,7 +220,7 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleTurningState(TeleopInput input) {
+	private void handleTurnState(TeleopInput input) {
 		rightMotor.set(MOTOR_RUN_POWER);
 		leftMotor.set(MOTOR_RUN_POWER);
 	}
