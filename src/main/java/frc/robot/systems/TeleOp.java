@@ -139,23 +139,23 @@ public class TeleOp {
 			return;
 		}
 		double angle = Math.abs(gyro.getAngle());
-		final double MAX_ANGLE = 5;
-		final double MIN_ANGLE = 175;
-		final double RIGHT_SPEED = -0.1;
-		final double LEFT_SPEED = 0.1;
-		final double SIMPLIFY_NUM = 180;
-		if (angle >= MIN_ANGLE) {
-			angle %= SIMPLIFY_NUM;
-			if (angle <= MAX_ANGLE || angle >= MIN_ANGLE) {
+		double maxAngle = 5;
+		double minAngle = 175;
+		double rightSpeed = -0.1;
+		double leftSpeed = 0.1;
+		double simplifyNum = 180;
+		if (angle >= minAngle) {
+			angle %= simplifyNum;
+			if (angle <= maxAngle || angle >= minAngle) {
 				currentState = FSMState.IDLE_STATE;
 				return;
 			} else {
-				rightMotor.set(RIGHT_SPEED);
-				leftMotor.set(LEFT_SPEED);
+				rightMotor.set(rightSpeed);
+				leftMotor.set(leftSpeed);
 			}
 		} else {
-			rightMotor.set(RIGHT_SPEED);
-			leftMotor.set(LEFT_SPEED);
+			rightMotor.set(rightSpeed);
+			leftMotor.set(leftSpeed);
 		}
 
 	}
