@@ -40,7 +40,7 @@ public class FSMSystem {
 	private AnalogInput analogInput;
 	private AnalogPotentiometer potentiometer;
 	private DigitalInput limitSwitch;
-	private DigitalInput distanceSwitch;
+	// private DigitalInput distanceSwitch;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -68,7 +68,7 @@ public class FSMSystem {
 		// Creates the limit switch
 		limitSwitch = new DigitalInput(0);
 		// Creates the distance switch
-		distanceSwitch = new DigitalInput(1);
+		// distanceSwitch = new DigitalInput(1);
 		// Reset state machine
 		reset();
 	}
@@ -143,7 +143,7 @@ public class FSMSystem {
 			SmartDashboard.putNumber("Encoder Ticks", leftMotor.getEncoder().getPosition());
 			SmartDashboard.putNumber("Potentiometer", potentiometer.get());
 			SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
-			SmartDashboard.putBoolean("Distance Switch", distanceSwitch.get());
+			// SmartDashboard.putBoolean("Distance Switch", distanceSwitch.get());
 		}
 	}
 }
