@@ -11,6 +11,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -38,6 +39,7 @@ public class Dashboard {
 	private DigitalInput lim;
 	private AnalogPotentiometer pot;
 	private AHRS gyro;
+	private AnalogInput dist;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -52,6 +54,7 @@ public class Dashboard {
 		lim = new DigitalInput(HardwareMap.LIMIT_SWITCH_DIO);
 		pot = new AnalogPotentiometer(HardwareMap.POTENTIOMETER);
 		gyro = new AHRS(SPI.Port.kMXP);
+		dist = new AnalogInput(HardwareMap.DISTANCE);
 
 		// Reset state machine
 		reset();
@@ -154,6 +157,7 @@ public class Dashboard {
 		SmartDashboard.putNumber("Motor Encoder Value", motor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Potentiometer", pot.get());
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+		SmartDashboard.putNumber("Distance", dist.getValue());
 		SmartDashboard.putBoolean("Limit Switch", lim.get());
 	}
 
