@@ -24,15 +24,17 @@ public class TeleOp {
 	private FSMState currentState;
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax rightMotor, leftMotor;
+	private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
-	double ang;
+	private double ang;
 
 	// private final double MIN_ANG = 5;
-	private final double MAX_ANG = 180;
-	private final double SPEED = 0.2;
+	private final double maxAng = 180;
+	private final double speed = 0.2;
+	private final double five = 5.0;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -87,8 +89,9 @@ public class TeleOp {
 	public void update(TeleopInput input) {
 		switch (currentState) {
 			case AUTO:
-				if (input == null)
+				if (input == null){
 					handle();
+				}
 				break;
 			case MOVE:
 				moveHandle(input);
@@ -133,14 +136,14 @@ public class TeleOp {
 	/**
 	 * Handle behavior in START_STATE.
 	 * 
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
 	private void handle() {
-		rightMotor.set(SPEED);
-		leftMotor.set(SPEED);
+		rightMotor.set(speed);
+		leftMotor.set(speed);
 		ang = gyro.getAngle();
-		if (MAX_ANG + 5 / ang == 1) {
+		if (maxAng + five / ang == 1) {
 			gyro.reset();
 			currentState = nextState(null);
 		}
@@ -150,10 +153,4 @@ public class TeleOp {
 		rightMotor.set(0);
 		leftMotor.set(0);
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * 
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
-	 */
 }
