@@ -8,11 +8,12 @@ import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-public class teleOp {
+public class TeleOp {
     /* ======================== Constants ======================== */
     // FSM state definitions
     public enum FSMState {
         MOVE,
+		IDLE,
 		AUTO
     }
     //private static final float MOTOR_RUN_POWER = 0.1f;
@@ -20,22 +21,24 @@ public class teleOp {
     private FSMState currentState;
     // Hardware devices should be owned by one and only one system. They must
     // be private to their owner system and may not be used elsewhere.
-    private CANSparkMax rightMotor, leftMotor;
+    private CANSparkMax rightMotor;
+    private CANSparkMax leftMotor;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
-	double ang;
+	private double ang;
 	
 	//private final double MIN_ANG = 5;
-	private final double MAX_ANG = 180;
-	private final double SPEED = 0.2;
+	private final double maxAng = 180;
+	private final double speed = 0.2;
+    private final double five = 5;
     /* ======================== Constructor ======================== */
     /**
      * Create FSMSystem and initialize to starting state. Also perform any
      * one-time initialization or configuration of hardware required. Note
      * the constructor is called    only once when the robot boots.
      */
-    public teleOp() {
+    public TeleOp() {
         // Perform hardware init
         rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
                                         CANSparkMax.MotorType.kBrushless);
@@ -55,8 +58,7 @@ public class teleOp {
     }
     /**
      * Reset this system to its start state. This may be called from mode init
-     * when the robot is enabled.a
-     *
+     * when the robot is enabled.
      * Note this is distinct from the one-time initialization in the constructor
      * as it may be called multiple times in a boot cycle,
      * Ex. if the robot is enabled, disabled, then reenabled.
@@ -72,15 +74,19 @@ public class teleOp {
      * Update FSM based on new inputs. This function only calls the FSM state
      * specific handlers.
      * @param input Global TeleopInput if robot in teleop mode or null if
-     *        the robot is in autonomous mode.
+     * the robot is in autonomous mode.
      */
     public void update(TeleopInput input) {
         switch (currentState) {
             case AUTO:
-			if (input == null) handle();
+			if (input == null) {
+                handle();
+            }
             	break;
 			case MOVE:
 				moveHandle(input);
+				break;
+			case IDLE:
 				break;
             default:
                 throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -94,33 +100,41 @@ public class teleOp {
      * effects on outputs. In other words, this method should only read or get
      * values to decide what state to go to.
      * @param input Global TeleopInput if robot in teleop mode or null if
-     *        the robot is in autonomous mode.
+     * the robot is in autonomous mode.
      * @return FSM state for the next iteration
      */
     private FSMState nextState(TeleopInput input) {
-        return FSMState.AUTO;
+		switch (currentState) {
+			case AUTO:
+				if (input != null) {
+					return FSMState.AUTO;
+				} else {
+					return FSMState.IDLE;
+				}
+
+			// case OTHER_STATE:
+			// 	return FSMState.OTHER_STATE;
+
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		}
     }
     /* ------------------------ FSM state handlers ------------------------ */
     /**
      * Handle behavior in START_STATE.
      * @param input Global TeleopInput if robot in teleop mode or null if
-     *        the robot is in autonomous mode.
+     * the robot is in autonomous mode.
      */
     private void handle() {
-        rightMotor.set(SPEED);
-        leftMotor.set(SPEED);
+        rightMotor.set(speed);
+        leftMotor.set(speed);
 		ang = gyro.getAngle();
-		if(MAX_ANG + 5 / ang == 1){
+		if(maxAng + five / ang == 1.01) {
 			gyro.reset();
 		}
     }
-	private void moveHandle(TeleopInput input){
+	private void moveHandle(TeleopInput input) {
 		rightMotor.set(0);
 		leftMotor.set(0);
 	}
-    /**
-     * Handle behavior in OTHER_STATE.
-     * @param input Global TeleopInput if robot in teleop mode or null if
-     *        the robot is in autonomous mode.
-     */
 }
