@@ -56,7 +56,6 @@ public class TeleOp {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -82,14 +81,13 @@ public class TeleOp {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
+	 * the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
 			case AUTO:
-				if (input == null){
+				if (input == null) {
 					handle();
 				}
 				break;
@@ -110,9 +108,8 @@ public class TeleOp {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
+	 * the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -137,7 +134,7 @@ public class TeleOp {
 	 * Handle behavior in START_STATE.
 	 * 
 	 * input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
+	 * the robot is in autonomous mode.
 	 */
 	private void handle() {
 		rightMotor.set(speed);
