@@ -32,7 +32,7 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 
 	private CANSparkMax left;
-	private CANSParkMAX right;
+	private CANSparkMAX right;
 	private AHRS gyro;
 	private final double target = 180;
 	private final double error = 5.0;
