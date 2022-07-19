@@ -10,7 +10,7 @@ import frc.robot.HardwareMap;
 // Robot Imports
 import frc.robot.TeleopInput;
 
-public class teleOp{
+public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -35,14 +35,14 @@ public class teleOp{
 	private final double maxAng = 180;
 	private final double speed = 0.2;
 	private final double five = 5.0;
-    private final double one = 1.01;
+	private final double one = 1.01;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public teleOp() {
+	public TeleOp() {
 		// Perform hardware init
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 				CANSparkMax.MotorType.kBrushless);
