@@ -1,4 +1,5 @@
 package frc.robot.systems;
+import com.kauailabs.navx.frc.AHRS;
 
 // WPILib Imports
 
@@ -15,7 +16,9 @@ public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		MOVE
+		MOVE,
+		TURN_STATE,
+		IDLE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -27,6 +30,12 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 
     private CANSparkMax left, right;
+	private AHRS gyro;
+	private double target = 180;
+	private double error = 5.0;
+	private double leftTurnSpeed = 0.1f;
+	private double rightTurnSpeed = -0.1f;
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,9 +47,10 @@ public class TeleOp {
 		// Perform hardware init
         right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		right.setInverted((true));
+		left.setInverted((true));
         left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
+		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -63,7 +73,11 @@ public class TeleOp {
 	 */
 	public void reset() {
 		currentState = FSMState.MOVE;
+		gyro.reset();
+		gyro.calibrate();
+
 		// Call one tick of update to ensure outputs reflect start state
+		update(null);
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -72,7 +86,18 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		handleMoveState(input); //ONE STATE STATE MACHINE :D
+		switch(currentState) {
+			case MOVE:
+				handleMoveState(input);
+				break;
+			case TURN_STATE:
+				handleTurnState(input);
+				break;
+			case IDLE:
+				handleIdleState(input);
+				break;
+		}
+
 		currentState = nextState(input);
 	}
 
@@ -87,7 +112,24 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		return FSMState.MOVE;
+		switch(currentState) {
+			case MOVE:
+				if(input!=null) {
+					return FSMState.MOVE;
+				}else{
+					return FSMState.TURN_STATE;
+				}
+			case TURN_STATE:
+				if(input!=null) {
+					return FSMState.MOVE;
+				}else{
+					return FSMState.TURN_STATE;
+				}
+			case IDLE:
+				return FSMState.IDLE;
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -108,6 +150,26 @@ public class TeleOp {
 
 		left.set(lp);
 		right.set(rp);
+	}
+
+	private void handleTurnState(TeleopInput input) {
+		if(input!=null) return;
+		
+		double currAngle = Math.abs(gyro.getAngle());
+
+		double maxAngle = target+error, minAngle = target-error;
+		if(currAngle<minAngle || currAngle>maxAngle) {
+			left.set(leftTurnSpeed);
+			right.set(rightTurnSpeed);
+		}else{
+			currentState = FSMState.IDLE;
+		}
+
+	}
+
+	private void handleIdleState(TeleopInput input) {
+		left.set(0);
+		right.set(0);
 	}
 
 }
