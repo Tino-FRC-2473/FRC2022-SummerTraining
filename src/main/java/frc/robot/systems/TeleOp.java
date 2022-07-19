@@ -132,7 +132,6 @@ public class TeleOp {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 * 
 	 * input Global TeleopInput if robot in teleop mode or null if
 	 * the robot is in autonomous mode.
 	 */
