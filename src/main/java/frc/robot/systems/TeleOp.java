@@ -33,10 +33,10 @@ public class TeleOp {
 
 	private CANSparkMax left, right;
 	private AHRS gyro;
-	private double target = 180;
-	private double error = 5.0;
-	private double leftTurnSpeed = 0.1f;
-	private double rightTurnSpeed = -0.1f;
+	private final double target = 180;
+	private final double error = 5.0;
+	private final double leftTurnSpeed = 0.1f;
+	private final double rightTurnSpeed = -0.1f;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -59,7 +59,6 @@ public class TeleOp {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -69,7 +68,6 @@ public class TeleOp {
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
-	 *
 	 * Note this is distinct from the one-time initialization in the constructor
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
@@ -86,7 +84,6 @@ public class TeleOp {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -101,6 +98,8 @@ public class TeleOp {
 			case IDLE:
 				handleIdleState(input);
 				break;
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 
 		currentState = nextState(input);
@@ -112,7 +111,6 @@ public class TeleOp {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
@@ -142,14 +140,12 @@ public class TeleOp {
 
 	/**
 	 * Handle behavior in OTHER_STATE.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
 		// double ld = input.getLeftJoystickY() - left.get();
 		// double rd = input.getRightJoystickY() - right.get();
-
 		// left.set(left.get()+ld*ACCELERATION_CONSTANT);
 		// right.set(right.get()+rd*ACCELERATION_CONSTANT);
 		double lp = input.getLeftJoystickY();
@@ -160,12 +156,14 @@ public class TeleOp {
 	}
 
 	private void handleTurnState(TeleopInput input) {
-		if (input != null)
+		if (input != null) {
 			return;
+		}
 
 		double currAngle = Math.abs(gyro.getAngle());
 
-		double maxAngle = target + error, minAngle = target - error;
+		double maxAngle = target + error;
+		double minAngle = target - error;
 		if (currAngle < minAngle || currAngle > maxAngle) {
 			left.set(leftTurnSpeed);
 			right.set(rightTurnSpeed);
