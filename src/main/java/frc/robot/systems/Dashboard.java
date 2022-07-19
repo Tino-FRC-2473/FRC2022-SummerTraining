@@ -1,29 +1,31 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.kauailabs.navx.frc.AHRS;
 
 // Camera and Shuffleboard
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class Shuffleboard {
+public class Dashboard {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
 		AUTO,
 		TELEOP
 	}
-
-	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -32,7 +34,10 @@ public class Shuffleboard {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax motor;
+	private DigitalInput lim;
+	private AnalogPotentiometer pot;
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -40,10 +45,13 @@ public class Shuffleboard {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public Shuffleboard() {
+	public Dashboard() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
+		lim = new DigitalInput(HardwareMap.LIMIT_SWITCH_DIO);
+		pot = new AnalogPotentiometer(HardwareMap.POTENTIOMETER);
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -140,8 +148,10 @@ public class Shuffleboard {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleopState(TeleopInput input) {
-		SmartDashboard.putNumber("Left Joystick X", input.getLeftJoystickX());
-		SmartDashboard.putNumber("Right Joystick X", input.getRightJoystickX());
+		SmartDashboard.putNumber("Motor Encoder Value", motor.getEncoder().getPosition());
+		SmartDashboard.putNumber("Potentiometer", pot.get());
+		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+		SmartDashboard.putBoolean("Limit Switch", lim.get());
 	}
 
 }
