@@ -14,6 +14,7 @@ public final class HardwareMap {
 
 	public static final int LIMIT_SWITCH_DIO = 0;
 	public static final int POTENTIOMETER = 0;
+	public static final int DISTANCE = 1;
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;

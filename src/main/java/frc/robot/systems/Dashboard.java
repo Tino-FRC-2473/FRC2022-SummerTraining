@@ -80,6 +80,9 @@ public class Dashboard {
 		CvSink cvSink = CameraServer.getVideo();
 		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", CAM_WIDTH, CAM_HEIGHT);
 
+		gyro.reset();
+		gyro.calibrate();
+
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
