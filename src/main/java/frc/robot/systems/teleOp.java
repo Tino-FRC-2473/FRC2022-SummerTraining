@@ -139,7 +139,7 @@ public class TeleOp {
 		rightMotor.set(speed);
 		leftMotor.set(speed);
 		ang = gyro.getAngle();
-		if (maxAng + five / ang == 1) {
+		if (maxAng + five / ang == 1.01) {
 			gyro.reset();
 			currentState = nextState(null);
 		}
