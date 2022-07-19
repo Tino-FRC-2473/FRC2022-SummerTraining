@@ -31,7 +31,7 @@ public class FSMSystem {
 	/* ======================== Private variables ======================== */
 	private static final int WIDTH = 640;
 	private static final int HEIGHT = 480;
-	
+
 	private FSMState currentState;
 
 	private CvSink cvSink;
