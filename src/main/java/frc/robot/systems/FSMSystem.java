@@ -29,6 +29,9 @@ public class FSMSystem {
 	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
+	private static final int WIDTH = 640;
+	private static final int HEIGHT = 480;
+	
 	private FSMState currentState;
 
 	private CvSink cvSink;
@@ -57,7 +60,7 @@ public class FSMSystem {
 		// Creates the CvSink and connects it to the UsbCameras
 		cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", WIDTH, HEIGHT);
 		// Creates the gyro
 		gyro = new AHRS(SPI.Port.kMXP);
 		// Creates the analogInput
@@ -138,7 +141,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleopState(TeleopInput input) {
-		if(input != null) {
+		if (input != null) {
 			SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 			SmartDashboard.putNumber("Encoder Ticks", leftMotor.getEncoder().getPosition());
 			SmartDashboard.putNumber("Potentiometer", potentiometer.get());
