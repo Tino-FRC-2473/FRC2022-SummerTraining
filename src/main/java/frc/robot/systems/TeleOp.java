@@ -1,4 +1,5 @@
 package frc.robot.systems;
+
 import com.kauailabs.navx.frc.AHRS;
 
 // WPILib Imports
@@ -13,6 +14,7 @@ import frc.robot.HardwareMap;
 public class TeleOp {
 
 	final static double ACCELERATION_CONSTANT = 0.5;
+
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -29,13 +31,12 @@ public class TeleOp {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 
-    private CANSparkMax left, right;
+	private CANSparkMax left, right;
 	private AHRS gyro;
 	private double target = 180;
 	private double error = 5.0;
 	private double leftTurnSpeed = 0.1f;
 	private double rightTurnSpeed = -0.1f;
-
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -45,11 +46,11 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-        right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
-										CANSparkMax.MotorType.kBrushless);
+		right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+				CANSparkMax.MotorType.kBrushless);
 		left.setInverted((true));
-        left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-										CANSparkMax.MotorType.kBrushless);
+		left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+				CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		// Reset state machine
 		reset();
@@ -58,11 +59,13 @@ public class TeleOp {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -79,14 +82,16 @@ public class TeleOp {
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		switch(currentState) {
+		switch (currentState) {
 			case MOVE:
 				handleMoveState(input);
 				break;
@@ -107,22 +112,23 @@ public class TeleOp {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch(currentState) {
+		switch (currentState) {
 			case MOVE:
-				if(input!=null) {
+				if (input != null) {
 					return FSMState.MOVE;
-				}else{
+				} else {
 					return FSMState.TURN_STATE;
 				}
 			case TURN_STATE:
-				if(input!=null) {
+				if (input != null) {
 					return FSMState.MOVE;
-				}else{
+				} else {
 					return FSMState.TURN_STATE;
 				}
 			case IDLE:
@@ -136,8 +142,9 @@ public class TeleOp {
 
 	/**
 	 * Handle behavior in OTHER_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	private void handleMoveState(TeleopInput input) {
 		// double ld = input.getLeftJoystickY() - left.get();
@@ -153,15 +160,16 @@ public class TeleOp {
 	}
 
 	private void handleTurnState(TeleopInput input) {
-		if(input!=null) return;
-		
+		if (input != null)
+			return;
+
 		double currAngle = Math.abs(gyro.getAngle());
 
-		double maxAngle = target+error, minAngle = target-error;
-		if(currAngle<minAngle || currAngle>maxAngle) {
+		double maxAngle = target + error, minAngle = target - error;
+		if (currAngle < minAngle || currAngle > maxAngle) {
 			left.set(leftTurnSpeed);
 			right.set(rightTurnSpeed);
-		}else{
+		} else {
 			currentState = FSMState.IDLE;
 		}
 
