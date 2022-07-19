@@ -10,7 +10,7 @@ import frc.robot.HardwareMap;
 // Robot Imports
 import frc.robot.TeleopInput;
 
-public class teleOp {
+public class teleOp{
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -36,7 +36,6 @@ public class teleOp {
 	private final double speed = 0.2;
 	private final double five = 5.0;
     private final double one = 1.01;
-
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
