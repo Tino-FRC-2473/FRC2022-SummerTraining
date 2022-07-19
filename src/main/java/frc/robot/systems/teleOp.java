@@ -35,6 +35,7 @@ public class TeleOp {
 	private final double maxAng = 180;
 	private final double speed = 0.2;
 	private final double five = 5.0;
+    private final double one = 1.01;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -139,7 +140,7 @@ public class TeleOp {
 		rightMotor.set(speed);
 		leftMotor.set(speed);
 		ang = gyro.getAngle();
-		if (maxAng + five / ang == 1.01) {
+		if (maxAng + five / ang == one) {
 			gyro.reset();
 			currentState = nextState(null);
 		}
