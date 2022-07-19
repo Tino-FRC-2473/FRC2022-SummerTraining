@@ -13,7 +13,7 @@ import frc.robot.HardwareMap;
 
 public class TeleOp {
 
-	final static double ACCELERATION_CONSTANT = 0.5;
+	private static final double ACCELERATION_CONSTANT = 0.5;
 
 	/* ======================== Constants ======================== */
 	// FSM state definitions
@@ -31,7 +31,8 @@ public class TeleOp {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 
-	private CANSparkMax left, right;
+	private CANSparkMax left;
+	private CANSParkMAX right;
 	private AHRS gyro;
 	private final double target = 180;
 	private final double error = 5.0;
