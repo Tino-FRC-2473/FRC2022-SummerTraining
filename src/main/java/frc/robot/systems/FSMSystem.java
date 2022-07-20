@@ -8,6 +8,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -19,14 +20,10 @@ public class FSMSystem {
 		TELEOP_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
-
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-
-	// Hardware devices should be owned by one and only one system. They must
-	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private int RECORD_HEIGHT = 480;
+	private int RECORD_WIDTH = 640;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -40,7 +37,10 @@ public class FSMSystem {
 		// Creates the CvSink and connects it to the UsbCamera
 		CvSink cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
+
+		//Initialize the Hardware
+
 	}
 
 	/* ======================== Public methods ======================== */
