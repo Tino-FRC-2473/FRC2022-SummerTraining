@@ -1,12 +1,16 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Robot Imports
@@ -22,8 +26,14 @@ public class FSMSystem {
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
+	private CANSparkMax motor;
+	private AHRS gyro;
+	private AnalogPotentiometer pm;
+	private DigitalInput swi;
 	private int RECORD_HEIGHT = 480;
 	private int RECORD_WIDTH = 640;
+	private CvSink cvSink;
+	private CvSource outputStream;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -35,12 +45,19 @@ public class FSMSystem {
 		// Creates UsbCamera and MjpegServer [1] and connects them
 		CameraServer.startAutomaticCapture();
 		// Creates the CvSink and connects it to the UsbCamera
-		CvSink cvSink = CameraServer.getVideo();
+		cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
 
 		//Initialize the Hardware
+		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+										CANSparkMax.MotorType.kBrushless);
+		swi = new DigitalInput(HardwareMap.LIMIT_SWITCH_DIO);
+		pm = new AnalogPotentiometer(HardwareMap.POTENTIOMETER);
+		gyro = new AHRS(SPI.Port.kMXP);
 
+		// Reset state machine
+		reset();
 	}
 
 	/* ======================== Public methods ======================== */
@@ -61,8 +78,11 @@ public class FSMSystem {
 	 */
 	public void reset() {
 		currentState = FSMState.TELEOP_STATE;
-
-		// Call one tick of update to ensure outputs reflect start state
+		CameraServer.startAutomaticCapture();
+		cvSink = CameraServer.getVideo();
+		outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
+		gyro.reset();
+		gyro.calibrate();
 		update(null);
 	}
 	/**
@@ -96,7 +116,7 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case TELEOP_STATE:
-
+				return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -109,8 +129,11 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleopState(TeleopInput input) {
-		SmartDashboard.putNumber("Joystick X value", joystick1.getX());
-		SmartDashboard.putBoolean("Bridge Limit", bridgeTipper.atBridge());
-		SmartDashboard.putString("Match Cycle", "TELEOP");
+		if (input != null){
+			SmartDashboard.putNumber("Motor Encoder Tick", motor.getEncoder().getPosition());
+			SmartDashboard.putBoolean("Switch", swi.get());
+			SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+			SmartDashboard.putNumber("Potentiometer Voltage", pm.get());
+		}
 	}
 }
