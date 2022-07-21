@@ -127,7 +127,6 @@ public class TeleOp {
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Switch", limitSwitch.get()); // temp false
 		SmartDashboard.putNumber("Get Left Encoder Ticks", motor.getEncoder().getPosition());
-		//SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
 		motor.set(motorSpeed);
 	}
 }
