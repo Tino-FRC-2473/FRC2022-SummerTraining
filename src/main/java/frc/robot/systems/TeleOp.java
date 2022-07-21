@@ -30,8 +30,7 @@ public class TeleOp {
 	private FSMState currentState;
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax rightMotor;
-	private CANSparkMax leftMotor;
+	private CANSparkMax motor;
 	// private CANSparkMax joystick;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
@@ -40,14 +39,6 @@ public class TeleOp {
 	private final int potRange = 180;
 	private AnalogPotentiometer pot = new AnalogPotentiometer(0, potRange, 1);
 
-	private double ang;
-
-	// private final double MIN_ANG = 5;
-	private final double maxAng = 180;
-	private final double speed = 0.2;
-	private final double five = 5.0;
-	private final double min = 0.99;
-	private final double max = 1.01;
 	private final int cameraWidth = 640;
 	private final int cameraHeight = 480;
 	private final double motorSpeed = 0.2;
@@ -62,9 +53,7 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
-				CANSparkMax.MotorType.kBrushless);
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 				CANSparkMax.MotorType.kBrushless);
 
 		// jotstick = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
@@ -137,9 +126,8 @@ public class TeleOp {
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Switch", limitSwitch.get()); // temp false
-		SmartDashboard.putNumber("Get Left Encoder Ticks", leftMotor.getEncoder().getPosition());
-		SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
-		rightMotor.set(motorSpeed);
-		leftMotor.set(motorSpeed);
+		SmartDashboard.putNumber("Get Left Encoder Ticks", motor.getEncoder().getPosition());
+		//SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
+		motor.set(motorSpeed);
 	}
 }
