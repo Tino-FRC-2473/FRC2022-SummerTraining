@@ -1,6 +1,5 @@
 package frc.robot.systems;
 
-
 // WPILib Imports
 import edu.wpi.first.wpilibj.SPI;
 
@@ -31,8 +30,8 @@ public class FSMSystem {
 	private AHRS gyro;
 	private AnalogPotentiometer pm;
 	private DigitalInput swi;
-	private final int RECORD_HEIGHT = 480;
-	private final int RECORD_WIDTH = 640;
+	private final int recordH = 480;
+	private final int recordW = 640;
 	private CvSink cvSink;
 	private CvSource outputStream;
 
@@ -48,7 +47,7 @@ public class FSMSystem {
 		// Creates the CvSink and connects it to the UsbCamera
 		cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", recordW, recordH);
 
 		//Initialize the Hardware
 		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
@@ -81,7 +80,7 @@ public class FSMSystem {
 		currentState = FSMState.TELEOP_STATE;
 		CameraServer.startAutomaticCapture();
 		cvSink = CameraServer.getVideo();
-		outputStream = CameraServer.putVideo("RobotFrontCamera", RECORD_WIDTH, RECORD_HEIGHT);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", recordW, recordH);
 		gyro.reset();
 		gyro.calibrate();
 		update(null);
