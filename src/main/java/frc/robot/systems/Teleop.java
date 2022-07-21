@@ -1,7 +1,15 @@
 package frc.robot.systems;
 
 import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // WPILib Imports
 
@@ -26,7 +34,17 @@ public class Teleop {
 	private static final double THRESHOLD = 5;
 	private static final double ANGLE = 180;
 	private static final double POW = 0.3;
+	private static final int WIDTH = 640;
+	private static final int HEIGHT = 480;
 	private FSMState currentState;
+	private CvSink cvSink;
+	private CvSource outputStream;
+	private AnalogInput distance;
+	private AnalogPotentiometer pot;
+	private DigitalInput limitSwitch;
+
+
+
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -41,11 +59,22 @@ public class Teleop {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public Teleop() {
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		outputStream = CameraServer.putVideo("RobotFrontCamera", WIDTH, HEIGHT);
+
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
+
+		distance = new AnalogInput(1);
+		pot = new AnalogPotentiometer(0);
+		limitSwitch = new DigitalInput(0);
 		// Reset state machine
 		reset();
 	}
@@ -143,11 +172,16 @@ public class Teleop {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleopState(TeleopInput input) {
-		if (input == null) {
-			return;
+		if (input != null) {
+			SmartDashboard.putNumber("Gyro", gyro.getAngle());
+			SmartDashboard.putNumber("Left Encoder", leftMotor.getEncoder().getPosition());
+			SmartDashboard.putNumber("Potentiometer", pot.get());
+			SmartDashboard.putNumber("Distance", distance.getValue());
+			SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
+			// System.out.println("TELEOP_STATE");
+			//SmartDashboard.putNumber("Joystick Y value", input.getLeftJoystickY());
+			// leftMotor.set(input.getLeftJoystickY());
+			// rightMotor.set(-input.getRightJoystickY());
 		}
-		System.out.println("TELEOP_STATE");
-		leftMotor.set(input.getLeftJoystickY());
-		rightMotor.set(-input.getRightJoystickY());
 	}
 }
