@@ -32,7 +32,7 @@ public class FSMSystem {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private AHRS gyro;
-	private AnalogInput analogInput;
+	private AnalogInput dist;
 	private AnalogPotentiometer pot;
 	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor;
@@ -55,10 +55,10 @@ public class FSMSystem {
 			CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 			CANSparkMax.MotorType.kBrushless);
+		// distance
+		dist = new AnalogInput(1);
 		// potentiometer
-		analogInput = new AnalogInput(0);
-		analogInput.setAverageBits(2);
-		pot = new AnalogPotentiometer(analogInput);
+		pot = new AnalogPotentiometer(0);
 		// switch
 		limitSwitch = new DigitalInput(0);
 		// Creates UsbCamera and MjpegServer [1] and connects them
@@ -150,5 +150,6 @@ public class FSMSystem {
 		SmartDashboard.putNumber("Encoder Ticks", leftMotor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Switch", limitSwitch.get());
+		SmartDashboard.putNumber("Distance", dist.getValue());
 	}
 }
