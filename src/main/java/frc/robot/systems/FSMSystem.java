@@ -23,7 +23,7 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE
-	 }
+	}
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -31,8 +31,8 @@ public class FSMSystem {
 	private AHRS gyro;
 	private AnalogPotentiometer pm;
 	private DigitalInput swi;
-	private int RECORD_HEIGHT = 480;
-	private int RECORD_WIDTH = 640;
+	private final int RECORD_HEIGHT = 480;
+	private final int RECORD_WIDTH = 640;
 	private CvSink cvSink;
 	private CvSource outputStream;
 
