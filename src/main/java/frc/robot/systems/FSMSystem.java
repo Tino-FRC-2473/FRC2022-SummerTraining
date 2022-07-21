@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Ultrasonic;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -41,10 +40,9 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private AHRS gyro;
-	private AnalogInput analogInput;
 	private AnalogPotentiometer potentiometer;
 	private DigitalInput limitSwitch;
-	private Ultrasonic distance;
+	private AnalogInput distance;
 	// private DigitalInput distanceSwitch;
 
 	/* ======================== Constructor ======================== */
@@ -65,16 +63,12 @@ public class FSMSystem {
 		outputStream = CameraServer.putVideo("RobotFrontCamera", WIDTH, HEIGHT);
 		// Creates the gyro
 		gyro = new AHRS(SPI.Port.kMXP);
-		// Creates the analogInput
-		analogInput = new AnalogInput(0);
-		analogInput.getAverageBits();
 		// Creates the potentiometer
-		potentiometer = new AnalogPotentiometer(analogInput);
+		potentiometer = new AnalogPotentiometer(0);
 		// Creates the limit switch
 		limitSwitch = new DigitalInput(0);
 		// Creates the distance sensor
-		distance = new Ultrasonic(1, 2);
-		Ultrasonic.setAutomaticMode(true);
+		distance = new AnalogInput(1);
 		// Reset state machine
 		reset();
 	}
@@ -149,7 +143,7 @@ public class FSMSystem {
 			SmartDashboard.putNumber("Encoder Ticks", leftMotor.getEncoder().getPosition());
 			SmartDashboard.putNumber("Potentiometer", potentiometer.get());
 			SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
-			SmartDashboard.putNumber("Distance", distance.getRangeInches());
+			SmartDashboard.putNumber("Distance", distance.getValue());
 		}
 	}
 }
