@@ -129,8 +129,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleopState(TeleopInput input) {
-		if (input != null)
-		{
+		if (input != null) {
 			SmartDashboard.putNumber("Motor Encoder Tick", motor.getEncoder().getPosition());
 			SmartDashboard.putBoolean("Switch", swi.get());
 			SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
