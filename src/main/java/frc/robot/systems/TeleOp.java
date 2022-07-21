@@ -8,6 +8,9 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.HardwareMap;
@@ -30,8 +33,10 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor;
+	// private CANSparkMax joystick;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
+	private AnalogPotentiometer pot = new AnalogPotentiometer(0, 180, 1);
 
 	private double ang;
 
@@ -41,6 +46,9 @@ public class TeleOp {
 	private final double five = 5.0;
 	private final double min = 0.99;
 	private final double max = 1.01;
+
+	DigitalInput limitSwitch = new DigitalInput(0);
+	
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -54,6 +62,9 @@ public class TeleOp {
 				CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 				CANSparkMax.MotorType.kBrushless);
+
+		// jotstick = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		// CANSparkMax.MotorType.);
 		// Reset state machine
 		reset();
 	}
@@ -61,6 +72,7 @@ public class TeleOp {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -86,8 +98,9 @@ public class TeleOp {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 * the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
@@ -113,8 +126,9 @@ public class TeleOp {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 * the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -127,8 +141,8 @@ public class TeleOp {
 				}
 			case MOVE:
 				return FSMState.MOVE;
-				// case OTHER_STATE:
-				// return FSMState.OTHER_STATE;
+			// case OTHER_STATE:
+			// return FSMState.OTHER_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -154,13 +168,13 @@ public class TeleOp {
 	private void moveHandle(TeleopInput input) {
 		CameraServer.startAutomaticCapture();
 		CvSink cvsink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("POVurmom", 640, 480);
+		CvSource outputStream = CameraServer.putVideo("Camera", 640, 480);
 
-		SmartDashboard.putNumber("Joystick X value", 8008135);
-		SmartDashboard.putBoolean("Bridge Limit", true);
-		SmartDashboard.putString("Match Cycle", "TELEOP");
-
-
+		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
+		SmartDashboard.putBoolean("Switch", limitSwitch.get()); //temp false
+		SmartDashboard.putNumber("Get Left Encoder Ticks", leftMotor.getEncoder().getPosition()); 
+		SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
 		rightMotor.set(0.2);
 		leftMotor.set(0.2);
 	}
