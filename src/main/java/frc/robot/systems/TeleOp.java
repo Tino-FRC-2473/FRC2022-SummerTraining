@@ -5,7 +5,11 @@ import com.kauailabs.navx.frc.AHRS;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.HardwareMap;
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -50,7 +54,6 @@ public class TeleOp {
 				CANSparkMax.MotorType.kBrushless);
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 				CANSparkMax.MotorType.kBrushless);
-		leftMotor.setInverted(true);
 		// Reset state machine
 		reset();
 	}
@@ -122,7 +125,8 @@ public class TeleOp {
 				} else {
 					return FSMState.IDLE;
 				}
-
+			case MOVE:
+				return FSMState.MOVE;
 				// case OTHER_STATE:
 				// return FSMState.OTHER_STATE;
 
@@ -138,7 +142,7 @@ public class TeleOp {
 	 * the robot is in autonomous mode.
 	 */
 	private void handle() {
-		rightMotor.set(speed);
+		rightMotor.set(-speed);
 		leftMotor.set(speed);
 		ang = gyro.getAngle();
 		if ((maxAng + five / ang) <= max && (maxAng + five / ang) >= min) {
@@ -148,7 +152,16 @@ public class TeleOp {
 	}
 
 	private void moveHandle(TeleopInput input) {
-		rightMotor.set(0);
-		leftMotor.set(0);
+		CameraServer.startAutomaticCapture();
+		CvSink cvsink = CameraServer.getVideo();
+		CvSource outputStream = CameraServer.putVideo("POVurmom", 640, 480);
+
+		SmartDashboard.putNumber("Joystick X value", 8008135);
+		SmartDashboard.putBoolean("Bridge Limit", true);
+		SmartDashboard.putString("Match Cycle", "TELEOP");
+
+
+		rightMotor.set(0.2);
+		leftMotor.set(0.2);
 	}
 }
