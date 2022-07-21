@@ -10,7 +10,6 @@ import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.HardwareMap;
@@ -47,8 +46,7 @@ public class TeleOp {
 	private final double min = 0.99;
 	private final double max = 1.01;
 
-	DigitalInput limitSwitch = new DigitalInput(0);
-	
+	private DigitalInput limitSwitch = new DigitalInput(0);
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -72,7 +70,6 @@ public class TeleOp {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -82,7 +79,6 @@ public class TeleOp {
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.a
-	 *
 	 * Note this is distinct from the one-time initialization in the constructor
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
@@ -98,7 +94,6 @@ public class TeleOp {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -126,7 +121,6 @@ public class TeleOp {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
@@ -172,8 +166,8 @@ public class TeleOp {
 
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
-		SmartDashboard.putBoolean("Switch", limitSwitch.get()); //temp false
-		SmartDashboard.putNumber("Get Left Encoder Ticks", leftMotor.getEncoder().getPosition()); 
+		SmartDashboard.putBoolean("Switch", limitSwitch.get()); // temp false
+		SmartDashboard.putNumber("Get Left Encoder Ticks", leftMotor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
 		rightMotor.set(0.2);
 		leftMotor.set(0.2);
