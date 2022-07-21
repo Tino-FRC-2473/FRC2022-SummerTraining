@@ -35,7 +35,10 @@ public class TeleOp {
 	// private CANSparkMax joystick;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
-	private AnalogPotentiometer pot = new AnalogPotentiometer(0, 180, 1);
+
+
+	private final int potRange = 180;
+	private AnalogPotentiometer pot = new AnalogPotentiometer(0, potRange, 1);
 
 	private double ang;
 
@@ -45,6 +48,9 @@ public class TeleOp {
 	private final double five = 5.0;
 	private final double min = 0.99;
 	private final double max = 1.01;
+	private final int cameraWidth = 640;
+	private final int cameraHeight = 480;
+	private final double motorSpeed = 0.2;
 
 	private DigitalInput limitSwitch = new DigitalInput(0);
 
@@ -162,14 +168,14 @@ public class TeleOp {
 	private void moveHandle(TeleopInput input) {
 		CameraServer.startAutomaticCapture();
 		CvSink cvsink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("Camera", 640, 480);
+		CvSource outputStream = CameraServer.putVideo("Camera", cameraWidth, cameraHeight);
 
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Switch", limitSwitch.get()); // temp false
 		SmartDashboard.putNumber("Get Left Encoder Ticks", leftMotor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Get Right Encoder Ticks", rightMotor.getEncoder().getPosition());
-		rightMotor.set(0.2);
-		leftMotor.set(0.2);
+		rightMotor.set(motorSpeed);
+		leftMotor.set(motorSpeed);
 	}
 }
