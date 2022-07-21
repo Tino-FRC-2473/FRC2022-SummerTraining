@@ -105,15 +105,8 @@ public class TeleOp {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case AUTO:
-				if (input == null) {
-					handle();
-				}
-				break;
 			case MOVE:
 				moveHandle(input);
-				break;
-			case IDLE:
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -132,38 +125,9 @@ public class TeleOp {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch (currentState) {
-			case AUTO:
-				if (input != null) {
-					return FSMState.AUTO;
-				} else {
-					return FSMState.IDLE;
-				}
-			case MOVE:
-				return FSMState.MOVE;
-			// case OTHER_STATE:
-			// return FSMState.OTHER_STATE;
-
-			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
-		}
+		return FSMState.MOVE;
 	}
 
-	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * input Global TeleopInput if robot in teleop mode or null if
-	 * the robot is in autonomous mode.
-	 */
-	private void handle() {
-		rightMotor.set(-speed);
-		leftMotor.set(speed);
-		ang = gyro.getAngle();
-		if ((maxAng + five / ang) <= max && (maxAng + five / ang) >= min) {
-			gyro.reset();
-			currentState = nextState(null);
-		}
-	}
 
 	private void moveHandle(TeleopInput input) {
 		CameraServer.startAutomaticCapture();
