@@ -1,5 +1,6 @@
 package frc.robot.systems;
 
+
 // WPILib Imports
 import edu.wpi.first.wpilibj.SPI;
 
@@ -22,7 +23,7 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP_STATE
-	}
+	 }
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
