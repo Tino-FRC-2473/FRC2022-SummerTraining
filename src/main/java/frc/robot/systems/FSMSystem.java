@@ -25,6 +25,8 @@ public class FSMSystem {
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final int CAMERA_WIDTH = 640;
+	private static final int CAMERA_HEIGHT = 480;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -39,7 +41,6 @@ public class FSMSystem {
 	private CvSink cvSink;
 	private CvSource outputStream;
 	private DigitalInput limitSwitch;
-
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -63,10 +64,10 @@ public class FSMSystem {
 		limitSwitch = new DigitalInput(0);
 		// Creates UsbCamera and MjpegServer [1] and connects them
 		CameraServer.startAutomaticCapture();
-		// Creates the CvSink and connects it to the UsbCamera	
+		// Creates the CvSink and connects it to the UsbCamera
 		cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", CAMERA_WIDTH, CAMERA_HEIGHT);
 		// Reset state machine
 		reset();
 	}
