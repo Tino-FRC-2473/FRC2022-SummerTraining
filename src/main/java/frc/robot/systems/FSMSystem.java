@@ -1,9 +1,17 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -13,18 +21,19 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP_STATE
 	}
-
-	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-
-	// Hardware devices should be owned by one and only one system. They must
-	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax motor;
+	private AHRS gyro;
+	private AnalogPotentiometer pm;
+	private DigitalInput swi;
+	private final int recordH = 480;
+	private final int recordW = 640;
+	private CvSink cvSink;
+	private CvSource outputStream;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -33,9 +42,19 @@ public class FSMSystem {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public FSMSystem() {
-		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		outputStream = CameraServer.putVideo("RobotFrontCamera", recordW, recordH);
+
+		//Initialize the Hardware
+		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
+		swi = new DigitalInput(HardwareMap.LIMIT_SWITCH_DIO);
+		pm = new AnalogPotentiometer(HardwareMap.POTENTIOMETER);
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -58,9 +77,12 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
-		// Call one tick of update to ensure outputs reflect start state
+		currentState = FSMState.TELEOP_STATE;
+		CameraServer.startAutomaticCapture();
+		cvSink = CameraServer.getVideo();
+		outputStream = CameraServer.putVideo("RobotFrontCamera", recordW, recordH);
+		gyro.reset();
+		gyro.calibrate();
 		update(null);
 	}
 	/**
@@ -71,12 +93,8 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
-				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case TELEOP_STATE:
+				handleTeleopState(input);
 				break;
 
 			default:
@@ -97,16 +115,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case TELEOP_STATE:
+				return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -114,19 +124,16 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in TELEOP_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTeleopState(TeleopInput input) {
+		if (input != null) {
+			SmartDashboard.putNumber("Motor Encoder Tick", motor.getEncoder().getPosition());
+			SmartDashboard.putBoolean("Switch", swi.get());
+			SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+			SmartDashboard.putNumber("Potentiometer Voltage", pm.get());
+		}
 	}
 }
