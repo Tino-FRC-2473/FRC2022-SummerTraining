@@ -4,27 +4,35 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 // Robot Imports
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.SPI;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class TeleOp {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
 		TELEOP
 	}
-
-	private static final float ACCEL_CONSTANT = 10f;
-
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-
+	private static final int CAM_WIDTH = 640;
+	private static final int CAM_HEIGHT = 480;
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
-	private double currLpower = 0;
-	private double currRpower = 0;
+	private AHRS gyro;
+	private AnalogPotentiometer poten;
+	private DigitalInput limSwitch;
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -37,6 +45,9 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
+		gyro = new AHRS(SPI.Port.kMXP);
+		poten = new AnalogPotentiometer(HardwareMap.POTENTIOMETER_CHANNEL);
+		limSwitch = new DigitalInput(HardwareMap.SWITCH_CHANNEL);
 		// Reset state machine
 		reset();
 	}
@@ -59,6 +70,14 @@ public class TeleOp {
 	 */
 	public void reset() {
 		currentState = FSMState.TELEOP;
+		gyro.reset();
+		gyro.calibrate();
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		CvSink cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", CAM_WIDTH, CAM_HEIGHT);
 		// Call one tick of update to ensure outputs reflect start state
 		//update(null);
 	}
@@ -98,25 +117,10 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handle(TeleopInput input) {
-		//arcade drive
-		double desiredLpower = input.getLeftJoystickY() - input.getRightJoystickX();
-		double desiredRpower =  -input.getLeftJoystickY() - input.getRightJoystickX();
-		if (desiredLpower > 1) {
-			desiredLpower = 1;
-		} else if (desiredLpower < -1) {
-			desiredLpower = -1;
-		}
-		if (desiredRpower > 1) {
-			desiredRpower = 1;
-		} else if (desiredRpower < -1) {
-			desiredRpower = -1;
-		}
-		currLpower += (desiredLpower - currLpower) / ACCEL_CONSTANT;
-		currRpower += (desiredRpower - currRpower) / ACCEL_CONSTANT;
-		leftMotor.set(currLpower);
-		rightMotor.set(currRpower);
-		//tank drive
-		//leftMotor.set(-input.getLeftJoystickY());
-		//rightMotor.set(input.getRightJoystickY());
+		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+		SmartDashboard.putNumber("Left Encoder Ticks", leftMotor.getEncoder().getPosition());
+		SmartDashboard.putNumber("Right Encoder Ticks", rightMotor.getEncoder().getPosition());
+		SmartDashboard.putNumber("Potentiometer Voltage", poten.get());
+		SmartDashboard.putBoolean("Limit Switch", limSwitch.get());
 	}
 }
