@@ -41,10 +41,13 @@ public class FSMSystem {
 	private CvSource outputStream;
 
 	private AHRS gyro = new AHRS(SPI.Port.kMXP);
-	AnalogInput analog = new AnalogInput(0);
-	AnalogPotentiometer pot = new AnalogPotentiometer(analog);
+	private AnalogInput analog = new AnalogInput(0);
+	private AnalogPotentiometer pot = new AnalogPotentiometer(analog);
 
-	DigitalInput limitSwitch;
+	private DigitalInput limitSwitch;
+
+	private int videoWidth = 640;
+	private int videoHeight = 480;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -64,7 +67,7 @@ public class FSMSystem {
 		// Creates the CvSink and connects it to the UsbCamera
 		cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
+		outputStream = CameraServer.putVideo("RobotFrontCamera", videoWidth, videoHeight);
 
 		limitSwitch = new DigitalInput(0);
 		
@@ -134,6 +137,18 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+
+	private AnalogInput getAnalogInput() {
+		return analog;
+	}
+
+	private AnalogPotentiometer getAnalogPotentiometer() {
+		return pot;
+	}
+
+	private DigitalInput getDigitalInput() {
+		return limitSwitch;
+	}
 
 	private void handleTeleOpState(TeleopInput input) {
 		leftMotor.set(MOTOR_RUN_POWER);
