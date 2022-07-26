@@ -45,12 +45,7 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
 		left.setInverted(true);
 		// Creates UsbCamera and MjpegServer [1] and connects them
-		CameraServer.startAutomaticCapture();
-		// Creates the CvSink and connects it to the UsbCamera
-		CvSink cvSink = CameraServer.getVideo();
-		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
-		// Reset state machine
+		
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		reset();
 	}
