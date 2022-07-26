@@ -1,26 +1,15 @@
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-import com.kauailabs.navx.frc.AHRS;
-
-// Camera and Shuffleboard
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class Dashboard {
+public class Mecanum {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -28,18 +17,17 @@ public class Dashboard {
 		TELEOP
 	}
 
+	private static final float MOTOR_RUN_POWER = 0.25f;
+
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-	private static final int CAM_WIDTH = 640;
-	private static final int CAM_HEIGHT = 640;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax motor;
-	private DigitalInput lim;
-	private AnalogPotentiometer pot;
-	private AHRS gyro;
-	private AnalogInput dist;
+	private CANSparkMax frontLeftMotor;
+	private CANSparkMax frontRightMotor;
+    private CANSparkMax backLeftMotor;
+    private CANSparkMax backRightMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -47,14 +35,16 @@ public class Dashboard {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public Dashboard() {
+	public Mecanum() {
 		// Perform hardware init
-		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
-		lim = new DigitalInput(HardwareMap.LIMIT_SWITCH_DIO);
-		pot = new AnalogPotentiometer(HardwareMap.POTENTIOMETER);
-		gyro = new AHRS(SPI.Port.kMXP);
-		dist = new AnalogInput(HardwareMap.DISTANCE);
+		frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+		CANSparkMax.MotorType.kBrushless);
+		frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+		CANSparkMax.MotorType.kBrushless);
+		backLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
+		CANSparkMax.MotorType.kBrushless);
+		backRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+		CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -77,17 +67,7 @@ public class Dashboard {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.TELEOP;
-
-		CameraServer.startAutomaticCapture();
-		CvSink cvSink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", CAM_WIDTH, CAM_HEIGHT);
-
-		cvSink.isValid();
-		outputStream.isValid();
-
-		gyro.reset();
-		gyro.calibrate();
+		currentState = FSMState.AUTO;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -101,11 +81,11 @@ public class Dashboard {
 	public void update(TeleopInput input) {
 		switch (currentState) {
 			case AUTO:
-				handleAutoState(input);
+				handleAuto(input);
 				break;
 
 			case TELEOP:
-				handleTeleopState(input);
+				handleTeleop(input);
 				break;
 
 			default:
@@ -127,14 +107,18 @@ public class Dashboard {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case AUTO:
-				if (input != null) {
+				if (input != null){
 					return FSMState.TELEOP;
 				} else {
 					return FSMState.AUTO;
 				}
 
 			case TELEOP:
-				return FSMState.TELEOP;
+				if (input != null){
+					return FSMState.TELEOP;
+				} else {
+					return FSMState.AUTO;
+				}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -147,21 +131,32 @@ public class Dashboard {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleAutoState(TeleopInput input) {
+	private void handleAuto(TeleopInput input) {
+		if (input != null) return;
 
+		// Move forward
+		while (frontLeftMotor.get() < 200){
+			frontLeftMotor.set(MOTOR_RUN_POWER);
+			frontRightMotor.set(MOTOR_RUN_POWER);
+			backLeftMotor.set(MOTOR_RUN_POWER);
+			backRightMotor.set(MOTOR_RUN_POWER);
+		}
 	}
-
 	/**
 	 * Handle behavior in TELEOP.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleTeleopState(TeleopInput input) {
-		SmartDashboard.putNumber("Motor Encoder Value", motor.getEncoder().getPosition());
-		SmartDashboard.putNumber("Potentiometer", pot.get());
-		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
-		SmartDashboard.putNumber("Distance", dist.getValue());
-		SmartDashboard.putBoolean("Limit Switch", lim.get());
-	}
+	private void handleTeleop(TeleopInput input) {
+		if (input == null) return;
 
+		// how do we want to map this out?
+		// two joysticks
+		// one will control lateral movement, so forward means forward 
+			// and backward means backward (the two sides will strafe)
+			// stupid theta angle thing
+		// second will just be horizontal movement for angle
+
+		
+	}
 }
