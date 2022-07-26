@@ -13,18 +13,24 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	// private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final int NUM_VECTORS = 2;
+	private static final int INVERSE_TRIG_RANGE_ERROR = 180;
+	final private static  int MEC_WHEEL_ANGLE = 45;
+	final private static  int GRID_ROTAION_FACTOR = 315;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax frontLeftMotor;
+	private CANSparkMax frontRightMotor;
+	private CANSparkMax backLeftMotor;
+	private CANSparkMax backRightMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,9 +40,14 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-
+		frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		backLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		backRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -58,7 +69,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.TELEOP_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -71,12 +82,8 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
-				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case TELEOP_STATE:
+				handleTeleopState(input);
 				break;
 
 			default:
@@ -97,15 +104,9 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case TELEOP_STATE:
+				return FSMState.TELEOP_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -114,19 +115,28 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in TELEOP_STATE.
+	 * The left joystick controls the direction the robot moves in.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTeleopState(TeleopInput input) {
+
+		// Left Joystick
+		double leftX = input.getLeftJoystickX();
+		double leftY = input.getLeftJoystickY();
+
+		double joystickMagnitude = Math.sqrt(leftY * leftY + leftX * leftX);
+		double joystickAngle = (leftX < 0) ? Math.toDegrees(Math.atan(leftY / leftX)) : Math.toDegrees(Math.atan(leftY / leftX)) + INVERSE_TRIG_RANGE_ERROR;
+		double angle = (joystickAngle <= GRID_ROTAION_FACTOR) ? joystickAngle + MEC_WHEEL_ANGLE : joystickAngle - GRID_ROTAION_FACTOR;
+		double leftPointer = joystickMagnitude * Math.sin(Math.toRadians(angle));
+		double rightPointer = joystickMagnitude * Math.cos(Math.toRadians(angle));
+
+		frontLeftMotor.set(rightPointer / NUM_VECTORS);
+		backRightMotor.set(rightPointer / NUM_VECTORS);
+		frontRightMotor.set(leftPointer / NUM_VECTORS);
+		backLeftMotor.set(leftPointer / NUM_VECTORS);
+
+		// Right Joystick
 	}
 }
