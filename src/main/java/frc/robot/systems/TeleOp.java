@@ -13,6 +13,8 @@ import frc.robot.HardwareMap;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TeleOp {
@@ -30,8 +32,10 @@ public class TeleOp {
 	// be private to their owner system and may not be used elsewhere.
 
 	private CANSparkMax left;
-	private CANSparkMax right;
-
+	private AnalogPotentiometer pot;
+	private DigitalInput limitSwitch;
+	private final int potFullRange = 180;
+	private final int potOffset = 30;
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -39,8 +43,6 @@ public class TeleOp {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public TeleOp() {
-		right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
-			CANSparkMax.MotorType.kBrushless);
 		left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 			CANSparkMax.MotorType.kBrushless);
 		left.setInverted(true);
@@ -51,6 +53,8 @@ public class TeleOp {
 		// Creates the CvSource and MjpegServer [2] and connects them
 		final int w = 640;
 		final int h = 480;
+		pot = new AnalogPotentiometer(0, potFullRange, potOffset);
+		limitSwitch = new DigitalInput(0);
 		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", w, h);
 		// Reset state machine
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
@@ -112,9 +116,9 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTELEOP(TeleopInput input) {
-		//SmartDashboard.putNumber("Left Motor Ticks", left.)
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
-		SmartDashboard.putBoolean("Shooter Button", input.isShooterButtonPressed());
-		SmartDashboard.putBoolean("Intake Button", input.isIntakeButtonPressed());
+		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
+		SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
+		SmartDashboard.putNumber("Encoder Ticks", left.getEncoder().getPosition());
 	}
 }

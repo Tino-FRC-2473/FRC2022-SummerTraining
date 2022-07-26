@@ -34,8 +34,6 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
