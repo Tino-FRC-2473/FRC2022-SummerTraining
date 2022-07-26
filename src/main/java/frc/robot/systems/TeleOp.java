@@ -40,8 +40,10 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-        right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
-        left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
+		right = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, 
+			CANSparkMax.MotorType.kBrushless);
+		left = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, 
+			CANSparkMax.MotorType.kBrushless);
 		left.setInverted(true);
 		// Creates UsbCamera and MjpegServer [1] and connects them
 		CameraServer.startAutomaticCapture();
