@@ -125,8 +125,6 @@ public class TeleOp {
 			return;
 		}
 
-		motor.set(motorSpeed);
-
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
