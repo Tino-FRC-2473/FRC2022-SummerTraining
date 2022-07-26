@@ -56,6 +56,10 @@ public class TeleOp {
 		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 				CANSparkMax.MotorType.kBrushless);
 
+		CameraServer.startAutomaticCapture();
+		CvSink cvsink = CameraServer.getVideo();
+		CvSource outputStream = CameraServer.putVideo("Camera", cameraWidth, cameraHeight);
+
 		// jotstick = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 		// CANSparkMax.MotorType.);
 		// Reset state machine
@@ -119,9 +123,7 @@ public class TeleOp {
 
 
 	private void moveHandle(TeleopInput input) {
-		CameraServer.startAutomaticCapture();
-		CvSink cvsink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("Camera", cameraWidth, cameraHeight);
+		
 
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
