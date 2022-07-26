@@ -19,8 +19,8 @@ public class FSMSystem {
 	// private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final int NUM_VECTORS = 2;
 	private static final int INVERSE_TRIG_RANGE_ERROR = 180;
-	final private static  int MEC_WHEEL_ANGLE = 45;
-	final private static  int GRID_ROTAION_FACTOR = 315;
+	private final static int MEC_WHEEL_ANGLE = 45;
+	private final static int GRID_ROTAION_FACTOR = 315;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -127,8 +127,10 @@ public class FSMSystem {
 		double leftY = input.getLeftJoystickY();
 
 		double joystickMagnitude = Math.sqrt(leftY * leftY + leftX * leftX);
-		double joystickAngle = (leftX < 0) ? Math.toDegrees(Math.atan(leftY / leftX)) : Math.toDegrees(Math.atan(leftY / leftX)) + INVERSE_TRIG_RANGE_ERROR;
-		double angle = (joystickAngle <= GRID_ROTAION_FACTOR) ? joystickAngle + MEC_WHEEL_ANGLE : joystickAngle - GRID_ROTAION_FACTOR;
+		double joystickAngle = (leftX < 0) ? Math.toDegrees(Math.atan(leftY / leftX))
+			: Math.toDegrees(Math.atan(leftY / leftX)) + INVERSE_TRIG_RANGE_ERROR;
+		double angle = (joystickAngle <= GRID_ROTAION_FACTOR) ? joystickAngle + MEC_WHEEL_ANGLE
+			: joystickAngle - GRID_ROTAION_FACTOR;
 		double leftPointer = joystickMagnitude * Math.sin(Math.toRadians(angle));
 		double rightPointer = joystickMagnitude * Math.cos(Math.toRadians(angle));
 
