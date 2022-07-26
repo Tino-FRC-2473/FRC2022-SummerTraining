@@ -9,16 +9,14 @@ import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.HardwareMap;
+
 // Robot Imports
 import frc.robot.TeleopInput;
 
 public class TeleOp {
 
-	final static double ACCELERATION_CONSTANT = 0.5;
+	static final double ACCELERATION_CONSTANT = 0.5;
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -41,6 +39,11 @@ public class TeleOp {
 
 	private CvSink cvSink;
 	private CvSource outputStream;
+	private int cameraWidth = 640;
+	private int cameraHeight = 480;
+
+	private int potFullRange = 180;
+	private int potOffset = 30;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -52,12 +55,12 @@ public class TeleOp {
 		// Perform hardware init
 		motor = new CANSparkMax(2, CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
-		pot = new AnalogPotentiometer(0, 180, 30);
+		pot = new AnalogPotentiometer(0, potFullRange, potOffset);
 		limitSwitch = new DigitalInput(0);
 
 		CameraServer.startAutomaticCapture();
 		CvSink cvSink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", cameraWidth, cameraHeight);
 
 		// Reset state machine
 		reset();
@@ -92,7 +95,7 @@ public class TeleOp {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		switch(currentState) {
+		switch (currentState) {
 			case TELEOP:
 				handleTeleOpState(input);
 				break;
@@ -116,21 +119,20 @@ public class TeleOp {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-
+	
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleOpState(TeleopInput input) {
-		if(input==null) {
+		if (input == null) {
 			return;
 		}
 
 		motor.set(motorSpeed);
 
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
-		SmartDashboard.putNumber("Motor Encoder", motor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
 		SmartDashboard.putNumber("Encoder Ticks", motor.getEncoder().getPosition());
