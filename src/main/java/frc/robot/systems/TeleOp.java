@@ -10,6 +10,9 @@ import com.revrobotics.CANSparkMax;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TeleOp {
@@ -25,8 +28,8 @@ public class TeleOp {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	
-	private CANSparkMax left, right;
+
+    private CANSparkMax left, right;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -42,7 +45,14 @@ public class TeleOp {
 										CANSparkMax.MotorType.kBrushless);
 		left.setInverted(true);
 		// Creates UsbCamera and MjpegServer [1] and connects them
-		
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		CvSink cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		final int w = 640;
+		final int h = 480;
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", w, h);
+		// Reset state machine
 		gyro = new AHRS(edu.wpi.first.wpilibj.SPI.Port.kMXP);
 		reset();
 	}
