@@ -27,7 +27,7 @@ public class TeleOp {
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-	private double motorSpeed = 0.2;
+	private final double motorSpeed = 0.2;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -37,13 +37,11 @@ public class TeleOp {
 	private AnalogPotentiometer pot;
 	private DigitalInput limitSwitch;
 
-	private CvSink cvSink;
-	private CvSource outputStream;
-	private int cameraWidth = 640;
-	private int cameraHeight = 480;
+	private final int cameraWidth = 640;
+	private final int cameraHeight = 480;
 
-	private int potFullRange = 180;
-	private int potOffset = 30;
+	private final int potFullRange = 180;
+	private final int potOffset = 30;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -60,7 +58,8 @@ public class TeleOp {
 
 		CameraServer.startAutomaticCapture();
 		CvSink cvSink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", cameraWidth, cameraHeight);
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 
+		cameraWidth, cameraHeight);
 
 		// Reset state machine
 		reset();
@@ -119,7 +118,6 @@ public class TeleOp {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
