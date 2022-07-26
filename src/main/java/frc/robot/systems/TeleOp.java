@@ -9,6 +9,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.AnalogInput;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -32,6 +33,7 @@ public class TeleOp {
 	private AHRS gyro;
 	private AnalogPotentiometer poten;
 	private DigitalInput limSwitch;
+	private AnalogInput irSensor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -41,13 +43,12 @@ public class TeleOp {
 	 */
 	public TeleOp() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 		poten = new AnalogPotentiometer(HardwareMap.POTENTIOMETER_CHANNEL);
 		limSwitch = new DigitalInput(HardwareMap.SWITCH_CHANNEL);
+		irSensor = new AnalogInput(HardwareMap.IR_SWITCH_CHANNEL);
 		// Reset state machine
 		reset();
 	}
@@ -118,9 +119,10 @@ public class TeleOp {
 	 */
 	private void handle(TeleopInput input) {
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
-		SmartDashboard.putNumber("Left Encoder Ticks", leftMotor.getEncoder().getPosition());
+		//SmartDashboard.putNumber("Left Encoder Ticks", leftMotor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Right Encoder Ticks", rightMotor.getEncoder().getPosition());
 		SmartDashboard.putNumber("Potentiometer Voltage", poten.get());
 		SmartDashboard.putBoolean("Limit Switch", limSwitch.get());
+		SmartDashboard.putNumber("AnalogInput",irSensor.getValue());
 	}
 }
