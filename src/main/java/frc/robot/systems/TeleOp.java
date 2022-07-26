@@ -41,7 +41,6 @@ public class TeleOp {
 
 	private final int cameraWidth = 640;
 	private final int cameraHeight = 480;
-	private final double motorSpeed = 0.2;
 
 	private DigitalInput limitSwitch = new DigitalInput(0);
 
@@ -128,6 +127,5 @@ public class TeleOp {
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
 		SmartDashboard.putBoolean("Switch", limitSwitch.get()); // temp false
 		SmartDashboard.putNumber("Get Left Encoder Ticks", motor.getEncoder().getPosition());
-		motor.set(motorSpeed);
 	}
 }
