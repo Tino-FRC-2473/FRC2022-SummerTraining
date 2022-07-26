@@ -9,7 +9,6 @@ import com.revrobotics.CANSparkMax;
 
 // Robot Imports
 import frc.robot.TeleopInput;
-import frc.robot.HardwareMap;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
