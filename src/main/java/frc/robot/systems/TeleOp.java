@@ -123,7 +123,6 @@ public class TeleOp {
 
 
 	private void moveHandle(TeleopInput input) {
-		
 
 		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
 		SmartDashboard.putNumber("Potentiometer Voltage", pot.get());
