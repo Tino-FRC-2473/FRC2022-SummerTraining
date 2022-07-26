@@ -82,7 +82,7 @@ public class TeleOp {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.AUTO;
+		currentState = FSMState.MOVE;
 		gyro.reset();
 		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
