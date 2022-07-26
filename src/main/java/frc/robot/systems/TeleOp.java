@@ -10,9 +10,6 @@ import com.revrobotics.CANSparkMax;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TeleOp {
@@ -28,8 +25,8 @@ public class TeleOp {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-
-    private CANSparkMax left, right;
+	
+	private CANSparkMax left, right;
 
 	/* ======================== Constructor ======================== */
 	/**
