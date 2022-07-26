@@ -37,9 +37,8 @@ public class TeleOp {
 	private AnalogPotentiometer pot;
 	private DigitalInput limitSwitch;
 
-	private final int cameraWidth = 640;
-	private final int cameraHeight = 480;
-
+	private final int camWidth = 640;
+	private final int camHeight = 480;
 	private final int potFullRange = 180;
 	private final int potOffset = 30;
 
@@ -58,9 +57,7 @@ public class TeleOp {
 
 		CameraServer.startAutomaticCapture();
 		CvSink cvSink = CameraServer.getVideo();
-		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 
-		cameraWidth, cameraHeight);
-
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", camWidth, camHeight);
 		// Reset state machine
 		reset();
 	}
