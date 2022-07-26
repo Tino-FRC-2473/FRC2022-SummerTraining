@@ -19,8 +19,8 @@ public class FSMSystem {
 	// private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final int NUM_VECTORS = 2;
 	private static final int INVERSE_TRIG_RANGE_ERROR = 180;
-	private final static int MEC_WHEEL_ANGLE = 45;
-	private final static int GRID_ROTAION_FACTOR = 315;
+	private static final int MEC_WHEEL_ANGLE = 45;
+	private static final int GRID_ROTAION_FACTOR = 315;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
