@@ -1,30 +1,46 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+
 // WPILib Imports
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
 public class FSMSystem {
+
+	private AHRS gyro;
+
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELE_STATE_2_MOTOR_DRIVE,
+		TELE_STATE_MECANUM
 	}
-
-	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
+
+	private CANSparkMax bottomLeftMotorMecanum;
+	private CANSparkMax bottomRightMotorMecanum;
+	private CANSparkMax topLeftMotorMecanum;
+	private CANSparkMax topRightMotorMecanum;
+
+	private double bottomLeftMotorMecanumPower;
+	private double bottomRightMotorMecanumPower;
+	private double topLeftMotorMecanumPower;
+	private double topRightMotorMecanumPower;
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,11 +50,24 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+
+		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
+
+		gyro = new AHRS(SPI.Port.kMXP);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -49,6 +78,7 @@ public class FSMSystem {
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -58,11 +88,18 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+
+		bottomLeftMotorMecanum.set(0);
+		bottomRightMotorMecanum.set(0);
+		topLeftMotorMecanum.set(0);
+		topRightMotorMecanum.set(0);
+
+		currentState = FSMState.TELE_STATE_MECANUM;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
@@ -71,12 +108,12 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case TELE_STATE_2_MOTOR_DRIVE:
+				handleTeleOp2MotorState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			
+			case TELE_STATE_MECANUM:
+				handleTeleOpMecanum(input);
 				break;
 
 			default:
@@ -97,15 +134,9 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case TELE_STATE_2_MOTOR_DRIVE:
+				return FSMState.TELE_STATE_2_MOTOR_DRIVE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -114,19 +145,27 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in TELE_STATE_2_MOTOR_DRIVE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+	private void handleTeleOp2MotorState(TeleopInput input) {
+		if(input == null) {
+			return;
+		}
+		
+		leftMotor.set((input.getLeftJoystickY()));
+		rightMotor.set(-(input.getRightJoystickY()));
+
+		// System.out.println(gyro.getAngle());
 	}
+
 	/**
-	 * Handle behavior in OTHER_STATE.
+	 * Handle behavior in TELE_STATE_MECANUM.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTeleOpMecanum(TeleopInput input) {
+		
 	}
 }

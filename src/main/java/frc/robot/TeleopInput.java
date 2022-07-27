@@ -83,6 +83,14 @@ public class TeleopInput {
 		return rightJoystick.getY();
 	}
 
+	/**
+	 * Get trigger button is pressed of left joystick.
+	 * @return Axis value
+	 */
+	public boolean isLeftJoystickTriggerPressedRaw() {
+		return leftJoystick.getTrigger();
+	}
+
 	/* ======================== Private methods ======================== */
 
 }
