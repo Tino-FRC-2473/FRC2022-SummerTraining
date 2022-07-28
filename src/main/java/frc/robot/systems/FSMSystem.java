@@ -8,6 +8,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.SPI;
+
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -120,7 +121,7 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTeleopState(TeleopInput input) {
 		if(input != null) {
-			lFMotor.set(input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX());
+			lFMotor.set(Range.clip(input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX(), -1.0, 1.0));
 			rFMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() - input.getRightJoystickX());
 			lBMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() + input.getRightJoystickX());
 			rBMotor.set(input.getLeftJoystickY() + input.getLeftJoystickX() - input.getRightJoystickX());
