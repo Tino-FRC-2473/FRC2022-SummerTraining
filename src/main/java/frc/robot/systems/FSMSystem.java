@@ -119,11 +119,15 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTeleopState(TeleopInput input) {
-		if(input != null) {
-			lFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX())));
-			rFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() - input.getLeftJoystickX() - input.getRightJoystickX())));
-			lBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() - input.getLeftJoystickX() + input.getRightJoystickX())));
-			rBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() + input.getLeftJoystickX() - input.getRightJoystickX())));
+		if (input != null) {
+			lFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY()
+						+ input.getLeftJoystickX() + input.getRightJoystickX())));
+			rFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY()
+						- input.getLeftJoystickX() - input.getRightJoystickX())));
+			lBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY()
+						- input.getLeftJoystickX() + input.getRightJoystickX())));
+			rBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY()
+						+ input.getLeftJoystickX() - input.getRightJoystickX())));
 		}
 	}
 }
