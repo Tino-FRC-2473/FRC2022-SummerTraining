@@ -32,8 +32,8 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax rfMotor;
 	private CANSparkMax lfMotor;
-    private CANSparkMax rbMotor;
-    private CANSparkMax lbMotor;
+	private CANSparkMax rbMotor;
+	private CANSparkMax lbMotor;
 
 	private AHRS gyro;
 
@@ -48,7 +48,7 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		lfMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-        rbMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+		rbMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		lbMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
 										CANSparkMax.MotorType.kBrushless);
