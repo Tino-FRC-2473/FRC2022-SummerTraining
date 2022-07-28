@@ -1,5 +1,8 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
 // WPILib Imports
 
 // Third party Hardware Imports
@@ -13,30 +16,43 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP_STATE,
+		TURN_STATE,
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	//private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
+	private static final double THRESHOLD = 5;
+	private static final double ANGLE = 180;
+	private static final double POW = 0.3;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax rf_motor;
+	private CANSparkMax lf_motor;
+    private CANSparkMax rb_motor;
+    private CANSparkMax lb_motor;
+
+	private AHRS gyro;
 
 	/* ======================== Constructor ======================== */
 	/**
-	 * Create FSMSystem and initialize to starting state. Also perform any
+	 * Create Teleop and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
 	public FSMSystem() {
-		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rf_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-
+		lf_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+        rb_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		lb_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -58,8 +74,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
+		currentState = FSMState.TELEOP_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -70,15 +87,11 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		System.out.println(currentState + ": " + gyro.getAngle());
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case TELEOP_STATE:
+				handleTeleopState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
-				break;
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -97,16 +110,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case TELEOP_STATE:
+				return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -114,19 +119,20 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in TELEOP_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTeleopState(TeleopInput input) {
+		if (input != null) {
+			System.out.println("TELEOP_STATE");
+			double y = input.getRightJoystickY();
+			double x = input.getRightJoystickX();
+			double rx = input.getLeftJoystickX();
+			lf_motor.set(Math.max(-1, Math.min(y + x + rx, 1)));
+			rf_motor.set(Math.max(-1, Math.min(y - x - rx, 1)));
+			lb_motor.set(Math.max(-1, Math.min(y - x + rx, 1)));
+			rb_motor.set(Math.max(-1, Math.min(y + x - rx, 1)));
+		}
 	}
 }
