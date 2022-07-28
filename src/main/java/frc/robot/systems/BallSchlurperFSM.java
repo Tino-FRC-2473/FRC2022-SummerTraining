@@ -1,20 +1,30 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.ColorSensorV3;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class BallHandling {
+public class BallSchlurperFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		SPIN,
-		IDLE
+		EXTENDED,
+		RETRACTED
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,6 +35,7 @@ public class BallHandling {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax intakeMotor;
+	private DoubleSolenoid armSolenoid;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -32,10 +43,11 @@ public class BallHandling {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public BallHandling() {
+	public BallSchlurperFSM() {
 		// Perform hardware init
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR,
 										CANSparkMax.MotorType.kBrushless);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
 
 		// Reset state machine
 		reset();
@@ -58,8 +70,7 @@ public class BallHandling {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.IDLE;
-
+		currentState = FSMState.RETRACTED;
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -71,14 +82,12 @@ public class BallHandling {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case SPIN:
-				handleSpinState(input);
+			case EXTENDED:
+				handleExtendedState(input);
 				break;
-
-			case IDLE:
-				handleIdleState(input);
+			case RETRACTED:
+				handleRetractedState(input);
 				break;
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -97,18 +106,17 @@ public class BallHandling {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case SPIN:
-				if (!input.isIntakeButtonPressed()) {
-					return FSMState.IDLE;
-				} else {
-					return FSMState.SPIN;
+			case EXTENDED:
+				if(input.isIntakeButtonPressed()) {
+					return FSMState.EXTENDED;
+				}else{
+					return FSMState.RETRACTED;
 				}
-
-			case IDLE:
-				if (input.isIntakeButtonPressed()) {
-					return FSMState.SPIN;
-				} else {
-					return FSMState.IDLE;
+			case RETRACTED:
+				if(input.isIntakeButtonPressed()) {
+					return FSMState.EXTENDED;
+				}else{
+					return FSMState.RETRACTED;
 				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -121,15 +129,17 @@ public class BallHandling {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleSpinState(TeleopInput input) {
+	private void handleExtendedState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
+		armSolenoid.set(Value.kReverse);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleIdleState(TeleopInput input) {
-		intakeMotor.set(0);
+	private void handleRetractedState(TeleopInput input) {
+		intakeMotor.set(MOTOR_RUN_POWER);
+		armSolenoid.set(Value.kForward);
 	}
 }
