@@ -1,10 +1,13 @@
 package frc.robot.systems;
 
+import com.kauailabs.navx.frc.AHRS;
+
 // WPILib Imports
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -13,8 +16,7 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		TELEOP_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +26,15 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax rFMotor;
+	private CANSparkMax lFMotor;
+	private CANSparkMax rBMotor;
+	private CANSparkMax lBMotor;
+	private AHRS gyro;
+
+	private static final int ANGLE = 180;
+	private static final int THRESHOLD = 5;
+	private static final double MOVE = 0.5;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,9 +44,16 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rFMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		lFMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		rBMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+										CANSparkMax.MotorType.kBrushless);
+		lBMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 
+		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -58,8 +75,9 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
+		currentState = FSMState.TELEOP_STATE;
+		gyro.reset();
+		gyro.calibrate();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -71,14 +89,9 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case TELEOP_STATE:
+				handleTeleopState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
-				break;
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -97,36 +110,20 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case TELEOP_STATE:
+				return FSMState.TELEOP_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTeleopState(TeleopInput input) {
+		if(input != null) {
+			lFMotor.set(input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX());
+			rFMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() - input.getRightJoystickX());
+			lBMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() + input.getRightJoystickX());
+			rBMotor.set(input.getLeftJoystickY() + input.getLeftJoystickX() - input.getRightJoystickX());
+		}
 	}
 }
