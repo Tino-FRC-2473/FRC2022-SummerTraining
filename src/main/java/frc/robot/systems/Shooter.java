@@ -3,13 +3,14 @@ package frc.robot.systems;
 // WPILib Imports
 
 // Third party Hardware Imports
-import com.revrobotics.CANSparkMax;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Robot Imports
 import frc.robot.TeleopInput;
-import frc.robot.HardwareMap;
 
-public class Mecanum {
+public class Shooter {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -17,17 +18,12 @@ public class Mecanum {
 		TELEOP
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.25f;
-
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax frontLeftMotor;
-	private CANSparkMax frontRightMotor;
-    private CANSparkMax backLeftMotor;
-    private CANSparkMax backRightMotor;
+    private Compressor pcmCompressor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -35,16 +31,14 @@ public class Mecanum {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public Mecanum() {
+	public Shooter() {
 		// Perform hardware init
-		frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-		CANSparkMax.MotorType.kBrushless);
-		frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
-		CANSparkMax.MotorType.kBrushless);
-		backLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
-		CANSparkMax.MotorType.kBrushless);
-		backRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
-		CANSparkMax.MotorType.kBrushless);
+		//frontLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,CANSparkMax.MotorType.kBrushless);
+		//frontRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,CANSparkMax.MotorType.kBrushless);
+		//backLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,CANSparkMax.MotorType.kBrushless);
+		//backRightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,CANSparkMax.MotorType.kBrushless);
+
+        pcmCompressor = new Compressor(PneumaticsModuleType.REVPH);
 
 		// Reset state machine
 		reset();
@@ -68,6 +62,8 @@ public class Mecanum {
 	 */
 	public void reset() {
 		currentState = FSMState.AUTO;
+
+        pcmCompressor.enableDigital();
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -134,13 +130,7 @@ public class Mecanum {
 	private void handleAuto(TeleopInput input) {
 		if (input != null) return;
 
-		// Move forward
-		while (frontLeftMotor.get() < 200){
-			frontLeftMotor.set(MOTOR_RUN_POWER);
-			frontRightMotor.set(MOTOR_RUN_POWER);
-			backLeftMotor.set(MOTOR_RUN_POWER);
-			backRightMotor.set(MOTOR_RUN_POWER);
-		}
+		
 	}
 	/**
 	 * Handle behavior in TELEOP.
@@ -150,13 +140,13 @@ public class Mecanum {
 	private void handleTeleop(TeleopInput input) {
 		if (input == null) return;
 
-		double x = input.getLeftJoystickX();
-		double y = -input.getLeftJoystickY();
-		double r = input.getRightJoystickX();
-		
-		frontLeftMotor.set(y+x+r);
-		frontRightMotor.set(y-x-r);
-		backLeftMotor.set(y-x+r);
-		backRightMotor.set(y+x-r);
+        boolean enabled = pcmCompressor.enabled();
+        boolean pressureSwitch = pcmCompressor.getPressureSwitchValue();
+        double current = pcmCompressor.getCurrent();
+
+		SmartDashboard.putBoolean("Enabled", enabled);
+		SmartDashboard.putBoolean("Pressure Switch", pressureSwitch);
+        SmartDashboard.putNumber("Current", current);
+
 	}
 }

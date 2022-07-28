@@ -7,7 +7,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 // Systems
-import frc.robot.systems.Dashboard;
+import frc.robot.systems.Shooter;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,7 +17,7 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private Dashboard board;
+	private Shooter sh;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -29,29 +29,29 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		board = new Dashboard();
+		sh = new Shooter();
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		board.reset();
+		sh.reset();
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		board.update(null);
+		sh.update(null);
 	}
 
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		board.reset();
+		sh.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		board.update(input);
+		sh.update(input);
 	}
 
 	@Override
