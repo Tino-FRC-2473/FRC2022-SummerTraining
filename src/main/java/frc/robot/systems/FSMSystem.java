@@ -30,10 +30,10 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax rf_motor;
-	private CANSparkMax lf_motor;
-    private CANSparkMax rb_motor;
-    private CANSparkMax lb_motor;
+	private CANSparkMax rfMotor;
+	private CANSparkMax lfMotor;
+    private CANSparkMax rbMotor;
+    private CANSparkMax lbMotor;
 
 	private AHRS gyro;
 
@@ -44,13 +44,13 @@ public class FSMSystem {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public FSMSystem() {
-		rf_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+		rfMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		lf_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+		lfMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
 										CANSparkMax.MotorType.kBrushless);
-        rb_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
+        rbMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-		lb_motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
+		lbMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 		// Reset state machine
@@ -129,10 +129,10 @@ public class FSMSystem {
 			double y = input.getRightJoystickY();
 			double x = input.getRightJoystickX();
 			double rx = input.getLeftJoystickX();
-			lf_motor.set(Math.max(-1, Math.min(y + x + rx, 1)));
-			rf_motor.set(Math.max(-1, Math.min(y - x - rx, 1)));
-			lb_motor.set(Math.max(-1, Math.min(y - x + rx, 1)));
-			rb_motor.set(Math.max(-1, Math.min(y + x - rx, 1)));
+			lfMotor.set(Math.max(-1, Math.min(y + x + rx, 1)));
+			rfMotor.set(Math.max(-1, Math.min(y - x - rx, 1)));
+			lbMotor.set(Math.max(-1, Math.min(y - x + rx, 1)));
+			rbMotor.set(Math.max(-1, Math.min(y + x - rx, 1)));
 		}
 	}
 }
