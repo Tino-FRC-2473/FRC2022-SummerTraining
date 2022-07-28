@@ -3,11 +3,10 @@ package frc.robot.systems;
 import com.kauailabs.navx.frc.AHRS;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-
-import edu.wpi.first.wpilibj.SPI;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -121,10 +120,10 @@ public class FSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	private void handleTeleopState(TeleopInput input) {
 		if(input != null) {
-			lFMotor.set(Range.clip(input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX(), -1.0, 1.0));
-			rFMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() - input.getRightJoystickX());
-			lBMotor.set(input.getLeftJoystickY() - input.getLeftJoystickX() + input.getRightJoystickX());
-			rBMotor.set(input.getLeftJoystickY() + input.getLeftJoystickX() - input.getRightJoystickX());
+			lFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() + input.getLeftJoystickX() + input.getRightJoystickX())));
+			rFMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() - input.getLeftJoystickX() - input.getRightJoystickX())));
+			lBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() - input.getLeftJoystickX() + input.getRightJoystickX())));
+			rBMotor.set(Math.max(-1, Math.min(1, input.getLeftJoystickY() + input.getLeftJoystickX() - input.getRightJoystickX())));
 		}
 	}
 }
