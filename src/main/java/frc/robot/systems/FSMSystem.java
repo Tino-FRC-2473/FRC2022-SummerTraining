@@ -1,20 +1,21 @@
 package frc.robot.systems;
 
-// WPILib Imports
-
-// Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
-// Robot Imports
-import frc.robot.TeleopInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.HardwareMap;
+import frc.robot.TeleopInput;
 
 public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		START_PHASE,
+		PHASE_2,
+		PHASE_3,
+		PHASE_4
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -25,7 +26,7 @@ public class FSMSystem {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private DoubleSolenoid sol;
-	private CanSparkMax motor;
+	private CANSparkMax motor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,8 +35,9 @@ public class FSMSystem {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public FSMSystem() {
-		sol = new DoubleSolenoid();
-		motor = new CanSparkMax();
+		sol = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_FORWARD, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_REVERSE);
+		motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT, CANSparkMax.MotorType.kBrushless);
+		reset();
 	}
 
 	/* ======================== Public methods ======================== */
@@ -55,75 +57,73 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-
-		// Call one tick of update to ensure outputs reflect start state
+		currentState = FSMState.START_PHASE;
 		update(null);
 	}
-	/**
-	 * Update FSM based on new inputs. This function only calls the FSM state
-	 * specific handlers.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
+
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case START_PHASE:
+				handleStartPhase(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case PHASE_2:
+				handlePhase2(input);
 				break;
-
-			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
+			case PHASE_3:
+				handlePhase3(input);
+				break;
+			case PHASE_4:
+				handlePhase4(input);
+				break;
 		}
 		currentState = nextState(input);
 	}
 
-	/* ======================== Private methods ======================== */
-	/**
-	 * Decide the next state to transition to. This is a function of the inputs
-	 * and the current state of this FSM. This method should not have any side
-	 * effects on outputs. In other words, this method should only read or get
-	 * values to decide what state to go to.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 * @return FSM state for the next iteration
-	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case START_PHASE:
+				return FSMState.PHASE_2;
+			case PHASE_2:
+				return FSMState.PHASE_3;
+			case PHASE_3:
+				return FSMState.PHASE_4;
+			case PHASE_4:
+				return FSMState.PHASE_2;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
 
-	/* ------------------------ FSM state handlers ------------------------ */
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+	private void handleStartPhase(TeleopInput input) {
+		do {
+			sol.set(Value.kForward);
+		} while (!(sol.get() == DoubleSolenoid.Value.kOff));
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+
+	private void handlePhase2(TeleopInput input) {
+		double start_pos = motor.get();
+		double placeholder = 69.0;
+		while (motor.get() - start_pos < placeholder) {
+			motor.set(MOTOR_RUN_POWER);
+		}
+		motor.set(0);
+	}
+
+	private void handlePhase3(TeleopInput input) {
+		int ticks = 100;
+		do {
+			sol.set(Value.kReverse);
+		} while (!(sol.get() == DoubleSolenoid.Value.kOff));
+		
+		double start = motor.get();
+		while (start - motor.get() > ticks) {
+			motor.set(-MOTOR_RUN_POWER);
+		}
+	}
+
+	private void handlePhase4(TeleopInput input) {
+		do {
+			sol.set(Value.kForward);
+		} while (!(sol.get() == DoubleSolenoid.Value.kOff));
 	}
 }

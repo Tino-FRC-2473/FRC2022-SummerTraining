@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.revrobotics.CANSparkMax;
+
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -17,7 +19,7 @@ public class TeleopInput {
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	
+	private Joystick leftJoystick, rightJoystick;
 
 	/* ======================== Constructor ======================== */
 	/**
