@@ -1,5 +1,8 @@
 package frc.robot.systems;
 
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.kauailabs.navx.frc.AHRS;
+
 // WPILib Imports
 
 // Third party Hardware Imports
@@ -8,6 +11,11 @@ import com.revrobotics.CANSparkMax;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import edu.wpi.first.hal.simulation.AnalogInDataJNI;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TeleOpSystem {
 	/* ======================== Constants ======================== */
@@ -26,7 +34,10 @@ public class TeleOpSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax exampleMotor;
 	private CANSparkMax rightMotor;
-	private CANSparkMax leftMotor;
+	private AnalogInput potentiometer = new AnalogInput(2);
+	private AHRS gyro = new AHRS();
+	private DigitalInput limitSwitch = new DigitalInput(5);
+	private AnalogInput distanceSensor = new AnalogInput(3);
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -36,12 +47,9 @@ public class TeleOpSystem {
 	 */
 	public TeleOpSystem() {
 		// Perform hardware init
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+		rightMotor = new CANSparkMax(HardwareMap.MotorCANSparkID,
 										CANSparkMax.MotorType.kBrushless);
 										
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-
 		// Reset state machine
 		reset();
 	}
@@ -67,6 +75,14 @@ public class TeleOpSystem {
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
+	}
+	protected void execute() {
+		SmartDashboard.putNumber("Encoder Ticks", rightMotor.getEncoder().getPosition()); 
+		SmartDashboard.putNumber("Potentiometer Voltage", potentiometer.getVoltage()); 
+		SmartDashboard.putNumber("Gyro Angle", gyro.getAngle()); 
+		SmartDashboard.putBoolean("Switches", limitSwitch.isAnalogTrigger()); 
+
+		SmartDashboard.putNumber("Distance", distanceSensor.getVoltage()); 
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -145,7 +161,7 @@ public class TeleOpSystem {
 		if (input == null) {
 			return; 
 		} 
-		leftMotor.set(input.getLeftJoystickY());
-		rightMotor.set(-input.getRightJoystickY());
+
+		execute();
 	}
 }

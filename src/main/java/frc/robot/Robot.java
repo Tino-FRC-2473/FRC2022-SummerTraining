@@ -3,11 +3,15 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
 // WPILib Imports
 import edu.wpi.first.wpilibj.TimedRobot;
 
 // Systems
 import frc.robot.systems.AutonomousSystem;
+import frc.robot.systems.TeleOpSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,7 +21,7 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private AutonomousSystem fsmSystem;
+	private TeleOpSystem fsmSystem;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -29,7 +33,14 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new AutonomousSystem();
+		fsmSystem = new TeleOpSystem();
+
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		CvSink cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		CvSource outputStream = CameraServer.putVideo("RobotFrontCamera", 640, 480);
 	}
 
 	@Override
