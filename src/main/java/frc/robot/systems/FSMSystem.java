@@ -20,10 +20,14 @@ public class FSMSystem {
 	}
 
 	// private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final int NUM_VECTORS = 2;
-	private static final int INVERSE_TRIG_RANGE_ERROR = 180;
-	private static final int MEC_WHEEL_ANGLE = 45;
-	private static final int GRID_ROTAION_FACTOR = 315;
+
+	// MAGIC NUMBERS
+	private static final int NUM2 = 2;
+	private static final int NUM180 = 180;
+	private static final int NUM45 = 45;
+	private static final int NUM315 = 315;
+	private static final int NUM135 = 135;
+	private static final int NUM225 = 225;
 
 	/* ======================== Private variables ======================== */
 
@@ -157,31 +161,31 @@ public class FSMSystem {
 
 		double joystickMagnitude = Math.sqrt(rightY * rightY + rightX * rightX);
 		double joystickAngle = (rightX < 0) ? Math.toDegrees(Math.atan(rightY / rightX))
-			: Math.toDegrees(Math.atan(rightY / rightX)) + INVERSE_TRIG_RANGE_ERROR;
-		double angle = (joystickAngle <= GRID_ROTAION_FACTOR) ? joystickAngle + MEC_WHEEL_ANGLE
-			: joystickAngle - GRID_ROTAION_FACTOR;
+			: Math.toDegrees(Math.atan(rightY / rightX)) + NUM180;
+		double angle = (joystickAngle <= NUM315) ? joystickAngle + NUM45
+			: joystickAngle - NUM315;
 		double leftPointer = joystickMagnitude * Math.cos(Math.toRadians(angle));
 		double rightPointer = joystickMagnitude * Math.sin(Math.toRadians(angle));
 
-		if (joystickAngle > -45 && joystickAngle < 45) {
+		if (joystickAngle > -NUM45 && joystickAngle < NUM45) {
 			leftPointer = -Math.abs(leftPointer);
 			rightPointer = Math.abs(rightPointer);
-		} else if (joystickAngle > 45 && joystickAngle < 135) {
+		} else if (joystickAngle > NUM45 && joystickAngle < NUM135) {
 			leftPointer = Math.abs(leftPointer);
 			rightPointer = Math.abs(rightPointer);
-		} else if (joystickAngle > 135 && joystickAngle < 225) {
+		} else if (joystickAngle > NUM135 && joystickAngle < NUM225) {
 			leftPointer = Math.abs(leftPointer);
 			rightPointer = -Math.abs(rightPointer);
-		} else if (joystickAngle > 225 || joystickAngle < -45) {
+		} else if (joystickAngle > NUM225 || joystickAngle < -NUM45) {
 			leftPointer = Math.abs(leftPointer);
 			rightPointer = -Math.abs(rightPointer);
 		}
-		
+
 		// ?? check whether should be divided or not
-		frontLeftMotor.set(rightPointer / NUM_VECTORS);
-		backRightMotor.set(rightPointer / NUM_VECTORS);
-		frontRightMotor.set(leftPointer / NUM_VECTORS);
-		backLeftMotor.set(leftPointer / NUM_VECTORS);
+		frontLeftMotor.set(rightPointer / NUM2);
+		backRightMotor.set(rightPointer / NUM2);
+		frontRightMotor.set(leftPointer / NUM2);
+		backLeftMotor.set(leftPointer / NUM2);
 	}
 
 	/**
