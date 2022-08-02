@@ -24,7 +24,8 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private DoubleSolenoid sol;
+	private CanSparkMax motor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -33,12 +34,8 @@ public class FSMSystem {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public FSMSystem() {
-		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
-
-		// Reset state machine
-		reset();
+		sol = new DoubleSolenoid();
+		motor = new CanSparkMax();
 	}
 
 	/* ======================== Public methods ======================== */

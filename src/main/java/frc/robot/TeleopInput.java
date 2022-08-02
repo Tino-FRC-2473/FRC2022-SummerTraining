@@ -17,8 +17,7 @@ public class TeleopInput {
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private Joystick leftJoystick;
-	private Joystick rightJoystick;
+	
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -27,9 +26,7 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
-		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		
 	}
 
 	/* ======================== Public methods ======================== */
