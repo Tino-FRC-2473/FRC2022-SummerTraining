@@ -78,6 +78,10 @@ public class FSMSystem {
 	public void reset() {
 		currentState = FSMState.TELEOP_STATE;
 
+		frontLeftMotor.set(0);
+		frontRightMotor.set(0);
+		backRightMotor.set(0);
+		backLeftMotor.set(0);
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -148,17 +152,31 @@ public class FSMSystem {
 	 */
 	private void handleTeleopState(TeleopInput input) {
 
-		double leftX = input.getLeftJoystickX();
-		double leftY = input.getLeftJoystickY();
+		double rightX = input.getRightJoystickX();
+		double rightY = input.getRightJoystickY();
 
-		double joystickMagnitude = Math.sqrt(leftY * leftY + leftX * leftX);
-		double joystickAngle = (leftX < 0) ? Math.toDegrees(Math.atan(leftY / leftX))
-			: Math.toDegrees(Math.atan(leftY / leftX)) + INVERSE_TRIG_RANGE_ERROR;
+		double joystickMagnitude = Math.sqrt(rightY * rightY + rightX * rightX);
+		double joystickAngle = (rightX < 0) ? Math.toDegrees(Math.atan(rightY / rightX))
+			: Math.toDegrees(Math.atan(rightY / rightX)) + INVERSE_TRIG_RANGE_ERROR;
 		double angle = (joystickAngle <= GRID_ROTAION_FACTOR) ? joystickAngle + MEC_WHEEL_ANGLE
 			: joystickAngle - GRID_ROTAION_FACTOR;
-		double leftPointer = joystickMagnitude * Math.sin(Math.toRadians(angle));
-		double rightPointer = joystickMagnitude * Math.cos(Math.toRadians(angle));
+		double leftPointer = joystickMagnitude * Math.cos(Math.toRadians(angle));
+		double rightPointer = joystickMagnitude * Math.sin(Math.toRadians(angle));
 
+		if (joystickAngle > -45 && joystickAngle < 45) {
+			leftPointer = -Math.abs(leftPointer);
+			rightPointer = Math.abs(rightPointer);
+		} else if (joystickAngle > 45 && joystickAngle < 135) {
+			leftPointer = Math.abs(leftPointer);
+			rightPointer = Math.abs(rightPointer);
+		} else if (joystickAngle > 135 && joystickAngle < 225) {
+			leftPointer = Math.abs(leftPointer);
+			rightPointer = -Math.abs(rightPointer);
+		} else if (joystickAngle > 225 || joystickAngle < -45) {
+			leftPointer = Math.abs(leftPointer);
+			rightPointer = -Math.abs(rightPointer);
+		}
+		
 		// ?? check whether should be divided or not
 		frontLeftMotor.set(rightPointer / NUM_VECTORS);
 		backRightMotor.set(rightPointer / NUM_VECTORS);
