@@ -77,7 +77,7 @@ public class BallSchlurperFSM {
 		//pcmCompressor.enableDigital();
 		// Call one tick of update to ensure outputs reflect start state
 
-		pcmCompressor.enableDigital();
+		//pcmCompressor.enableDigital();
 		update(null);
 	}
 	/**
@@ -113,17 +113,15 @@ public class BallSchlurperFSM {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case EXTENDED:
-				if(input.isIntakeButtonPressed()) {
-					return FSMState.EXTENDED;
-				}else{
+				if(input.isIntakeButtonReleased()) {
 					return FSMState.RETRACTED;
 				}
+				return FSMState.EXTENDED;
 			case RETRACTED:
-				if(input.isIntakeButtonPressed()) {
+				if(input.isIntakeButtonReleased()) {
 					return FSMState.EXTENDED;
-				}else{
-					return FSMState.RETRACTED;
 				}
+				return FSMState.RETRACTED;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}

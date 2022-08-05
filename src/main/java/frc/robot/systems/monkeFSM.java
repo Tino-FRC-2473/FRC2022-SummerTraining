@@ -5,6 +5,9 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -13,8 +16,14 @@ public class monkeFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		START_IDLE,
+		RETRACT_ARM, //grabbers latch on
+		IDLE_2,
+		EXTEND_ARM_LITTLE,
+		IDLE_3,
+		ARM_PISTON_EXT, //roll back and extend
+		IDLE_4,
+		RETRACT_ARM_2
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +33,9 @@ public class monkeFSM {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax armMotor;
+	private DoubleSolenoid armSolenoid;
+	private DigitalInput armLimitSwitch;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,8 +45,8 @@ public class monkeFSM {
 	 */
 	public monkeFSM() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, CANSparkMax.MotorType.kBrushless);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 
 		// Reset state machine
 		reset();
@@ -58,7 +69,7 @@ public class monkeFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.START_IDLE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -71,14 +82,30 @@ public class monkeFSM {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case START_IDLE:
+				handleStartIdleState(input);
 				break;
-
-			case OTHER_STATE:
-				handleOtherState(input);
+			case RETRACT_ARM:
+				handleFirstRetractState(input);
 				break;
-
+			case IDLE_2:
+				handleSecondIdleState(input);
+				break;
+			case EXTEND_ARM_LITTLE:
+				handleExtendLittleState(input);
+				break;
+			case IDLE_3:
+				handleIdleThreeState(input);
+				break;
+			case ARM_PISTON_EXT:
+				handleArmPistonExtendState(input);
+				break;
+			case IDLE_4:
+				handleIdleFourState(input);
+				break;
+			case RETRACT_ARM_2:
+				handleSecondRetractState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -97,36 +124,78 @@ public class monkeFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
+			case START_IDLE:
+				if(input.isClimberButtonPressed()) {
+					return FSMState.RETRACT_ARM;
 				}
-
-			case OTHER_STATE:
+				return FSMState.START_IDLE;
+			case RETRACT_ARM:
 				return FSMState.OTHER_STATE;
-
+			case IDLE_2:
+				return FSMState.OTHER_STATE;
+			case EXTEND_ARM_LITTLE:
+				return FSMState.OTHER_STATE;
+			case IDLE_3:
+				return FSMState.OTHER_STATE;
+			case ARM_PISTON_EXT:
+				return FSMState.OTHER_STATE;
+			case IDLE_4:
+				return FSMState.OTHER_STATE;
+			case RETRACT_ARM_2:
+				return FSMState.OTHER_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
+
+		// START_IDLE,
+		// RETRACT_ARM, //grabbers latch on
+		// IDLE_2,
+		// EXTEND_ARM_LITTLE,
+		// IDLE_3,
+		// ARM_PISTON_EXT, //roll back and extend
+		// IDLE_4,
+		// RETRACT_ARM_2
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in start idle state.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
+	private void handleStartIdleState(TeleopInput input) {
 		exampleMotor.set(0);
 	}
 	/**
-	 * Handle behavior in OTHER_STATE.
+	 * Handle behavior in first retract state.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
+	private void handleFirstRetractState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleSecondIdleState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleExtendLittleState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleIdleThreeState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleArmPistonExtendState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleIdleFourState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleSecondRetractState(TeleopInput input) {
 		exampleMotor.set(MOTOR_RUN_POWER);
 	}
 }
