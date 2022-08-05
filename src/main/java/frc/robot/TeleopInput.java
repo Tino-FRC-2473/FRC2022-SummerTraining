@@ -67,6 +67,18 @@ public class TeleopInput {
 		return leftJoystick.getRawButton(2);
 	}
 
+	public boolean isIntakeButtonReleased() {
+		return leftJoystick.getRawButtonReleased(2);
+	}
+
+	public boolean isClimberButtonPressed() {
+		return leftJoystick.getRawButton(3);
+	}
+
+	public boolean isClimberButtonReleased() {
+		return leftJoystick.getRawButtonReleased(3);
+	}
+
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
 	 * Get X axis of Right Joystick.
