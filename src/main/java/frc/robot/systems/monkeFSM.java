@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -26,11 +27,13 @@ public class monkeFSM {
 		ARM_PISTON_EXT, //roll back and extend
 		IDLE_4,
 		RETRACT_PISTON,
-		IDLE_5,
+		IDLE_5, 
 		FINISHED_RELEASE_TO_CONTINUE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final double ARM_MOTOR_RETRACT_POWER = -0.2; 
+	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -55,7 +58,7 @@ public class monkeFSM {
 		// Perform hardware init
 		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID);
+		armLimitSwitchFirst = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_FIRST);
 		armLimitSwitchSecond = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_SECOND);
 		// Reset state machine
 		reset();
@@ -263,47 +266,50 @@ public class monkeFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFirstRetractState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(ARM_MOTOR_RETRACT_POWER);
 	}
 
 	private void handleFirstIdleState(TeleopInput input) {
-
+		armMotor.set(0);
 	}
 
 	private void handleSecondIdleState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(0);
 	}
 
 	private void handleLatchedRelease(TeleopInput input) {
+		armMotor.set(0);
 
 	}
 
 	private void handleExtendLittleState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 	}
 
 	private void handleIdleThreeState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(0);
 	}
 
 	private void handleArmPistonExtendState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armSolenoid.set(Value.kForward);
+		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 	}
 
 	private void handleIdleFourState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(0);
 	}
 
 	private void handleRetractPiston(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		//i actually dont think this is possible because you cant make the piston only 
+		//retract partially
 	}
 
 	private void handleIdleFiveState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(0);
 	}
 
 	private void handleFinishState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		armMotor.set(0);
 	}
 }
 
