@@ -1,20 +1,16 @@
 package frc.robot.systems;
 
-import com.kauailabs.navx.frc.AHRS;
-
 // WPILib Imports
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
-import edu.wpi.first.wpilibj.SPI;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
 public class FSMSystem {
 
-	private AHRS gyro;
 
 	/* ======================== Constants ======================== */
 	// FSM state definitions
@@ -67,7 +63,6 @@ public class FSMSystem {
 		// Reset state machine
 		reset();
 
-		gyro = new AHRS(SPI.Port.kMXP);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -137,6 +132,9 @@ public class FSMSystem {
 
 			case TELE_STATE_2_MOTOR_DRIVE:
 				return FSMState.TELE_STATE_2_MOTOR_DRIVE;
+			
+			case TELE_STATE_MECANUM:
+				return FSMState.TELE_STATE_MECANUM;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -167,5 +165,41 @@ public class FSMSystem {
 	 */
 	private void handleTeleOpMecanum(TeleopInput input) {
 		
+		if(input == null) {
+            return;
+        }
+
+        double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
+        double rightX = input.getRightJoystickX();
+
+        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX())) 
+            - Math.PI / 4;
+
+        topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
+        topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
+        bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
+        bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
+
+		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
+		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
+		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
+		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
+
+        if (input.isLeftJoystickTriggerPressedRaw()) {
+            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
+            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
+            topLeftMotorMecanum.set(topLeftMotorMecanumPower);
+            topRightMotorMecanum.set(topRightMotorMecanumPower);
+        } else {
+            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
+            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
+            topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
+            topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
+        }
+    }
+
+	private double ensureRange(double value, double min, double max) {
+		return Math.min(Math.max(value, min), max);
 	}
+	 
 }
