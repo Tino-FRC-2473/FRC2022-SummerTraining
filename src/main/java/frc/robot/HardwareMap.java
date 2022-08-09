@@ -19,6 +19,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_CLIMBER = 4;
 	public static final int LIMIT_SWITCH_ID_FIRST = 0;
 	public static final int LIMIT_SWITCH_ID_SECOND = 1;
+	public static final int LIMIT_SWITCH_ID_THIRD = 2;
 	// Pneumatics channel numbers
 
 	//Intake

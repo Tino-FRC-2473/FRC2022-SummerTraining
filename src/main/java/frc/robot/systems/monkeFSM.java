@@ -26,14 +26,16 @@ public class monkeFSM {
 		IDLE_3,
 		ARM_PISTON_EXT, //roll back and extend
 		IDLE_4,
-		RETRACT_PISTON,
+		RETRACT_ARM2,
 		IDLE_5, 
-		FINISHED_RELEASE_TO_CONTINUE
+		FINISHED_RELEASE_TO_CONTINUE,
+		FINISHED_EVERYTHING
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final double ARM_MOTOR_RETRACT_POWER = -0.2; 
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
+	private static int CYCLE_COUNT = 0;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -44,9 +46,7 @@ public class monkeFSM {
 	private DoubleSolenoid armSolenoid;
 	private DigitalInput armLimitSwitchFirst;
 	private DigitalInput armLimitSwitchSecond;
-
-	//final encoder thresholds for arm motor
-	private final int armEncoderLimit = 1000; //THIS IS NOT THE REAL VALUE, FOR PLACEHOLDING PURPOSES!!
+	private DigitalInput armLimitSwitchThird;
 	
 	/* ======================== Constructor ======================== */
 	/**
@@ -60,6 +60,7 @@ public class monkeFSM {
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_FIRST);
 		armLimitSwitchSecond = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_SECOND);
+		armLimitSwitchThird = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_THIRD);
 		// Reset state machine
 		reset();
 	}
@@ -82,7 +83,8 @@ public class monkeFSM {
 	 */
 	public void reset() {
 		currentState = FSMState.START_IDLE;
-
+		CYCLE_COUNT = 0;
+		armSolenoid.set(Value.kReverse); // reset piston
 		update(null);
 	}
 	/**
@@ -120,14 +122,17 @@ public class monkeFSM {
 			case IDLE_4:
 				handleIdleFourState(input);
 				break;
-			case RETRACT_PISTON:
-				handleRetractPiston(input);
+			case RETRACT_ARM2:
+				handleRetractArm2(input);
 				break;
 			case IDLE_5:
 				handleIdleFiveState(input);
 				break;
 			case FINISHED_RELEASE_TO_CONTINUE:
 				handleFinishState(input);
+			case FINISHED_EVERYTHING:
+				handleFinishedEverything(input);
+
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -188,13 +193,17 @@ public class monkeFSM {
 				//button is pressed so continue to next state
 				return FSMState.EXTEND_ARM_LITTLE;
 			case EXTEND_ARM_LITTLE:
+				if(CYCLE_COUNT>=2) {
+					//if there have already been two cycles
+					return FSMState.FINISHED_EVERYTHING;
+				}
 				if(!input.isClimberButtonPressed()) {
 					//if climber button not pressed go to idle
 					return FSMState.IDLE_3;
-				}else if(input.isClimberButtonPressed() && armMotor.get()<armEncoderLimit) {
+				}else if(input.isClimberButtonPressed() && !armLimitSwitchSecond.get()) {
 					//climber button pressed and encoder count less than threshold then continue to extend
 					return FSMState.EXTEND_ARM_LITTLE;
-				}else{
+				}else {
 					//climber button pressed and encoder threshold reached, go to next state
 					return FSMState.ARM_PISTON_EXT;
 				}
@@ -209,12 +218,12 @@ public class monkeFSM {
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, go to idle
 					return FSMState.IDLE_4;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchSecond.get()) {
+				}else if(input.isClimberButtonPressed() && !armLimitSwitchThird.get()) {
 					//climber button pressed, but limit switch not activated, stay in same state
 					return FSMState.ARM_PISTON_EXT;
 				}else{
 					//climber button pressed and limit switch activated, go to next state
-					return FSMState.RETRACT_PISTON;
+					return FSMState.RETRACT_ARM2;
 				}
 			case IDLE_4:
 				if(!input.isClimberButtonPressed()) {
@@ -223,27 +232,38 @@ public class monkeFSM {
 				}
 				//climber button pressed, go to previous state
 				return FSMState.ARM_PISTON_EXT;
-			case RETRACT_PISTON:
+			case RETRACT_ARM2:
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, go idle
 					return FSMState.IDLE_5;
+				}else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.get()) {
+					//while not first limit switch, stay in mode
+					return FSMState.RETRACT_ARM2;
+				}else{
+					//finished, go to next
+					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
 				}
-				//as soon as pressed go to start idle since pistons are immediate
-				return FSMState.FINISHED_RELEASE_TO_CONTINUE;
+				
+				
 			case IDLE_5:
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay idle
 					return FSMState.IDLE_5;
 				}
 				//climber button pressed, return to previous state
-				return FSMState.RETRACT_PISTON;
+				return FSMState.RETRACT_ARM;
 			case FINISHED_RELEASE_TO_CONTINUE:
 				//at this point driver needs to release button and repress to enter new cycle and start from beginning
 				if(input.isClimberButtonPressed()) {
 					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
 				}
-				//button released, head to start to redo cycle
-				return FSMState.START_IDLE;
+				//button released, head to beginning to redo cycle
+				//increment cycle count counter
+				CYCLE_COUNT++;
+				return FSMState.EXTEND_ARM_LITTLE;
+			case FINISHED_EVERYTHING:
+				//stays in this state forever
+				return FSMState.FINISHED_EVERYTHING;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -299,9 +319,9 @@ public class monkeFSM {
 		armMotor.set(0);
 	}
 
-	private void handleRetractPiston(TeleopInput input) {
-		//i actually dont think this is possible because you cant make the piston only 
-		//retract partially
+	private void handleRetractArm2(TeleopInput input) {
+		armMotor.set(ARM_MOTOR_RETRACT_POWER);
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleIdleFiveState(TeleopInput input) {
@@ -311,5 +331,9 @@ public class monkeFSM {
 	private void handleFinishState(TeleopInput input) {
 		armMotor.set(0);
 	}
-}
+	
+	private void handleFinishedEverything(TeleopInput input) {
+		armMotor.set(0);
+	}
 
+}
