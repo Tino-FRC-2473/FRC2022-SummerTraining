@@ -14,11 +14,13 @@ public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
 	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int STEERING_WHEEL_PORT = 2;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
+	private Joystick steeringWheel;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -28,8 +30,8 @@ public class TeleopInput {
 	 */
 	public TeleopInput() {
 		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
 		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		steeringWheel = new Joystick(STEERING_WHEEL_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -91,6 +93,14 @@ public class TeleopInput {
 		return leftJoystick.getTrigger();
 	}
 
-	/* ======================== Private methods ======================== */
+	/* ------------------------ Steering Wheel ------------------------ */
+	/**
+	 * Get Angle of the steering Wheel from -1 to 1.
+	 * @return Angle
+	 */
+	public double getSteerAngle() {
+		return steeringWheel.getX();
+	}
+
 
 }

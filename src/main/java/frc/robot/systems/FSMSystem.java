@@ -1,22 +1,25 @@
 package frc.robot.systems;
 
-// WPILib Imports
-
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import frc.robot.drive.DriveModes;
+import frc.robot.drive.DrivePower;
+import frc.robot.drive.Functions;
+import frc.robot.Constants;
 
 public class FSMSystem {
 
 
-	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
 		TELE_STATE_2_MOTOR_DRIVE,
-		TELE_STATE_MECANUM
+		TELE_STATE_MECANUM,
+		PURE_PURSUIT
 	}
 
 	/* ======================== Private variables ======================== */
@@ -26,6 +29,8 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
+	private double leftPower;
+	private double rightPower;
 
 	private CANSparkMax bottomLeftMotorMecanum;
 	private CANSparkMax bottomRightMotorMecanum;
@@ -36,6 +41,15 @@ public class FSMSystem {
 	private double bottomRightMotorMecanumPower;
 	private double topLeftMotorMecanumPower;
 	private double topRightMotorMecanumPower;
+
+	private boolean isInArcadeDrive = true;
+
+	private double roboXPos = 0;
+	private double roboYPos = 0;
+	private double currentEncoderPos;
+	private double prevEncoderPos = 0;
+	private double gyroAngleForOdo = 0;
+	private AHRS gyro;
 
 
 	/* ======================== Constructor ======================== */
@@ -50,6 +64,9 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
+
+		leftPower = 0;
+		rightPower = 0;
 
 		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -89,7 +106,16 @@ public class FSMSystem {
 		topLeftMotorMecanum.set(0);
 		topRightMotorMecanum.set(0);
 
-		currentState = FSMState.TELE_STATE_MECANUM;
+		rightMotor.getEncoder().setPosition(0);
+		leftMotor.getEncoder().setPosition(0);
+
+		gyro.reset();
+		gyro.zeroYaw();
+
+		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
+
+		roboXPos = 0;
+		roboYPos = 0;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -102,6 +128,9 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+
+		gyroAngleForOdo = gyro.getAngle();
+
 		switch (currentState) {
 			case TELE_STATE_2_MOTOR_DRIVE:
 				handleTeleOp2MotorState(input);
@@ -151,11 +180,53 @@ public class FSMSystem {
 		if(input == null) {
 			return;
 		}
-		
-		leftMotor.set((input.getLeftJoystickY()));
-		rightMotor.set(-(input.getRightJoystickY()));
 
-		// System.out.println(gyro.getAngle());
+		if (isInArcadeDrive) {
+	
+			currentEncoderPos = ((leftMotor.getEncoder().getPosition()
+				- rightMotor.getEncoder().getPosition()) / 2.0);
+	
+			updateLineOdometryTele(gyroAngleForOdo, currentEncoderPos);
+	
+			double steerAngle = input.getSteerAngle();
+			double currentLeftPower = leftMotor.get();
+			double currentRightPower = rightMotor.get();
+	
+	
+			DrivePower targetPower = DriveModes.arcadeDrive(input.getRightJoystickY(),
+				steerAngle, currentLeftPower,
+				currentRightPower, true);
+	
+			// multiple speed modes
+			if (input.isLeftJoystickTriggerPressedRaw()) {
+				targetPower.scale(Constants.MAX_POWER);
+			} else {
+				targetPower.scale(Constants.REDUCED_MAX_POWER);
+			}
+	
+			DrivePower power;
+	
+			// acceleration
+			power = Functions.accelerate(targetPower, new DrivePower(currentLeftPower,
+				currentRightPower));
+	
+			// turning in place
+			if (Math.abs(input.getRightJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
+				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
+			}
+	
+			leftPower = power.getLeftPower();
+			rightPower = power.getRightPower();
+	
+
+			rightMotor.set(rightPower);
+			leftMotor.set(leftPower);
+
+		} else { 
+			leftMotor.set((input.getLeftJoystickY()));
+			rightMotor.set(-(input.getRightJoystickY()));
+		}
+		
 	}
 
 	/**
@@ -200,6 +271,30 @@ public class FSMSystem {
 
 	private double ensureRange(double value, double min, double max) {
 		return Math.min(Math.max(value, min), max);
+	}
+
+	/**
+	 * Tracks the robo's position on the field.
+	 * @param gyroAngle robot's angle
+	 * @param currentEncoderPos robot's current position
+	 */
+	public void updateLineOdometryTele(double gyroAngle, double currentEncoderPos) {
+
+		// double currentEncoderPos = ((-leftEncoderPos + rightEncoderPos) / 2.0);
+		double dEncoder = (currentEncoderPos - prevEncoderPos)
+			/ Constants.REVOLUTIONS_PER_INCH;
+		double dX = dEncoder * Math.cos(Math.toRadians(gyroAngleForOdo)) * 0.8880486672;
+		double dY = dEncoder * Math.sin(Math.toRadians(gyroAngleForOdo)) * 1.1742067733;
+
+		roboXPos += dX;
+		roboYPos += dY;
+
+		prevEncoderPos = this.currentEncoderPos;
+
+		System.out.println("X Pos: " + roboXPos);
+		System.out.println("Y Pos: " + roboYPos);
+		System.out.println("Gyro: " + gyroAngleForOdo);
+		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
 	 
 }
