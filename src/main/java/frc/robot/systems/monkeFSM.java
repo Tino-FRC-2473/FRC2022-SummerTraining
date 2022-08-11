@@ -287,6 +287,7 @@ public class monkeFSM {
 	 */
 	private void handleFirstRetractState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_RETRACT_POWER);
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleFirstIdleState(TeleopInput input) {
@@ -299,11 +300,12 @@ public class monkeFSM {
 
 	private void handleLatchedRelease(TeleopInput input) {
 		armMotor.set(0);
-
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleExtendLittleState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleIdleThreeState(TeleopInput input) {
@@ -330,10 +332,13 @@ public class monkeFSM {
 
 	private void handleFinishState(TeleopInput input) {
 		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+
 	}
 	
 	private void handleFinishedEverything(TeleopInput input) {
 		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 	}
 
 }
