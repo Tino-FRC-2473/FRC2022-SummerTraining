@@ -37,7 +37,6 @@ public class BallSchlurperFSM {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax intakeMotor;
 	private DoubleSolenoid armSolenoid;
-	private Compressor pcmCompressor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -49,9 +48,6 @@ public class BallSchlurperFSM {
 		// Perform hardware init
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
-
-
-		pcmCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
 		// Reset state machine
 		reset();
 	}
@@ -74,7 +70,6 @@ public class BallSchlurperFSM {
 	 */
 	public void reset() {
 		currentState = FSMState.RETRACTED;
-		//pcmCompressor.enableDigital();
 		// Call one tick of update to ensure outputs reflect start state
 
 		//pcmCompressor.enableDigital();

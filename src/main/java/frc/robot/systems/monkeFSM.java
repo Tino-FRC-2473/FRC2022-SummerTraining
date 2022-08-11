@@ -4,6 +4,7 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxLimitSwitch;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -32,10 +33,9 @@ public class monkeFSM {
 		FINISHED_EVERYTHING
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final double ARM_MOTOR_RETRACT_POWER = -0.2; 
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
-	private static int CYCLE_COUNT = 0;
+	private int cycleCount = 0;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -44,9 +44,9 @@ public class monkeFSM {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax armMotor;
 	private DoubleSolenoid armSolenoid;
-	private DigitalInput armLimitSwitchFirst;
-	private DigitalInput armLimitSwitchSecond;
-	private DigitalInput armLimitSwitchThird;
+	private SparkMaxLimitSwitch armLimitSwitchFirst;
+	private SparkMaxLimitSwitch armLimitSwitchSecond;
+	private SparkMaxLimitSwitch armLimitSwitchThird;
 	
 	/* ======================== Constructor ======================== */
 	/**
@@ -58,9 +58,9 @@ public class monkeFSM {
 		// Perform hardware init
 		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_FIRST);
-		armLimitSwitchSecond = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_SECOND);
-		armLimitSwitchThird = new DigitalInput(HardwareMap.LIMIT_SWITCH_ID_THIRD);
+		armLimitSwitchFirst = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armLimitSwitchSecond = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armLimitSwitchThird = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
 		// Reset state machine
 		reset();
 	}
@@ -83,7 +83,7 @@ public class monkeFSM {
 	 */
 	public void reset() {
 		currentState = FSMState.START_IDLE;
-		CYCLE_COUNT = 0;
+		cycleCount = 0;
 		armSolenoid.set(Value.kReverse); // reset piston
 		update(null);
 	}
@@ -193,14 +193,14 @@ public class monkeFSM {
 				//button is pressed so continue to next state
 				return FSMState.EXTEND_ARM_LITTLE;
 			case EXTEND_ARM_LITTLE:
-				if(CYCLE_COUNT>=2) {
+				if(cycleCount>=2) {
 					//if there have already been two cycles
 					return FSMState.FINISHED_EVERYTHING;
 				}
 				if(!input.isClimberButtonPressed()) {
 					//if climber button not pressed go to idle
 					return FSMState.IDLE_3;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchSecond.get()) {
+				}else if(input.isClimberButtonPressed() && !armLimitSwitchSecond.isPressed()) {
 					//climber button pressed and encoder count less than threshold then continue to extend
 					return FSMState.EXTEND_ARM_LITTLE;
 				}else {
@@ -218,7 +218,7 @@ public class monkeFSM {
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, go to idle
 					return FSMState.IDLE_4;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchThird.get()) {
+				}else if(input.isClimberButtonPressed() && !armLimitSwitchThird.isPressed()) {
 					//climber button pressed, but limit switch not activated, stay in same state
 					return FSMState.ARM_PISTON_EXT;
 				}else{
@@ -236,7 +236,7 @@ public class monkeFSM {
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, go idle
 					return FSMState.IDLE_5;
-				}else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.get()) {
+				}else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
 					//while not first limit switch, stay in mode
 					return FSMState.RETRACT_ARM2;
 				}else{
@@ -251,7 +251,7 @@ public class monkeFSM {
 					return FSMState.IDLE_5;
 				}
 				//climber button pressed, return to previous state
-				return FSMState.RETRACT_ARM;
+				return FSMState.RETRACT_ARM2;
 			case FINISHED_RELEASE_TO_CONTINUE:
 				//at this point driver needs to release button and repress to enter new cycle and start from beginning
 				if(input.isClimberButtonPressed()) {
@@ -259,7 +259,7 @@ public class monkeFSM {
 				}
 				//button released, head to beginning to redo cycle
 				//increment cycle count counter
-				CYCLE_COUNT++;
+				cycleCount++;
 				return FSMState.EXTEND_ARM_LITTLE;
 			case FINISHED_EVERYTHING:
 				//stays in this state forever
