@@ -7,7 +7,9 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 // Systems
-import frc.robot.systems.FSMSystem;
+import frc.robot.systems.DriveSystem;
+import frc.robot.systems.ShooterSystem;
+import frc.robot.systems.TurretSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,7 +19,9 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private FSMSystem fsmSystem;
+	private DriveSystem driveFSM;
+	private ShooterSystem shooterFSM;
+	private TurretSystem turretFSM;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -29,29 +33,40 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new FSMSystem();
+		driveFSM = new DriveSystem();
+		shooterFSM = new ShooterSystem();
+		turretFSM = new TurretSystem(shooterFSM, driveFSM);
+
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		fsmSystem.reset();
+		driveFSM.reset();
+		shooterFSM.reset();
+		turretFSM.reset();
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		fsmSystem.update(null);
+		driveFSM.update(null);
+		shooterFSM.update(null);
+		turretFSM.update(null);
 	}
 
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		fsmSystem.reset();
+		driveFSM.reset();
+		shooterFSM.reset();
+		turretFSM.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		fsmSystem.update(input);
+		driveFSM.update(input);
+		shooterFSM.update(input);
+		turretFSM.update(input);
 	}
 
 	@Override

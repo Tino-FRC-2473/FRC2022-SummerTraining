@@ -1,5 +1,7 @@
 package frc.robot.systems;
 
+import org.opencv.core.Point;
+
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 import com.kauailabs.navx.frc.AHRS;
@@ -12,7 +14,7 @@ import frc.robot.drive.DrivePower;
 import frc.robot.drive.Functions;
 import frc.robot.Constants;
 
-public class FSMSystem {
+public class DriveSystem {
 
 
 	// FSM state definitions
@@ -51,6 +53,12 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
+	// COORDINATE DEFINITIONS
+	private static final double FENDER_TO_HUB_CENTER_INCHES = 33.89;
+	private static final double BUMPER_TO_SHOOTER_MECH_INCHES = 14;
+	public static final Point HUB_LOCATION = new Point(0, FENDER_TO_HUB_CENTER_INCHES
+														+ BUMPER_TO_SHOOTER_MECH_INCHES);
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -58,7 +66,7 @@ public class FSMSystem {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
+	public DriveSystem() {
 		// Perform hardware init
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -296,5 +304,14 @@ public class FSMSystem {
 		System.out.println("Gyro: " + gyroAngleForOdo);
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
-	 
+
+	/* ------------------------ Helpers ------------------------ */
+	public final double getHeading() {
+		return gyro.getAngle();
+	}
+
+	public final Point getPosition(){
+		Point p = new Point(roboXPos, roboYPos);
+		return p;
+	}
 }
