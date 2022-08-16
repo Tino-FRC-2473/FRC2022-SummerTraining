@@ -55,12 +55,15 @@ public class TraversalFSM {
 	 */
 	public TraversalFSM() {
 		// Perform hardware init
-		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, 
+		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER,
 			CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, 
-			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
-		armLimitSwitchSecond = armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
+			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
+		armLimitSwitchFirst =
+		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armLimitSwitchSecond =
+		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
 		// Reset state machine
 		reset();
 	}
@@ -153,33 +156,33 @@ public class TraversalFSM {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case START_IDLE:
-				if(input.isClimberButtonPressed()) {
+				if (input.isClimberButtonPressed()) {
 					//if climber button is pressed, continue to next state
 					return FSMState.RETRACT_ARM;
 				}
 				//else, stay in idle
 				return FSMState.START_IDLE;
 			case RETRACT_ARM:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//if climber button is not pressed, go to idle
 					return FSMState.IDLE_1;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
+				} else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
 					//if climber is pressed and limit switch has not been activated yet,
 					//continue to retract arm
 					return FSMState.RETRACT_ARM;
-				}else{
+				} else {
 					//climber button is pressed and limit switch activated, go to next state
 					return FSMState.LATCHED_RELEASE_TO_CONTINUE;
 				}
 			case IDLE_1:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay in idle
 					return FSMState.IDLE_1;
 				}
 				//climber button pressed, return to previous state
 				return FSMState.RETRACT_ARM;
 			case LATCHED_RELEASE_TO_CONTINUE:
-				if(input.isClimberButtonPressed()) {
+				if (input.isClimberButtonPressed()) {
 					//if climber button is pressed stay in current state
 					//drivers need to release the button
 					return FSMState.LATCHED_RELEASE_TO_CONTINUE;
@@ -187,75 +190,76 @@ public class TraversalFSM {
 				//button is released continue to next state
 				return FSMState.IDLE_2;
 			case IDLE_2:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//button needs to be repressed to continue to next state, if not stay in IDLE2
 					return FSMState.IDLE_2;
 				}
 				//button is pressed so continue to next state
 				return FSMState.EXTEND_ARM_LITTLE;
 			case EXTEND_ARM_LITTLE:
-				if(cycleCount>=2) {
+				if (cycleCount >= 2) {
 					//if there have already been two cycles
 					return FSMState.FINISHED_EVERYTHING;
 				}
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//if climber button not pressed go to idle
 					return FSMState.IDLE_3;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchSecond.isPressed()) {
-					//climber button pressed and encoder count less than threshold then continue to extend
+				} else if (input.isClimberButtonPressed() && !armLimitSwitchSecond.isPressed()) {
+					//climber button pressed and encoder
+					//count less than threshold then continue to extend
 					return FSMState.EXTEND_ARM_LITTLE;
-				}else {
+				} else {
 					//climber button pressed and encoder threshold reached, go to next state
 					return FSMState.ARM_PISTON_EXT;
 				}
 			case IDLE_3:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay in idle
 					return FSMState.IDLE_3;
 				}
 				//climber button pressed return to previous state
 				return FSMState.EXTEND_ARM_LITTLE;
 			case ARM_PISTON_EXT:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, go to idle
 					return FSMState.IDLE_4;
-				}else if(input.isClimberButtonPressed() && littleExtensionEncoder()) {
+				} else if (input.isClimberButtonPressed() && littleExtensionEncoder()) {
 					//climber button pressed, but limit switch not activated, stay in same state
 					return FSMState.ARM_PISTON_EXT;
-				}else{
+				} else {
 					//climber button pressed and limit switch activated, go to next state
 					return FSMState.RETRACT_ARM2;
 				}
 			case IDLE_4:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay idle
 					return FSMState.IDLE_4;
 				}
 				//climber button pressed, go to previous state
 				return FSMState.ARM_PISTON_EXT;
 			case RETRACT_ARM2:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, go idle
 					return FSMState.IDLE_5;
-				}else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
+				} else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
 					//while not first limit switch, stay in mode
 					return FSMState.RETRACT_ARM2;
-				}else{
+				} else {
 					//finished, go to next
 					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
 				}
-				
-				
+
 			case IDLE_5:
-				if(!input.isClimberButtonPressed()) {
+				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay idle
 					return FSMState.IDLE_5;
 				}
 				//climber button pressed, return to previous state
 				return FSMState.RETRACT_ARM2;
 			case FINISHED_RELEASE_TO_CONTINUE:
-				//at this point driver needs to release button and repress to enter new cycle and start from beginning
-				if(input.isClimberButtonPressed()) {
+				//at this point driver needs to release button
+				//and repress to enter new cycle and start from beginning
+				if (input.isClimberButtonPressed()) {
 					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
 				}
 				cycleCount++;
@@ -336,14 +340,14 @@ public class TraversalFSM {
 		armSolenoid.set(Value.kReverse);
 
 	}
-	
+
 	private void handleFinishedEverything(TeleopInput input) {
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
-	
+
 	private boolean littleExtensionEncoder() {
-		return armMotor.getEncoder().getPosition()>=ARM_ENCODER_LIMIT;
+		return armMotor.getEncoder().getPosition() >= ARM_ENCODER_LIMIT;
 	}
 
 }
