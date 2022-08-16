@@ -36,11 +36,12 @@ public class BallIntakeFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public BallIntakeFSM
-() {
+	public BallIntakeFSM() {
 		// Perform hardware init
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
+		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
 		// Reset state machine
 		reset();
 	}
@@ -101,12 +102,12 @@ public class BallIntakeFSM {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case EXTENDED:
-				if(input.isIntakeButtonReleased()) {
+				if (input.isIntakeButtonReleased()) {
 					return FSMState.RETRACTED;
 				}
 				return FSMState.EXTENDED;
 			case RETRACTED:
-				if(input.isIntakeButtonReleased()) {
+				if (input.isIntakeButtonReleased()) {
 					return FSMState.EXTENDED;
 				}
 				return FSMState.RETRACTED;
