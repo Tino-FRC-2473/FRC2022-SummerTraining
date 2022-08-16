@@ -20,7 +20,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class BallSchlurperFSM {
+public class BallIntakeFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
@@ -44,7 +44,8 @@ public class BallSchlurperFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public BallSchlurperFSM() {
+	public BallIntakeFSM
+() {
 		// Perform hardware init
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
