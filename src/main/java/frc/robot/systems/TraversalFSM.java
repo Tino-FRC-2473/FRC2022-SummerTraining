@@ -27,12 +27,12 @@ public class TraversalFSM {
 		ARM_PISTON_EXT, //roll back and extend
 		IDLE_4,
 		RETRACT_ARM2,
-		IDLE_5, 
+		IDLE_5,
 		FINISHED_RELEASE_TO_CONTINUE,
 		FINISHED_EVERYTHING
 	}
 
-	private static final double ARM_MOTOR_RETRACT_POWER = -0.2; 
+	private static final double ARM_MOTOR_RETRACT_POWER = -0.2;
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
 	private static final int ARM_ENCODER_LIMIT = 200;
 	private int cycleCount = 0;
@@ -46,7 +46,7 @@ public class TraversalFSM {
 	private DoubleSolenoid armSolenoid;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
-	
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -55,8 +55,10 @@ public class TraversalFSM {
 	 */
 	public TraversalFSM() {
 		// Perform hardware init
-		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
+		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, 
+			CANSparkMax.MotorType.kBrushless);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, 
+			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
 		armLimitSwitchSecond = armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
 		// Reset state machine
