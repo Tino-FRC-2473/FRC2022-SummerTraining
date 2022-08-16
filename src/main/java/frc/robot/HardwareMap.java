@@ -24,7 +24,7 @@ public final class HardwareMap {
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT = 0;
 	//Climber
-	public static final int PCM_CHANNEL_ARM_CYLINDER_EXTEND = 2;
-	public static final int PCM_CHANNEL_ARM_CYLINDER_RETRACT = 3;
+	public static final int PCM_CHANNEL_ARM_CYLINDER_EXTEND = 1;
+	public static final int PCM_CHANNEL_ARM_CYLINDER_RETRACT = 0;
 
 }

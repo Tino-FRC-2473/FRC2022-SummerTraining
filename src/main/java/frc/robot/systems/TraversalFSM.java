@@ -9,6 +9,7 @@ import com.revrobotics.SparkMaxLimitSwitch;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -32,8 +33,8 @@ public class TraversalFSM {
 		FINISHED_EVERYTHING
 	}
 
-	private static final double ARM_MOTOR_RETRACT_POWER = -0.2;
-	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
+	private static final double ARM_MOTOR_RETRACT_POWER = -0.1;
+	private static final double ARM_MOTOR_EXTEND_POWER = 0.1;
 	private static final int ARM_ENCODER_LIMIT = 200;
 	private int cycleCount = 0;
 
@@ -57,7 +58,7 @@ public class TraversalFSM {
 		// Perform hardware init
 		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER,
 			CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst =
@@ -98,6 +99,8 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		SmartDashboard.putString("Cycle Count", cycleCount + "");
+		System.out.println("Current State " + currentState);
 		switch (currentState) {
 			case START_IDLE:
 				handleStartIdleState(input);
@@ -134,9 +137,10 @@ public class TraversalFSM {
 				break;
 			case FINISHED_RELEASE_TO_CONTINUE:
 				handleFinishState(input);
+				break;
 			case FINISHED_EVERYTHING:
 				handleFinishedEverything(input);
-
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -154,6 +158,9 @@ public class TraversalFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.START_IDLE;
+		}
 		switch (currentState) {
 			case START_IDLE:
 				if (input.isClimberButtonPressed()) {
