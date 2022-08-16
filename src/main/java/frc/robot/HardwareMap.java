@@ -11,15 +11,13 @@ public final class HardwareMap {
 	//Intake
 	public static final int INTAKE_MOTOR = 10;
 	//Drive
-	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
+	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 4;
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 3;
 	//Shooter
 	public static final int CAN_ID_SPARK_SHOOTER = 5;
 	//Climber
-	public static final int CAN_ID_SPARK_CLIMBER = 4;
-	public static final int LIMIT_SWITCH_ID_FIRST = 0;
-	public static final int LIMIT_SWITCH_ID_SECOND = 1;
-	public static final int LIMIT_SWITCH_ID_THIRD = 2;
+	public static final int CAN_ID_SPARK_CLIMBER = 2;
+
 	// Pneumatics channel numbers
 
 	//Intake
