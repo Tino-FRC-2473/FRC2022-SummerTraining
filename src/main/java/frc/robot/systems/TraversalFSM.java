@@ -6,7 +6,6 @@ package frc.robot.systems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxLimitSwitch;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -35,6 +34,7 @@ public class TraversalFSM {
 
 	private static final double ARM_MOTOR_RETRACT_POWER = -0.2; 
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.2;
+	private static final int ARM_ENCODER_LIMIT = 200;
 	private int cycleCount = 0;
 
 	/* ======================== Private variables ======================== */
@@ -46,7 +46,6 @@ public class TraversalFSM {
 	private DoubleSolenoid armSolenoid;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
-	private SparkMaxLimitSwitch armLimitSwitchThird;
 	
 	/* ======================== Constructor ======================== */
 	/**
@@ -59,8 +58,7 @@ public class TraversalFSM {
 		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND, HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
-		armLimitSwitchSecond = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
-		armLimitSwitchThird = armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armLimitSwitchSecond = armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
 		// Reset state machine
 		reset();
 	}
@@ -83,6 +81,7 @@ public class TraversalFSM {
 	 */
 	public void reset() {
 		currentState = FSMState.START_IDLE;
+		armMotor.getEncoder().setPosition(0);
 		cycleCount = 0;
 		armSolenoid.set(Value.kReverse); // reset piston
 		update(null);
@@ -162,7 +161,7 @@ public class TraversalFSM {
 				if(!input.isClimberButtonPressed()) {
 					//if climber button is not pressed, go to idle
 					return FSMState.IDLE_1;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchFirst.get()) {
+				}else if(input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
 					//if climber is pressed and limit switch has not been activated yet,
 					//continue to retract arm
 					return FSMState.RETRACT_ARM;
@@ -218,7 +217,7 @@ public class TraversalFSM {
 				if(!input.isClimberButtonPressed()) {
 					//climber button not pressed, go to idle
 					return FSMState.IDLE_4;
-				}else if(input.isClimberButtonPressed() && !armLimitSwitchThird.isPressed()) {
+				}else if(input.isClimberButtonPressed() && littleExtensionEncoder()) {
 					//climber button pressed, but limit switch not activated, stay in same state
 					return FSMState.ARM_PISTON_EXT;
 				}else{
@@ -257,9 +256,9 @@ public class TraversalFSM {
 				if(input.isClimberButtonPressed()) {
 					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
 				}
+				cycleCount++;
 				//button released, head to beginning to redo cycle
 				//increment cycle count counter
-				cycleCount++;
 				return FSMState.EXTEND_ARM_LITTLE;
 			case FINISHED_EVERYTHING:
 				//stays in this state forever
@@ -339,6 +338,10 @@ public class TraversalFSM {
 	private void handleFinishedEverything(TeleopInput input) {
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
+	}
+	
+	private boolean littleExtensionEncoder() {
+		return armMotor.getEncoder().getPosition()>=ARM_ENCODER_LIMIT;
 	}
 
 }
