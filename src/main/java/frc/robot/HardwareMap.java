@@ -15,6 +15,9 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_TOP_RIGHT = 4;
 
 	public static final int CAN_ID_SPARK_TURRET_DRIVER = 12;
-	
+	public static final int CAN_ID_SPARK_SHOOTER_MOTOR_LEFT = 31;
+	public static final int CAN_ID_SPARK_SHOOTER_MOTOR_RIGHT = 32;
+	public static final int CAN_ID_SPARK_SHOOTER_DRIVER = 33;
+
 
 }

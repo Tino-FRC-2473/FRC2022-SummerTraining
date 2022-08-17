@@ -87,10 +87,18 @@ public class TeleopInput {
 
 	/**
 	 * Get trigger button is pressed of left joystick.
-	 * @return Axis value
+	 * @return trigger is pressed
 	 */
-	public boolean isLeftJoystickTriggerPressedRaw() {
+	public boolean isLeftJoystickTriggerRaw() {
 		return leftJoystick.getTrigger();
+	}
+
+	/**
+	 * Get shooter button is pressed.
+	 * @return shooter button is pressed
+	 */
+	public boolean isLeftJoystickShooterPressedRaw() {
+		return leftJoystick.getRawButtonPressed(9);
 	}
 
 	/* ------------------------ Steering Wheel ------------------------ */

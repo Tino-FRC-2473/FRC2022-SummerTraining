@@ -143,7 +143,7 @@ public class DriveSystem {
 			case TELE_STATE_2_MOTOR_DRIVE:
 				handleTeleOp2MotorState(input);
 				break;
-			
+
 			case TELE_STATE_MECANUM:
 				handleTeleOpMecanum(input);
 				break;
@@ -169,7 +169,7 @@ public class DriveSystem {
 
 			case TELE_STATE_2_MOTOR_DRIVE:
 				return FSMState.TELE_STATE_2_MOTOR_DRIVE;
-			
+
 			case TELE_STATE_MECANUM:
 				return FSMState.TELE_STATE_MECANUM;
 
@@ -185,56 +185,55 @@ public class DriveSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleOp2MotorState(TeleopInput input) {
-		if(input == null) {
+		if (input == null) {
 			return;
 		}
 
 		if (isInArcadeDrive) {
-	
+
 			currentEncoderPos = ((leftMotor.getEncoder().getPosition()
 				- rightMotor.getEncoder().getPosition()) / 2.0);
-	
+
 			updateLineOdometryTele(gyroAngleForOdo, currentEncoderPos);
-	
+
 			double steerAngle = input.getSteerAngle();
 			double currentLeftPower = leftMotor.get();
 			double currentRightPower = rightMotor.get();
-	
-	
+
 			DrivePower targetPower = DriveModes.arcadeDrive(input.getRightJoystickY(),
 				steerAngle, currentLeftPower,
 				currentRightPower, true);
-	
+
 			// multiple speed modes
-			if (input.isLeftJoystickTriggerPressedRaw()) {
+			if (input.isLeftJoystickTriggerRaw()) {
 				targetPower.scale(Constants.MAX_POWER);
 			} else {
 				targetPower.scale(Constants.REDUCED_MAX_POWER);
 			}
-	
+
 			DrivePower power;
-	
+
 			// acceleration
 			power = Functions.accelerate(targetPower, new DrivePower(currentLeftPower,
 				currentRightPower));
-	
+
 			// turning in place
 			if (Math.abs(input.getRightJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
 				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
 			}
-	
+
 			leftPower = power.getLeftPower();
 			rightPower = power.getRightPower();
-	
+
 
 			rightMotor.set(rightPower);
 			leftMotor.set(leftPower);
 
-		} else { 
+		} else {
 			leftMotor.set((input.getLeftJoystickY()));
 			rightMotor.set(-(input.getRightJoystickY()));
 		}
-		
+
 	}
 
 	/**
@@ -243,39 +242,39 @@ public class DriveSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleOpMecanum(TeleopInput input) {
-		
-		if(input == null) {
-            return;
-        }
 
-        double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
-        double rightX = input.getRightJoystickX();
+		if (input == null) {
+			return;
+		}
 
-        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX())) 
-            - Math.PI / 4;
+		double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
+		double rightX = input.getRightJoystickX();
 
-        topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
-        topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
-        bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
-        bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
+		double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
+			input.getLeftJoystickX())) - Math.PI / 4;
+
+		topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
+		topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
+		bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
+		bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
 
 		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
 		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
 		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
 		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
 
-        if (input.isLeftJoystickTriggerPressedRaw()) {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower);
-            topRightMotorMecanum.set(topRightMotorMecanumPower);
-        } else {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
-            topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
-        }
-    }
+		if (input.isLeftJoystickTriggerRaw()) {
+			bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
+			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
+			topLeftMotorMecanum.set(topLeftMotorMecanumPower);
+			topRightMotorMecanum.set(topRightMotorMecanumPower);
+		} else {
+			bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
+			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
+			topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
+			topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
+		}
+	}
 
 	private double ensureRange(double value, double min, double max) {
 		return Math.min(Math.max(value, min), max);
