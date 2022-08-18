@@ -62,9 +62,9 @@ public class TraversalFSM {
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst =
-		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
 		armLimitSwitchSecond =
-		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
 		// Reset state machine
 		reset();
 	}
