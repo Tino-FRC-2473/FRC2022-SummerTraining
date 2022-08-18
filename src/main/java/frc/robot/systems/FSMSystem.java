@@ -2,6 +2,9 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+
+import edu.wpi.first.wpilibj.SPI;
+
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
@@ -68,7 +71,7 @@ public class FSMSystem {
 		leftPower = 0;
 		rightPower = 0;
 
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+		bottomRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 		bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -76,6 +79,8 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 		topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
+
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -112,7 +117,7 @@ public class FSMSystem {
 		gyro.reset();
 		gyro.zeroYaw();
 
-		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
+		currentState = FSMState.TELE_STATE_MECANUM;
 
 		roboXPos = 0;
 		roboYPos = 0;
@@ -255,6 +260,8 @@ public class FSMSystem {
 		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
 		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
 		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
+
+		System.out.println(topLeftMotorMecanumPower);
 
         if (input.isLeftJoystickTriggerPressedRaw()) {
             bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
