@@ -1,10 +1,11 @@
+//FSM 
+
+
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.SPI;
 
 // Third party Hardware Imports
-import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 
 // Robot Imports
@@ -12,33 +13,24 @@ import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
 public class FSMSystem {
-
 	/* ======================== Constants ======================== */
-
 	// FSM state definitions
 	public enum FSMState {
-		TELEOP_STATE,
-		IDLE_STATE,
-		TURNING_STATE
+		//START_STATE,
+		DRIVE_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.5f;
-	private static final int MAX_TURN = 180;
-	//Precision; accounts for the error on the machine
-	private static final int ERROR = 5;
+	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
-
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor;
-	private AHRS gyro;
+	private CANSparkMax rightMotor;
 
 	/* ======================== Constructor ======================== */
-
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
@@ -46,17 +38,14 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		gyro = new AHRS(SPI.Port.kMXP);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
-			CANSparkMax.MotorType.kBrushless);
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
-			CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
+
 		// Reset state machine
 		reset();
 	}
 
 	/* ======================== Public methods ======================== */
-
 	/**
 	 * Return current FSM state.
 	 * @return Current FSM state
@@ -64,7 +53,6 @@ public class FSMSystem {
 	public FSMState getCurrentState() {
 		return currentState;
 	}
-
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -74,17 +62,11 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		//set it to motionless
-		currentState = FSMState.IDLE_STATE;
-		gyro.reset();
-		gyro.calibrate();
+		currentState = FSMState.DRIVE_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
-		leftMotor.set(0);
-		rightMotor.set(0);
 		update(null);
 	}
-
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
@@ -92,28 +74,20 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		System.out.println(currentState + " " + gyro.getAngle());
 		switch (currentState) {
-			case TELEOP_STATE:
-				handleTeleopState(input);
-				break;
 
-			case IDLE_STATE:
-				handleIdleState(input);
-				break;
-
-			case TURNING_STATE:
-				handleTurningState(input);
+			case DRIVE_STATE:
+				handleDriveState(input);
 				break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
+
 		currentState = nextState(input);
 	}
 
 	/* ======================== Private methods ======================== */
-
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs
 	 * and the current state of this FSM. This method should not have any side
@@ -125,30 +99,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case TELEOP_STATE:
-				return FSMState.TELEOP_STATE;
-
-			case IDLE_STATE:
-				//check if it is within a certain range, tells us if it still needs to turn
-				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
-					return FSMState.TURNING_STATE;
-				//check for multiple of 180 using %
-				} else if (gyro.getAngle() % MAX_TURN < ERROR
-					|| gyro.getAngle() % MAX_TURN > MAX_TURN - ERROR) {
-					return FSMState.IDLE_STATE;
-				} else {
-					return FSMState.TURNING_STATE;
-				}
-
-			case TURNING_STATE:
-				if (gyro.getAngle() >= -ERROR && gyro.getAngle() <= ERROR) {
-					return FSMState.TURNING_STATE;
-				} else if (gyro.getAngle() % MAX_TURN < ERROR
-					|| gyro.getAngle() % MAX_TURN > MAX_TURN - ERROR) {
-					return FSMState.IDLE_STATE;
-				} else {
-					return FSMState.TURNING_STATE;
-				}
+			case DRIVE_STATE:
+				return FSMState.DRIVE_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -156,38 +108,16 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-
 	/**
- 	 * Handle behavior in TELEOP_STATE.
- 	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * Handle behavior in DRIVE_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
- 	 */
-	private void handleTeleopState(TeleopInput input) {
-		if (input == null) {
-			//return so we exit and are no longer in teleop, since we need to enter auto
-			return;
+	 */
+	private void handleDriveState(TeleopInput input) {
+		if (input != null){
+			//SlewRateLimiter filter = new SlewRateLimiter(0.5);
+			leftMotor.set(input.getLeftJoystickY());
+			rightMotor.set(input.getRightJoystickY());
 		}
-		rightMotor.set(input.getRightJoystickY());
-		leftMotor.set(input.getLeftJoystickY());
-	}
-
-	/**
-	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleIdleState(TeleopInput input) {
-		rightMotor.set(0);
-		leftMotor.set(0);
-	}
-
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleTurningState(TeleopInput input) {
-		rightMotor.set(MOTOR_RUN_POWER);
-		leftMotor.set(MOTOR_RUN_POWER);
 	}
 }
