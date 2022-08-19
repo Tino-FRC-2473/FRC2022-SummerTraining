@@ -2,6 +2,8 @@ package frc.robot.systems;
 
 import org.opencv.core.Point;
 
+import edu.wpi.first.wpilibj.SPI;
+
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 import com.kauailabs.navx.frc.AHRS;
@@ -56,8 +58,8 @@ public class DriveSystem {
 	// COORDINATE DEFINITIONS
 	private static final double FENDER_TO_HUB_CENTER_INCHES = 33.89;
 	private static final double BUMPER_TO_SHOOTER_MECH_INCHES = 14;
-	public static final Point HUB_LOCATION = new Point(0, FENDER_TO_HUB_CENTER_INCHES
-														+ BUMPER_TO_SHOOTER_MECH_INCHES);
+	public static final Point HUB_LOCATION = new Point(-FENDER_TO_HUB_CENTER_INCHES
+													 - BUMPER_TO_SHOOTER_MECH_INCHES, 0);
 
 
 	/* ======================== Constructor ======================== */
@@ -75,6 +77,8 @@ public class DriveSystem {
 
 		leftPower = 0;
 		rightPower = 0;
+
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -298,9 +302,9 @@ public class DriveSystem {
 
 		prevEncoderPos = this.currentEncoderPos;
 
-		System.out.println("X Pos: " + roboXPos);
-		System.out.println("Y Pos: " + roboYPos);
-		System.out.println("Gyro: " + gyroAngleForOdo);
+		// System.out.println("X Pos: " + roboXPos);
+		// System.out.println("Y Pos: " + roboYPos);
+		// System.out.println("Gyro: " + gyroAngleForOdo);
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
 

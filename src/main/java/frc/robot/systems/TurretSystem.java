@@ -5,15 +5,9 @@ import com.revrobotics.CANSparkMax;
 
 import org.opencv.core.Point;
 
-import com.kauailabs.navx.frc.AHRS;
-
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import frc.robot.drive.DriveModes;
-import frc.robot.drive.DrivePower;
-import frc.robot.drive.Functions;
-import frc.robot.Constants;
 
 
 
@@ -135,6 +129,8 @@ public class TurretSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
+		currentState = FSMState.LIVE_TURRET;
+
 		turretMotor.set(0);
 
 		// Call one tick of update to ensure outputs reflect start state
@@ -175,6 +171,9 @@ public class TurretSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if(input == null){
+			return currentState;
+		}
 		if(SHOOTER.getCurrentState() == ShooterSystem.FSMState.INTAKING){
 			return FSMState.INTAKING;
 		}else{
@@ -200,15 +199,21 @@ public class TurretSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleLiveTurretState(TeleopInput input) {
-		//Convert a continuous angle (could go beyond 360) to [-180, 180
-		double heading = (DRIVER.getHeading() - 180) % 360 - 180;
+		//Convert a continuous angle (could go beyond 360) to [-180, 180]
+		
+		double heading = (DRIVER.getHeading() + 180) % 360 - 180;
 		Point position = DRIVER.getPosition();
-		double angleToHub = Math.atan2(DriveSystem.HUB_LOCATION.y - position.y,
-									   DriveSystem.HUB_LOCATION.x - position.x)
-							+ (DriveSystem.HUB_LOCATION.x < position.x ? -90 : 90);
+		double angleToHub = Math.toDegrees(Math.atan2(position.x - DriveSystem.HUB_LOCATION.x,
+													  - position.y)) - 90;
 
 		//calculating the difference between the two angles
 		double angleDifference = (angleToHub - heading + 180) % 360 - 180;
+
+		if(input!=null)System.out.println(input.getSteerAngle());
+		System.out.println("heading:      "+heading);
+		System.out.println("position:     "+position);
+		System.out.println("angle to hub: "+angleToHub);
+		System.out.println("angle diff:   "+angleDifference);
 
 		referenceAngle = angleDifference;
 

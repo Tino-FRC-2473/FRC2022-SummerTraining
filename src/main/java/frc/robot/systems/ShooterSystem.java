@@ -123,6 +123,9 @@ public class ShooterSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if(input == null){
+			return currentState;
+		}
 		switch (currentState) {
 
 			case BALL_HOLDING:
