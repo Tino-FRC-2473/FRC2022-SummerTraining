@@ -1,3 +1,5 @@
+//FSM
+
 package frc.robot.systems;
 
 // WPILib Imports
@@ -13,8 +15,8 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
-		OTHER_STATE
+		//START_STATE,
+		DRIVE_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +26,8 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,8 +37,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT,
+						CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT,
+						CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -58,7 +63,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
+		currentState = FSMState.DRIVE_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -71,17 +76,15 @@ public class FSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
-				break;
 
-			case OTHER_STATE:
-				handleOtherState(input);
+			case DRIVE_STATE:
+				handleDriveState(input);
 				break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
+
 		currentState = nextState(input);
 	}
 
@@ -97,15 +100,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
-					return FSMState.START_STATE;
-				}
-
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case DRIVE_STATE:
+				return FSMState.DRIVE_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -114,19 +110,15 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in DRIVE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleDriveState(TeleopInput input) {
+		if (input != null) {
+			//SlewRateLimiter filter = new SlewRateLimiter(0.5);
+			leftMotor.set(input.getLeftJoystickY());
+			rightMotor.set(input.getRightJoystickY());
+		}
 	}
 }
