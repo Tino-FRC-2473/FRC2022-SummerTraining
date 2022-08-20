@@ -1,5 +1,4 @@
-//FSM 
-
+//FSM
 
 package frc.robot.systems;
 
@@ -38,8 +37,10 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, CANSparkMax.MotorType.kBrushless);
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_LEFT, 
+					    CANSparkMax.MotorType.kBrushless);
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_FRONT_RIGHT, 
+					     CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -114,7 +115,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleDriveState(TeleopInput input) {
-		if (input != null){
+		if (input != null) {
 			//SlewRateLimiter filter = new SlewRateLimiter(0.5);
 			leftMotor.set(input.getLeftJoystickY());
 			rightMotor.set(input.getRightJoystickY());
