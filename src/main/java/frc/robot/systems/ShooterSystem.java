@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxLimitSwitch.Type;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.HardwareMap;
@@ -123,7 +124,7 @@ public class ShooterSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		if(input == null){
+		if (input == null) {
 			return currentState;
 		}
 		switch (currentState) {
@@ -177,9 +178,19 @@ public class ShooterSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleBallHoldingState(TeleopInput input) {
-		setShooterPower(0);
 
-		setShooterPosition(2);
+
+		if (shooterDriver.getForwardLimitSwitch(Type.kNormallyOpen).isPressed()) {
+			System.out.println("f" + shooterDriver.getForwardLimitSwitch(Type.kNormallyOpen));
+			System.out.println("r" + shooterDriver.getReverseLimitSwitch(Type.kNormallyOpen));
+
+			shooterDriver.set(-0.3);
+		}
+
+
+		// setShooterPower(0);
+
+		// setShooterPosition(2);
 	}
 
 	/**
@@ -220,6 +231,8 @@ public class ShooterSystem {
 	private void setShooterPosition(int posValue) {
 		// Move shooter up
 		if (posValue == 1) {
+
+
 			if (!(magneticProxLeft.get() && magneticProxMid.get() && !magneticProxRight.get())) {
 				shooterDriver.set(-0.1);
 			}
