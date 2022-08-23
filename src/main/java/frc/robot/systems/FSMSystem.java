@@ -8,6 +8,9 @@ import com.kauailabs.navx.frc.AHRS;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import frc.robot.drive.DriveModes;
+import frc.robot.drive.DrivePower;
+import frc.robot.drive.Functions;
 import frc.robot.Constants;
 
 public class FSMSystem {
@@ -35,6 +38,8 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
+	private boolean complete;
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -52,6 +57,7 @@ public class FSMSystem {
 		// leftPower = 0;
 		// rightPower = 0;
 
+		complete = false;
 		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
@@ -83,6 +89,7 @@ public class FSMSystem {
 
 		gyro.reset();
 		gyro.zeroYaw();
+		gyroAngleForOdo = 0;
 
 		currentState = FSMState.PURE_PURSUIT;
 
@@ -112,7 +119,7 @@ public class FSMSystem {
 		switch (currentState) {
 
 			case PURE_PURSUIT:
-				handlePurePersuit(input, 0, 15, 0);
+				handlePurePersuit(input, 0, -15, -15);
 				break;
 
 			default:
@@ -157,7 +164,7 @@ public class FSMSystem {
 		double roboX = -roboXPos;
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = calculateCurrentAngle(gyroAngleForOdo, startAngle);
+		double currentAngle = -calculateCurrentAngle(gyro.getAngle(), startAngle);
 
 		// calculates turn angle
 		double angle;
@@ -167,6 +174,8 @@ public class FSMSystem {
 		
 		if (x < 0) angle += 180;
 		if (x > 0 && y < 0) angle += 360;
+
+		System.out.println("turn angle " + angle);
 
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
@@ -178,22 +187,26 @@ public class FSMSystem {
 		System.out.println("curX: " + roboX + " curY: " + roboYPos);
 
 		// set motor power
-		if (!(turnAmount >= -5 && turnAmount <= 5)) {
+		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
-				leftMotor.set(0.1);
-				rightMotor.set(0.1);
+				leftMotor.set(0.4);
+				rightMotor.set(0.4);
 			} else if (turnAmount < 0) {
-				leftMotor.set(-0.1);
-				rightMotor.set(-0.1);
+				leftMotor.set(-0.4);
+				rightMotor.set(-0.4);
 			}
-		} else  if (dist > 0.4) {
+		} else  if (dist > 2 && complete == false) {  // ??
 			System.out.println("moving");
 			leftMotor.set(-0.1);
 			rightMotor.set(0.1);
 		} else {
 			leftMotor.set(0);
 			rightMotor.set(0);
+			System.out.println("STOP");
+			complete = true;
+			System.out.println("right " + rightMotor.get() + "left " + leftMotor.get());
+			return;
 		}
 	}
 
@@ -214,10 +227,6 @@ public class FSMSystem {
 		roboYPos += dY;
 
 		prevEncoderPos = this.currentEncoderPos;
-
-		System.out.println("X Pos: " + roboXPos);
-		System.out.println("Y Pos: " + roboYPos);
-		System.out.println("Gyro: " + gyroAngleForOdo);
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
 	
