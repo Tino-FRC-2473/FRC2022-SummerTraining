@@ -8,9 +8,6 @@ import com.kauailabs.navx.frc.AHRS;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import frc.robot.drive.DriveModes;
-import frc.robot.drive.DrivePower;
-import frc.robot.drive.Functions;
 import frc.robot.Constants;
 
 public class FSMSystem {
@@ -113,7 +110,7 @@ public class FSMSystem {
 
 		currentEncoderPos = ((leftMotor.getEncoder().getPosition()
 				- rightMotor.getEncoder().getPosition()) / 2.0);
-		
+
 		updateLineOdometryTele(gyro.getAngle(), currentEncoderPos);
 
 		switch (currentState) {
@@ -154,6 +151,9 @@ public class FSMSystem {
 	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
+	 * @param startAngle robot's starting angle
+	 * @param x go to x position
+	 * @param y go to y position
 	 */
 	public void handlePurePersuit(TeleopInput input, double startAngle, double x, double y) {
 
@@ -168,10 +168,14 @@ public class FSMSystem {
 
 		// calculates turn angle
 		double angle;
-		if (x == 0 && y > 0) angle = 90;
-		else if (x == 0 && y < 0) angle = 270;
-		else angle = Math.toDegrees(Math.atan(y/x));
-		
+		if (x == 0 && y > 0) {
+			angle = 90;
+		} else if (x == 0 && y < 0) {
+			angle = 270;
+		} else {
+			angle = Math.toDegrees(Math.atan(y/x));
+		}
+
 		if (x < 0) angle += 180;
 		if (x > 0 && y < 0) angle += 360;
 
