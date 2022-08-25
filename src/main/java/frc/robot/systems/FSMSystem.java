@@ -1,15 +1,13 @@
 package frc.robot.systems;
 
 // Third party Hardware Imports
+import edu.wpi.first.wpilibj.SPI;
 import com.revrobotics.CANSparkMax;
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import frc.robot.drive.DriveModes;
-import frc.robot.drive.DrivePower;
-import frc.robot.drive.Functions;
 import frc.robot.Constants;
 
 public class FSMSystem {
@@ -29,20 +27,6 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
-	private double leftPower;
-	private double rightPower;
-
-	private CANSparkMax bottomLeftMotorMecanum;
-	private CANSparkMax bottomRightMotorMecanum;
-	private CANSparkMax topLeftMotorMecanum;
-	private CANSparkMax topRightMotorMecanum;
-
-	private double bottomLeftMotorMecanumPower;
-	private double bottomRightMotorMecanumPower;
-	private double topLeftMotorMecanumPower;
-	private double topRightMotorMecanumPower;
-
-	private boolean isInArcadeDrive = true;
 
 	private double roboXPos = 0;
 	private double roboYPos = 0;
@@ -50,6 +34,8 @@ public class FSMSystem {
 	private double prevEncoderPos = 0;
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
+
+	private boolean complete;
 
 
 	/* ======================== Constructor ======================== */
@@ -65,17 +51,11 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
-		leftPower = 0;
-		rightPower = 0;
+		// leftPower = 0;
+		// rightPower = 0;
 
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
-										CANSparkMax.MotorType.kBrushless);
+		complete = false;
+		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
 		reset();
@@ -101,21 +81,18 @@ public class FSMSystem {
 	 */
 	public void reset() {
 
-		bottomLeftMotorMecanum.set(0);
-		bottomRightMotorMecanum.set(0);
-		topLeftMotorMecanum.set(0);
-		topRightMotorMecanum.set(0);
-
 		rightMotor.getEncoder().setPosition(0);
 		leftMotor.getEncoder().setPosition(0);
 
 		gyro.reset();
 		gyro.zeroYaw();
+		gyroAngleForOdo = 0;
 
-		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
+		currentState = FSMState.PURE_PURSUIT;
 
 		roboXPos = 0;
 		roboYPos = 0;
+		System.out.println(roboXPos + " " + roboYPos);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -131,13 +108,15 @@ public class FSMSystem {
 
 		gyroAngleForOdo = gyro.getAngle();
 
-		switch (currentState) {
-			case TELE_STATE_2_MOTOR_DRIVE:
-				handleTeleOp2MotorState(input);
-				break;
+		currentEncoderPos = ((leftMotor.getEncoder().getPosition()
+				- rightMotor.getEncoder().getPosition()) / 2.0);
 
-			case TELE_STATE_MECANUM:
-				handleTeleOpMecanum(input);
+		updateLineOdometryTele(gyro.getAngle(), currentEncoderPos);
+
+		switch (currentState) {
+
+			case PURE_PURSUIT:
+				handlePurePersuit(input, 0, -15, -15);
 				break;
 
 			default:
@@ -159,11 +138,8 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 
-			case TELE_STATE_2_MOTOR_DRIVE:
-				return FSMState.TELE_STATE_2_MOTOR_DRIVE;
-
-			case TELE_STATE_MECANUM:
-				return FSMState.TELE_STATE_MECANUM;
+			case PURE_PURSUIT:
+				return FSMState.PURE_PURSUIT;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -172,105 +148,70 @@ public class FSMSystem {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in TELE_STATE_2_MOTOR_DRIVE.
+	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
+	 * @param startAngle robot's starting angle
+	 * @param x go to x position
+	 * @param y go to y position
 	 */
-	private void handleTeleOp2MotorState(TeleopInput input) {
+	public void handlePurePersuit(TeleopInput input, double startAngle, double x, double y) {
+
 		if(input == null) {
 			return;
 		}
 
-		if (isInArcadeDrive) {
+		double roboX = -roboXPos;
 
-			currentEncoderPos = ((leftMotor.getEncoder().getPosition()
-				- rightMotor.getEncoder().getPosition()) / 2.0);
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = -calculateCurrentAngle(gyro.getAngle(), startAngle);
 
-			updateLineOdometryTele(gyroAngleForOdo, currentEncoderPos);
-
-			double steerAngle = input.getSteerAngle();
-			double currentLeftPower = leftMotor.get();
-			double currentRightPower = rightMotor.get();
-
-
-			DrivePower targetPower = DriveModes.arcadeDrive(input.getRightJoystickY(),
-				steerAngle, currentLeftPower,
-				currentRightPower, true);
-
-			// multiple speed modes
-			if (input.isLeftJoystickTriggerPressedRaw()) {
-				targetPower.scale(Constants.MAX_POWER);
-			} else {
-				targetPower.scale(Constants.REDUCED_MAX_POWER);
-			}
-
-			DrivePower power;
-
-			// acceleration
-			power = Functions.accelerate(targetPower, new DrivePower(currentLeftPower,
-				currentRightPower));
-
-			// turning in place
-			if (Math.abs(input.getRightJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
-				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
-			}
-
-			leftPower = power.getLeftPower();
-			rightPower = power.getRightPower();
-
-
-			rightMotor.set(rightPower);
-			leftMotor.set(leftPower);
-
+		// calculates turn angle
+		double angle;
+		if (x == 0 && y > 0) {
+			angle = 90;
+		} else if (x == 0 && y < 0) {
+			angle = 270;
 		} else {
-			leftMotor.set((input.getLeftJoystickY()));
-			rightMotor.set(-(input.getRightJoystickY()));
+			angle = Math.toDegrees(Math.atan(y/x));
 		}
 
-	}
+		if (x < 0) angle += 180;
+		if (x > 0 && y < 0) angle += 360;
 
-	/**
-	 * Handle behavior in TELE_STATE_MECANUM.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleTeleOpMecanum(TeleopInput input) {
+		System.out.println("turn angle " + angle);
 
-		if(input == null) {
-            return;
-        }
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
+		System.out.println("turn amount: " + turnAmount);
 
-        double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
-        double rightX = input.getRightJoystickX();
+		// calculates distance
+		double dist = Math.sqrt((y - roboYPos) * (y - roboYPos) + (x - roboX) * (x - roboX));
+		System.out.println("dist: " + dist);
+		System.out.println("curX: " + roboX + " curY: " + roboYPos);
 
-        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX()))
-            - Math.PI / 4;
-
-        topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
-        topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
-        bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
-        bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
-
-		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
-		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
-		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
-		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
-
-        if (input.isLeftJoystickTriggerPressedRaw()) {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower);
-            topRightMotorMecanum.set(topRightMotorMecanumPower);
-        } else {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
-            topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
-        }
-    }
-
-	private double ensureRange(double value, double min, double max) {
-		return Math.min(Math.max(value, min), max);
+		// set motor power
+		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
+			System.out.println("turning");
+			if (turnAmount > 0) {
+				leftMotor.set(0.4);
+				rightMotor.set(0.4);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-0.4);
+				rightMotor.set(-0.4);
+			}
+		} else  if (dist > 2 && complete == false) {  // ??
+			System.out.println("moving");
+			leftMotor.set(-0.1);
+			rightMotor.set(0.1);
+		} else {
+			leftMotor.set(0);
+			rightMotor.set(0);
+			System.out.println("STOP");
+			complete = true;
+			System.out.println("right " + rightMotor.get() + "left " + leftMotor.get());
+			return;
+		}
 	}
 
 	/**
@@ -290,15 +231,19 @@ public class FSMSystem {
 		roboYPos += dY;
 
 		prevEncoderPos = this.currentEncoderPos;
-
-		System.out.println("X Pos: " + roboXPos);
-		System.out.println("Y Pos: " + roboYPos);
-		System.out.println("Gyro: " + gyroAngleForOdo);
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
 
-	//function to move robot in a line
-	public void moveInLine(){
-		//based on odometry code, move to point B
+	/**
+	 * Calculates current angle in field.
+	 * assume unit circle angles (east = 0, positive counterclockwise)
+	 * @param gyroAngle robot's angle
+	 * @param startAngle starting angle of robot
+	 * @return robot's angle in global plane
+	 */
+	public double calculateCurrentAngle(double gyroAngle, double startAngle) {
+		double angle = gyroAngle % 360;
+		angle += startAngle;
+		return angle;
 	}
 }
