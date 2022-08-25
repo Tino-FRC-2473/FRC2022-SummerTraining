@@ -17,5 +17,10 @@ public class Constants {
 	public static final double REVOLUTIONS_PER_INCH
 		= GEAR_RATIO / (Math.PI * WHEEL_DIAMETER_INCHES * ENCODER_CONSTANT);
 
+	public static final double DX_INCHES_CONST = 0.8880486672;
+	public static final double DY_INCHES_CONST = 1.1742067733;
+
+	public static final double QUARTER_PI = Math.PI / 4;
+
 
 }
