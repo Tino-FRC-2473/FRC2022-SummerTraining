@@ -3,6 +3,9 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import edu.wpi.first.wpilibj.SPI;
 import com.revrobotics.CANSparkMax;
+
+import org.opencv.core.Point;
+
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
@@ -246,4 +249,22 @@ public class FSMSystem {
 		angle += startAngle;
 		return angle;
 	}
+
+	//returns the equation of the line that connects 2 points
+	//as a point. x coordinate is the slope and y coordinate is the
+	//y intercept
+
+	public Point calculateIntersection(double originX, double originY, double destX, double destY){
+		//calculate the m
+		double slope = (destY - originY) / (destX - originX);
+		//calculate intercept
+		double yIncomplete = slope * destX;
+		double intercept = destY - yIncomplete;
+		return new Point(slope, intercept);
+	}
+
+	// double xIntersection = 0;
+	// double yIntersection = 0;
+	// Point p = new Point(xIntersection, yIntersection);
+	// return p;
 }
