@@ -15,9 +15,10 @@ public class FSMSystem {
 
 	// FSM state definitions
 	public enum FSMState {
-		TELE_STATE_2_MOTOR_DRIVE,
-		TELE_STATE_MECANUM,
-		PURE_PURSUIT
+		STATE1,
+		STATE2,
+		STATE3,
+		STATE4;
 	}
 
 	/* ======================== Private variables ======================== */
@@ -35,8 +36,13 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
-	private boolean complete;
+	private boolean complete = false;
+	private int stateCounter = 1;
 
+	private static final double TURN_POWER = 0.4; 
+	private static final double MOVE_POWER = 0.1;
+	private static final double DEGREES_360 = 360;
+	private static final double DEGREES_180 = 180;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -51,10 +57,6 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
-		// leftPower = 0;
-		// rightPower = 0;
-
-		complete = false;
 		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
@@ -88,7 +90,7 @@ public class FSMSystem {
 		gyro.zeroYaw();
 		gyroAngleForOdo = 0;
 
-		currentState = FSMState.PURE_PURSUIT;
+		currentState = FSMState.STATE1;
 
 		roboXPos = 0;
 		roboYPos = 0;
@@ -115,8 +117,20 @@ public class FSMSystem {
 
 		switch (currentState) {
 
-			case PURE_PURSUIT:
-				handlePurePersuit(input, 0, -15, -15);
+			case STATE1:
+				handlePurePersuit(input, 30, 0);
+				break;
+
+			case STATE2:
+				handlePurePersuit(input, 30, 30);
+				break;
+
+			case STATE3:
+				handlePurePersuit(input, 0, 30);
+				break;
+			
+			case STATE4:
+				handlePurePersuit(input, 0, 0);
 				break;
 
 			default:
@@ -137,9 +151,49 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
+		
+			case STATE1:
+				if (stateCounter == 1) {
+					return FSMState.STATE1;
+				} else if (stateCounter == 2) {
+					return FSMState.STATE2;
+				} else if (stateCounter == 3) {
+					return FSMState.STATE3;
+				} else if (stateCounter == 4) {
+					return FSMState.STATE4;
+				} 
+				
+			case STATE2:
+				if (stateCounter == 1) {
+					return FSMState.STATE1;
+				} else if (stateCounter == 2) {
+					return FSMState.STATE2;
+				} else if (stateCounter == 3) {
+					return FSMState.STATE3;
+				} else if (stateCounter == 4) {
+					return FSMState.STATE4;
+				} 
+			case STATE3:
+				if (stateCounter == 1) {
+					return FSMState.STATE1;
+				} else if (stateCounter == 2) {
+					return FSMState.STATE2;
+				} else if (stateCounter == 3) {
+					return FSMState.STATE3;
+				} else if (stateCounter == 4) {
+					return FSMState.STATE4;
+				}
 
-			case PURE_PURSUIT:
-				return FSMState.PURE_PURSUIT;
+			case STATE4:
+				if (stateCounter == 1) {
+					return FSMState.STATE1;
+				} else if (stateCounter == 2) {
+					return FSMState.STATE2;
+				} else if (stateCounter == 3) {
+					return FSMState.STATE3;
+				} else if (stateCounter == 4) {
+					return FSMState.STATE4;
+				} 
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -155,7 +209,7 @@ public class FSMSystem {
 	 * @param x go to x position
 	 * @param y go to y position
 	 */
-	public void handlePurePersuit(TeleopInput input, double startAngle, double x, double y) {
+	public void handlePurePersuit(TeleopInput input, double x, double y) {
 
 		if(input == null) {
 			return;
@@ -164,7 +218,9 @@ public class FSMSystem {
 		double roboX = -roboXPos;
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = -calculateCurrentAngle(gyro.getAngle(), startAngle);
+		double currentAngle = -calculateCurrentAngle(gyro.getAngle());
+
+		System.out.println("current angle " + currentAngle);
 
 		// calculates turn angle
 		double angle;
@@ -173,16 +229,21 @@ public class FSMSystem {
 		} else if (x == 0 && y < 0) {
 			angle = 270;
 		} else {
-			angle = Math.toDegrees(Math.atan(y/x));
+			angle = Math.toDegrees(Math.atan((y - roboYPos)/(x - roboX)));
 		}
 
-		if (x < 0) angle += 180;
-		if (x > 0 && y < 0) angle += 360;
+		if (x < 0) angle += DEGREES_180;
+		if (x > 0 && y < 0) angle += DEGREES_360;
 
 		System.out.println("turn angle " + angle);
 
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
+		
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
+
 		System.out.println("turn amount: " + turnAmount);
 
 		// calculates distance
@@ -194,23 +255,29 @@ public class FSMSystem {
 		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
-				leftMotor.set(0.4);
-				rightMotor.set(0.4);
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
 			} else if (turnAmount < 0) {
-				leftMotor.set(-0.4);
-				rightMotor.set(-0.4);
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
 			}
-		} else  if (dist > 2 && complete == false) {  // ??
+		} else  if (dist > 2 && complete == false) { 
 			System.out.println("moving");
-			leftMotor.set(-0.1);
-			rightMotor.set(0.1);
-		} else {
+			leftMotor.set(-MOVE_POWER);
+			rightMotor.set(MOVE_POWER);
+		} else if (complete == false) {
 			leftMotor.set(0);
 			rightMotor.set(0);
 			System.out.println("STOP");
 			complete = true;
-			System.out.println("right " + rightMotor.get() + "left " + leftMotor.get());
-			return;
+			stateCounter++;
+		}
+
+		// complete or not
+		if (!(turnAmount >= -10 && turnAmount <= 10) || dist > 2) {
+			complete = false;
+		} else {
+			complete = true;
 		}
 	}
 
@@ -241,9 +308,8 @@ public class FSMSystem {
 	 * @param startAngle starting angle of robot
 	 * @return robot's angle in global plane
 	 */
-	public double calculateCurrentAngle(double gyroAngle, double startAngle) {
+	public double calculateCurrentAngle(double gyroAngle) {
 		double angle = gyroAngle % 360;
-		angle += startAngle;
 		return angle;
 	}
 }
