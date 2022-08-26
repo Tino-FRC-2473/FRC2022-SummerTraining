@@ -1,7 +1,7 @@
 package frc.robot.systems;
 
-
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxLimitSwitch;
 import com.revrobotics.SparkMaxLimitSwitch.Type;
 
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -28,6 +28,9 @@ public class ShooterSystem {
 	private DigitalInput magneticProxLeft = new DigitalInput(0);
 	private DigitalInput magneticProxMid = new DigitalInput(1);
 	private DigitalInput magneticProxRight = new DigitalInput(2);
+
+	private SparkMaxLimitSwitch sideSwitch;
+	private SparkMaxLimitSwitch topSwitch;
 
 	private CANSparkMax shooterLeft;
 	private CANSparkMax shooterRight;
@@ -56,6 +59,9 @@ public class ShooterSystem {
 										CANSparkMax.MotorType.kBrushless);
 		shooterDriver = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_DRIVER,
 										CANSparkMax.MotorType.kBrushless);
+
+		sideSwitch = shooterDriver.getForwardLimitSwitch(Type.kNormallyOpen);
+		topSwitch = shooterDriver.getReverseLimitSwitch(Type.kNormallyOpen);
 
 		// Reset state machine
 		reset();
@@ -232,14 +238,23 @@ public class ShooterSystem {
 		// Move shooter up
 		if (posValue == 1) {
 
-
-			if (!(magneticProxLeft.get() && magneticProxMid.get() && !magneticProxRight.get())) {
+			if (topSwitch.isPressed() && sideSwitch.isPressed()) {
 				shooterDriver.set(-0.1);
 			}
+
+			// if (!(magneticProxLeft.get() && magneticProxMid.get() && !magneticProxRight.get())) {
+			// 	shooterDriver.set(-0.1);
+			// }
 		} else if (posValue == 2) { // Move shooter down
-			if (!(!magneticProxLeft.get() && !magneticProxMid.get() && magneticProxRight.get())) {
+
+
+			if (topSwitch.isPressed() && !sideSwitch.isPressed()) {
 				shooterDriver.set(0.1);
 			}
+
+			// if (!(!magneticProxLeft.get() && !magneticProxMid.get() && magneticProxRight.get())) {
+			// 	shooterDriver.set(0.1);
+			// }
 		}
 	}
 
