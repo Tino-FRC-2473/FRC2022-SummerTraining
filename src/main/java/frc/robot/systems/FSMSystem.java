@@ -53,6 +53,7 @@ public class FSMSystem {
 	private double prevEncoderPos = 0;
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
+	private double startAngle;
 
 
 	/* ======================== Constructor ======================== */
@@ -81,6 +82,7 @@ public class FSMSystem {
 										CANSparkMax.MotorType.kBrushless);
 
 		gyro = new AHRS(SPI.Port.kMXP);
+		startAngle = 0;
 
 		// Reset state machine
 		reset();
@@ -281,6 +283,21 @@ public class FSMSystem {
 	}
 
 	/**
+	* Gets the heading from the gyro.
+	* @return the gyro heading
+	*/
+	public double getHeading() {
+		double angle = startAngle - gyro.getYaw();
+		if (angle < 0) {
+			angle += 360;
+		}
+		if (angle > 360) {
+			angle -= 360;
+		}
+		return angle;
+	}
+
+	/**
 	 * Tracks the robo's position on the field.
 	 * @param gyroAngle robot's angle
 	 */
@@ -301,6 +318,74 @@ public class FSMSystem {
 		System.out.println("X Pos: " + roboXPos);
 		System.out.println("Y Pos: " + roboYPos);
 		System.out.println("Gyro: " + gyroAngleForOdo);
+	}
+
+	/**
+	 * Identifies the x pos, y pos, and gyro angle for shooting point.
+	 * @return distanceToTravel the distance that is to be travelled by
+	 * the robot so it is in shooting position.
+	 */
+	public double identifyDistanceForShootingCircle() {
+		// Slope of the line that intersects between robo x and y and origin (0,0)
+		double m = roboYPos / roboXPos;
+
+		// X1 value of intersection point between line and shooting circle
+		double xIntersection1Val = (Constants.SHOOTING_CIRCLE_RADIUS
+			* Math.sqrt(1 + Math.pow(m, 2)) / (1 + Math.pow(m, 2)));
+
+		// X2 value of intersection point between line and shooting circle
+		double xIntersection2Val = -((Constants.SHOOTING_CIRCLE_RADIUS
+			* Math.sqrt(1 + Math.pow(m, 2)) / (1 + Math.pow(m, 2))));
+
+		// Y1 value of intersection point between line and shooting circle
+		double yIntersection1Val = (Constants.SHOOTING_CIRCLE_RADIUS * m
+			* Math.sqrt(1 + Math.pow(m, 2)) / (1 + Math.pow(m, 2)));
+
+		// Y2 value of intersection point between line and shooting circle
+		double yIntersection2Val = -((Constants.SHOOTING_CIRCLE_RADIUS * m
+			* Math.sqrt(1 + Math.pow(m, 2)) / (1 + Math.pow(m, 2))));
+
+		double distance1 = Math.sqrt(Math.pow((roboXPos - xIntersection1Val), 2)
+			+ Math.pow((roboYPos - yIntersection1Val), 2));
+
+		double distance2 = Math.sqrt(Math.pow((roboXPos - xIntersection2Val), 2)
+			+ Math.pow((roboYPos - yIntersection2Val), 2));
+
+		double distanceToTravel;
+
+		if (distance1 > distance2) {
+			distanceToTravel = distance2;
+		} else {
+			distanceToTravel = distance1;
+		}
+
+		return distanceToTravel;
+	}
+
+	/**
+	 * Makes the robot turn so it is facing the origin.
+	 */
+	public void turnToFaceOrigin() {
+		double degreesToTurn = Math.atan2(roboYPos, roboXPos);
+
+		double error = degreesToTurn - getHeading();
+		if (error > 180) {
+			error -= 360;
+		}
+		if (Math.abs(error) <= Constants.TURN_ERROR_THRESHOLD_DEGREE) {
+			leftMotor.set(0);
+			rightMotor.set(0);
+			return;
+		}
+		double power = Math.abs(error) / Constants.TURN_ERROR_POWER_RATIO;
+		if (power < Constants.MIN_TURN_POWER) {
+			power = Constants.MIN_TURN_POWER;
+		}
+
+		power *= (error < 0 && error > -180) ? -1 : 1;
+
+		leftMotor.set(power);
+		rightMotor.set(power);
 	}
 
 }
