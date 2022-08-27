@@ -28,12 +28,14 @@ public class TraversalFSM {
 		STATIC_HANG,
 		PNEUMATIC_ACTIVATE,
 		IDLE_TILT,
-		EXTENDING_TILT
+		EXTENDING_TILT,
+		IDLE_MAX_EXTENDED2
 	}
 
 	private static final double ARM_MOTOR_RETRACT_POWER = -0.1;
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.1;
-	private static final int ARM_ENCODER_LIMIT = 200;
+	private static final int ARM_ENCODER_LIMIT = 50;
+	private static final int MAX_CYCLE = 3;
 	private int cycleCount = 0;
 
 	/* ======================== Private variables ======================== */
@@ -62,8 +64,10 @@ public class TraversalFSM {
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst =
 		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		armLimitSwitchFirst.enableLimitSwitch(true);
 		armLimitSwitchSecond =
 		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		armLimitSwitchSecond.enableLimitSwitch(true);
 		pneumaticTimer = new Timer();
 		// Reset state machine
 		reset();
@@ -101,7 +105,6 @@ public class TraversalFSM {
 	 */
 	public void update(TeleopInput input) {
 		SmartDashboard.putString("Cycle Count", cycleCount + "");
-		System.out.println("Current State " + currentState);
 		switch (currentState) {
 			case IDLE:
 				handleIdleState(input);
@@ -133,10 +136,17 @@ public class TraversalFSM {
 			case EXTENDING_TILT:
 				handleExtendingTilt(input);
 				break;
+			case IDLE_MAX_EXTENDED2:
+				handleIdleMaxExtended2(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		currentState = nextState(input);
+		FSMState state = nextState(input);
+		if (currentState != state) {
+			System.out.println(state);
+		}
+		currentState = state;
 	}
 
 	/* ======================== Private methods ======================== */
@@ -173,6 +183,11 @@ public class TraversalFSM {
 				}
 				//climber button pressed, return to previous state
 				return FSMState.RETRACTING_TO_MIN;
+			case IDLE_MAX_EXTENDED2:
+				if (input.isClimberButtonReleased()) {
+					return FSMState.IDLE_MAX_EXTENDED;
+				}
+				return FSMState.IDLE_MAX_EXTENDED2;
 			case RETRACTING_TO_MIN:
 				if (getSecondCondition()) {
 					//if climber button is pressed stay in current state
@@ -187,6 +202,7 @@ public class TraversalFSM {
 					return FSMState.REST_STATE;
 				}
 				//button is pressed so continue to next state
+				armMotor.getEncoder().setPosition(0);
 				return FSMState.EXTEND_PARTIAL;
 			case EXTEND_PARTIAL:
 				if (littleExtensionEncoder()) {
@@ -195,7 +211,7 @@ public class TraversalFSM {
 				}
 				return FSMState.EXTEND_PARTIAL;
 			case STATIC_HANG:
-				if (!input.isClimberButtonPressed() || cycleCount == 3) {
+				if (!input.isClimberButtonPressed() || cycleCount == MAX_CYCLE) {
 					//climber button not pressed, stay in idle
 					return FSMState.STATIC_HANG;
 				}
@@ -221,7 +237,7 @@ public class TraversalFSM {
 				} else if (!input.isClimberButtonPressed()) {
 					return FSMState.IDLE_TILT;
 				} else {
-					return FSMState.IDLE_MAX_EXTENDED;
+					return FSMState.IDLE_MAX_EXTENDED2;
 				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -289,15 +305,19 @@ public class TraversalFSM {
 		armSolenoid.set(Value.kReverse);
 	}
 
+	private void handleIdleMaxExtended2(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+	}
 	private boolean littleExtensionEncoder() {
 		return armMotor.getEncoder().getPosition() >= ARM_ENCODER_LIMIT;
 	}
 
 	private boolean getFirstCondition() {
-		return true;
+		return armLimitSwitchFirst.isPressed();
 	}
 
 	private boolean getSecondCondition() {
-		return true;
+		return armLimitSwitchSecond.isPressed();
 	}
 }
