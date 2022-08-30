@@ -250,21 +250,55 @@ public class FSMSystem {
 		return angle;
 	}
 
-	//returns the equation of the line that connects 2 points
+	//returns the equation of the line in an array that connects 2 points
 	//as a point. x coordinate is the slope and y coordinate is the
 	//y intercept
 
-	public Point calculateIntersection(double originX, double originY, double destX, double destY){
+	public double[] findEquationLine(double originX, double originY, double destX, double destY){
+		//create an array, m in 0th index & b in 1st index
 		//calculate the m
 		double slope = (destY - originY) / (destX - originX);
 		//calculate intercept
 		double yIncomplete = slope * destX;
 		double intercept = destY - yIncomplete;
-		return new Point(slope, intercept);
+		//store in array
+		double[] equation = new double[2];
+		equation[0] = slope;
+		equation[1] = intercept;
+		return equation;
 	}
 
+
+	//returns the equation of a circle given the radius and the center of the circle
+	//through the format of an array
+
+	public double[] findEquationCircle(double radius, double centerX, double centerY){
+		//create array, h as 0th index, k as 1st index & r as 2nd index
+		double[] equation = new double[3];
+		//store r^2
+		double rsquared = radius * radius;
+		equation[2] = rsquared;
+		//store h
+		equation[0] = centerX;
+		//store k
+		equation[1] = centerY;
+		//edit LATER
+		return equation;
+	}
+
+	public void calculateIntersection(double radius, double centerX, double centerY, double originX, double originY, double destX, double destY){
+		double[] circ = findEquationCircle(radius, centerX, centerY);
+		double[] equation = findEquationLine(originX, originY, destX, destY);
+
+		//expanding
+		//y = mx + b
+
+		//(x - h)^2 + (y - k)^2 = r^2
+	}
 	// double xIntersection = 0;
 	// double yIntersection = 0;
 	// Point p = new Point(xIntersection, yIntersection);
 	// return p;
+
+	//calculateIntersection
 }
