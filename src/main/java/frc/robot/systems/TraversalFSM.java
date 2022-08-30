@@ -95,6 +95,7 @@ public class TraversalFSM {
 		cycleCount = 0;
 		armSolenoid.set(Value.kReverse); // reset piston
 		pneumaticTimer.reset();
+		updateDashboard(null);
 		update(null);
 	}
 	/**
@@ -104,7 +105,7 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		SmartDashboard.putString("Cycle Count", cycleCount + "");
+		updateDashboard(input);
 		switch (currentState) {
 			case IDLE:
 				handleIdleState(input);
@@ -319,5 +320,21 @@ public class TraversalFSM {
 
 	private boolean getSecondCondition() {
 		return armLimitSwitchSecond.isPressed();
+	}
+
+	private void updateDashboard(TeleopInput input) {
+		if (input == null) {
+			SmartDashboard.putBoolean("Climber Button Pressed", false);
+		} else {
+			SmartDashboard.putBoolean("Climber Button Pressed", input.isClimberButtonPressed());
+		}
+		SmartDashboard.putNumber("Cycle Count", cycleCount);
+		SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
+		SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
+		SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		SmartDashboard.putNumber("Motor Power", armMotor.get());
+		SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
+		SmartDashboard.putString("Current State", currentState + "");
+		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 	}
 }
