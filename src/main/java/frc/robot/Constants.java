@@ -24,6 +24,8 @@ public class Constants {
 	public static final double DX_INCHES_CONST = 0.8880486672;
 	public static final double DY_INCHES_CONST = 1.1742067733;
 	public static final double SHOOTING_CIRCLE_RADIUS = 120.000;
+	public static final double HUB_X_COORDINATE = 40;
+	public static final double HUB_Y_COORDINATE = 0;
 
 	public static final double QUARTER_PI = Math.PI / 4;
 

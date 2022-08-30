@@ -13,8 +13,8 @@ import edu.wpi.first.wpilibj.Joystick;
 public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
-	private static final int STEERING_WHEEL_PORT = 2;
+	private static final int RIGHT_JOYSTICK_PORT = 2;
+	private static final int STEERING_WHEEL_PORT = 3;
 
 	/* ======================== Private variables ======================== */
 	// Input objects

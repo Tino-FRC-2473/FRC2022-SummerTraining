@@ -35,15 +35,15 @@ public class FSMSystem {
 	private double leftPower;
 	private double rightPower;
 
-	private CANSparkMax bottomLeftMotorMecanum;
-	private CANSparkMax bottomRightMotorMecanum;
-	private CANSparkMax topLeftMotorMecanum;
-	private CANSparkMax topRightMotorMecanum;
+	// private CANSparkMax bottomLeftMotorMecanum;
+	// private CANSparkMax bottomRightMotorMecanum;
+	// private CANSparkMax topLeftMotorMecanum;
+	// private CANSparkMax topRightMotorMecanum;
 
-	private double bottomLeftMotorMecanumPower;
-	private double bottomRightMotorMecanumPower;
-	private double topLeftMotorMecanumPower;
-	private double topRightMotorMecanumPower;
+	// private double bottomLeftMotorMecanumPower;
+	// private double bottomRightMotorMecanumPower;
+	// private double topLeftMotorMecanumPower;
+	// private double topRightMotorMecanumPower;
 
 	private boolean isInArcadeDrive = true;
 
@@ -72,14 +72,14 @@ public class FSMSystem {
 		leftPower = 0;
 		rightPower = 0;
 
-		bottomRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT,
-										CANSparkMax.MotorType.kBrushless);
-		bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
-										CANSparkMax.MotorType.kBrushless);
+		// bottomRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
+		// 								CANSparkMax.MotorType.kBrushless);
 
 		gyro = new AHRS(SPI.Port.kMXP);
 		startAngle = 0;
@@ -108,10 +108,10 @@ public class FSMSystem {
 	 */
 	public void reset() {
 
-		bottomLeftMotorMecanum.set(0);
-		bottomRightMotorMecanum.set(0);
-		topLeftMotorMecanum.set(0);
-		topRightMotorMecanum.set(0);
+		// bottomLeftMotorMecanum.set(0);
+		// bottomRightMotorMecanum.set(0);
+		// topLeftMotorMecanum.set(0);
+		// topRightMotorMecanum.set(0);
 
 		rightMotor.getEncoder().setPosition(0);
 		leftMotor.getEncoder().setPosition(0);
@@ -119,7 +119,7 @@ public class FSMSystem {
 		gyro.reset();
 		gyro.zeroYaw();
 
-		currentState = FSMState.TELE_STATE_MECANUM;
+		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
 
 		roboXPos = 0;
 		roboYPos = 0;
@@ -143,9 +143,9 @@ public class FSMSystem {
 				handleTeleOp2MotorState(input);
 				break;
 
-			case TELE_STATE_MECANUM:
-				handleTeleOpMecanum(input);
-				break;
+			// case TELE_STATE_MECANUM:
+			// 	handleTeleOpMecanum(input);
+			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -200,7 +200,7 @@ public class FSMSystem {
 			double currentRightPower = rightMotor.get();
 
 
-			DrivePower targetPower = DriveModes.arcadeDrive(input.getRightJoystickY(),
+			DrivePower targetPower = DriveModes.arcadeDrive(input.getLeftJoystickY(),
 				steerAngle, currentLeftPower,
 				currentRightPower, true);
 
@@ -218,9 +218,11 @@ public class FSMSystem {
 				currentRightPower));
 
 			// turning in place
-			if (Math.abs(input.getRightJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
+			if (Math.abs(input.getLeftJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
 				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
 			}
+
+			System.out.println("ANGLE: " + getAngleToHub());
 
 			leftPower = power.getLeftPower();
 			rightPower = power.getRightPower();
@@ -236,47 +238,47 @@ public class FSMSystem {
 
 	}
 
-	/**
-	 * Handle behavior in TELE_STATE_MECANUM.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleTeleOpMecanum(TeleopInput input) {
+	// /**
+	//  * Handle behavior in TELE_STATE_MECANUM.
+	//  * @param input Global TeleopInput if robot in teleop mode or null if
+	//  *        the robot is in autonomous mode.
+	//  */
+	// private void handleTeleOpMecanum(TeleopInput input) {
 
-		if (input == null) {
-			return;
-		}
+	// 	if (input == null) {
+	// 		return;
+	// 	}
 
-		double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
-		double rightX = input.getRightJoystickX();
+	// 	double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
+	// 	double rightX = input.getRightJoystickX();
 
-		double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
-			input.getLeftJoystickX())) - Constants.QUARTER_PI;
+	// 	double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
+	// 		input.getLeftJoystickX())) - Constants.QUARTER_PI;
 
-		topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
-		topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
-		bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
-		bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
+	// 	topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
+	// 	topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
+	// 	bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
+	// 	bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
 
-		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
-		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
-		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
-		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
+	// 	topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
+	// 	topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
+	// 	bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
+	// 	bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
 
-		System.out.println(topLeftMotorMecanumPower);
+	// 	System.out.println(topLeftMotorMecanumPower);
 
-		if (input.isLeftJoystickTriggerPressedRaw()) {
-			bottomLeftMotorMecanum.set(-bottomLeftMotorMecanumPower);
-			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
-			topLeftMotorMecanum.set(-topLeftMotorMecanumPower);
-			topRightMotorMecanum.set(topRightMotorMecanumPower);
-		} else {
-			bottomLeftMotorMecanum.set(-bottomLeftMotorMecanumPower / 2);
-			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
-			topLeftMotorMecanum.set(-topLeftMotorMecanumPower / 2);
-			topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
-		}
-	}
+	// 	if (input.isLeftJoystickTriggerPressedRaw()) {
+	// 		bottomLeftMotorMecanum.set(-bottomLeftMotorMecanumPower);
+	// 		bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
+	// 		topLeftMotorMecanum.set(-topLeftMotorMecanumPower);
+	// 		topRightMotorMecanum.set(topRightMotorMecanumPower);
+	// 	} else {
+	// 		bottomLeftMotorMecanum.set(-bottomLeftMotorMecanumPower / 2);
+	// 		bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
+	// 		topLeftMotorMecanum.set(-topLeftMotorMecanumPower / 2);
+	// 		topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
+	// 	}
+	// }
 
 	private double ensureRange(double value, double min, double max) {
 		return Math.min(Math.max(value, min), max);
@@ -317,7 +319,7 @@ public class FSMSystem {
 
 		System.out.println("X Pos: " + roboXPos);
 		System.out.println("Y Pos: " + roboYPos);
-		System.out.println("Gyro: " + gyroAngleForOdo);
+		// System.out.println("Gyro: " + gyroAngleForOdo);
 	}
 
 	/**
@@ -366,26 +368,58 @@ public class FSMSystem {
 	 * Makes the robot turn so it is facing the origin.
 	 */
 	public void turnToFaceOrigin() {
-		double degreesToTurn = Math.atan2(roboYPos, roboXPos);
 
-		double error = degreesToTurn - getHeading();
-		if (error > 180) {
-			error -= 360;
-		}
-		if (Math.abs(error) <= Constants.TURN_ERROR_THRESHOLD_DEGREE) {
+		double degreesToTurn = getAngleToHub();
+		// turn clockwise if the angle is 0 < θ < 180
+		double power = Functions.accelerateDecelerateTurn(0, getAngleToHub()));
+		if (degreesToTurn > 0) {
+			leftMotor.set(power);
+			rightMotor.set(power);
+		} else if(degreesToTurn < 0) {
+			leftMotor.set(-power);
+			rightMotor.set(-power);
+		} else {
 			leftMotor.set(0);
 			rightMotor.set(0);
-			return;
 		}
-		double power = Math.abs(error) / Constants.TURN_ERROR_POWER_RATIO;
-		if (power < Constants.MIN_TURN_POWER) {
-			power = Constants.MIN_TURN_POWER;
+		// double degreesToTurn = Math.atan2(roboYPos, roboXPos);
+
+		// double error = degreesToTurn - getHeading();
+		// if (error > 180) {
+		// 	error -= 360;
+		// }
+		// if (Math.abs(error) <= Constants.TURN_ERROR_THRESHOLD_DEGREE) {
+		// 	leftMotor.set(0);
+		// 	rightMotor.set(0);
+		// 	return;
+		// }
+		// double power = Math.abs(error) / Constants.TURN_ERROR_POWER_RATIO;
+		// if (power < Constants.MIN_TURN_POWER) {
+		// 	power = Constants.MIN_TURN_POWER;
+		// }
+
+		// power *= (error < 0 && error > -180) ? -1 : 1;
+
+		// leftMotor.set(power);
+		// rightMotor.set(power);
+	}
+
+	/**
+	 * Identifies angle to face hub.
+	 * @return angle to hub
+	 */
+	public double getAngleToHub() {
+		// double heading = (getHeading() + 180) % 360 - 180;
+		double heading = (getHeading() % 360);
+		double angleToHub = Math.toDegrees(Math.atan2(roboXPos + Constants.HUB_X_COORDINATE,
+			-roboYPos + Constants.HUB_Y_COORDINATE)) - 90;
+
+		//calculating the difference between the two angles
+		double angleDifference = -((angleToHub - heading + 180) % 360 - 180);
+		if (angleDifference >= 360) {
+			angleDifference = 0;
 		}
-
-		power *= (error < 0 && error > -180) ? -1 : 1;
-
-		leftMotor.set(power);
-		rightMotor.set(power);
+		return angleDifference;
 	}
 
 }
