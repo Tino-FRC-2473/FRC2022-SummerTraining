@@ -218,8 +218,8 @@ public class FSMSystem {
 		double roboX = -roboXPos;
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = -calculateCurrentAngle(gyro.getAngle());
-
+		double currentAngle = -gyro.getAngle() % 360;
+		System.out.println("gyro angle " + gyro.getAngle());
 		System.out.println("current angle " + currentAngle);
 
 		// calculates turn angle
@@ -240,9 +240,9 @@ public class FSMSystem {
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
 		
-		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
-			turnAmount -= DEGREES_360;
-		}
+		// if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+		// 	turnAmount -= DEGREES_360;
+		// }
 
 		System.out.println("turn amount: " + turnAmount);
 
@@ -250,14 +250,17 @@ public class FSMSystem {
 		double dist = Math.sqrt((y - roboYPos) * (y - roboYPos) + (x - roboX) * (x - roboX));
 		System.out.println("dist: " + dist);
 		System.out.println("curX: " + roboX + " curY: " + roboYPos);
+		System.out.println("x " + x + "y " + y);
 
 		// set motor power
 		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
+				System.out.println("left");
 				leftMotor.set(TURN_POWER);
 				rightMotor.set(TURN_POWER);
 			} else if (turnAmount < 0) {
+				System.out.println("right");
 				leftMotor.set(-TURN_POWER);
 				rightMotor.set(-TURN_POWER);
 			}
@@ -272,6 +275,8 @@ public class FSMSystem {
 			complete = true;
 			stateCounter++;
 		}
+
+		System.out.println();
 
 		// complete or not
 		if (!(turnAmount >= -10 && turnAmount <= 10) || dist > 2) {
@@ -299,17 +304,5 @@ public class FSMSystem {
 
 		prevEncoderPos = this.currentEncoderPos;
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
-	}
-	
-	/**
-	 * Calculates current angle in field.
-	 * assume unit circle angles (east = 0, positive counterclockwise)
-	 * @param gyroAngle robot's angle
-	 * @param startAngle starting angle of robot
-	 * @return robot's angle in global plane
-	 */
-	public double calculateCurrentAngle(double gyroAngle) {
-		double angle = gyroAngle % 360;
-		return angle;
 	}
 }
