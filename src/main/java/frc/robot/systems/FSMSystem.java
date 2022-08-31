@@ -39,7 +39,7 @@ public class FSMSystem {
 	private boolean complete = false;
 	private int stateCounter = 1;
 
-	private static final double TURN_POWER = 0.4; 
+	private static final double TURN_POWER = 0.4;
 	private static final double MOVE_POWER = 0.1;
 	private static final double DEGREES_360 = 360;
 	private static final double DEGREES_180 = 180;
@@ -137,7 +137,7 @@ public class FSMSystem {
 			case STATE3:
 				handlePurePersuit(input, 0, DIST);
 				break;
-			
+
 			case STATE4:
 				handlePurePersuit(input, 0, 0);
 				break;
@@ -160,7 +160,7 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-		
+
 			case STATE1:
 				if (stateCounter == FORWARD) {
 					return FSMState.STATE1;
@@ -215,13 +215,12 @@ public class FSMSystem {
 	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
-	 * @param startAngle robot's starting angle
 	 * @param x go to x position
 	 * @param y go to y position
 	 */
 	public void handlePurePersuit(TeleopInput input, double x, double y) {
 
-		if(input == null) {
+		if (input == null) {
 			return;
 		}
 
@@ -234,17 +233,17 @@ public class FSMSystem {
 
 		// calculates turn angle
 		double angle;
-		if ((int)(x - roboX) == 0 && (int)(y - roboYPos) > 0) {
+		if ((int) (x - roboX) == 0 && (int) (y - roboYPos) > 0) {
 			angle = DEGREES_90;
-		} else if ((int)(x - roboX) == 0 && (int)(y - roboYPos) < 0) {
+		} else if ((int) (x - roboX) == 0 && (int) (y - roboYPos) < 0) {
 			angle = DEGREES_270;
 		} else {
-			angle = Math.toDegrees(Math.atan((int)(y - roboYPos)/(int)(x - roboX)));
+			angle = Math.toDegrees(Math.atan((int) (y - roboYPos) / (int) (x - roboX)));
 			System.out.println("ANGLE " + angle);
 		}
 
-		if ((int)(x - roboX) < 0) angle += DEGREES_180;
-		if ((int)(x - roboX) > 0 && (int)(y - roboYPos) < 0) angle += DEGREES_360;
+		if ((int) (x - roboX) < 0) angle += DEGREES_180;
+		if ((int) (x - roboX) > 0 && (int) (y - roboYPos) < 0) angle += DEGREES_360;
 
 		System.out.println("turn angle " + angle);
 
@@ -264,7 +263,7 @@ public class FSMSystem {
 		System.out.println("x " + x + "y " + y);
 
 		// set motor power
-		if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD) && complete == false) {
+		if ((turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) && complete == false) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
 				System.out.println("left");
