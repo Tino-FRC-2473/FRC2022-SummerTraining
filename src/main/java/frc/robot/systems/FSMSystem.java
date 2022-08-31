@@ -43,6 +43,15 @@ public class FSMSystem {
 	private static final double MOVE_POWER = 0.1;
 	private static final double DEGREES_360 = 360;
 	private static final double DEGREES_180 = 180;
+	private static final double DEGREES_270 = 270;
+	private static final double DEGREES_90 = 90;
+	private static final double DIST = 30;
+	private static final double TURN_THRESHOLD = 10;
+	private static final double MOVE_THRESHOLD = 2;
+	private static final double FORWARD = 1;
+	private static final double LEFT = 2;
+	private static final double BACKWARD = 3;
+	private static final double RIGHT = 4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -118,15 +127,15 @@ public class FSMSystem {
 		switch (currentState) {
 
 			case STATE1:
-				handlePurePersuit(input, 30, 0);
+				handlePurePersuit(input, DIST, 0);
 				break;
 
 			case STATE2:
-				handlePurePersuit(input, 30, 30);
+				handlePurePersuit(input, DIST, DIST);
 				break;
 
 			case STATE3:
-				handlePurePersuit(input, 0, 30);
+				handlePurePersuit(input, 0, DIST);
 				break;
 			
 			case STATE4:
@@ -153,47 +162,48 @@ public class FSMSystem {
 		switch (currentState) {
 		
 			case STATE1:
-				if (stateCounter == 1) {
+				if (stateCounter == FORWARD) {
 					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
+				} else if (stateCounter == LEFT) {
 					return FSMState.STATE2;
-				} else if (stateCounter == 3) {
+				} else if (stateCounter == BACKWARD) {
 					return FSMState.STATE3;
-				} else if (stateCounter == 4) {
+				} else if (stateCounter == RIGHT) {
 					return FSMState.STATE4;
-				} 
-				
+				}
+
 			case STATE2:
-				if (stateCounter == 1) {
+				if (stateCounter == FORWARD) {
 					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
+				} else if (stateCounter == LEFT) {
 					return FSMState.STATE2;
-				} else if (stateCounter == 3) {
+				} else if (stateCounter == BACKWARD) {
 					return FSMState.STATE3;
-				} else if (stateCounter == 4) {
+				} else if (stateCounter == RIGHT) {
 					return FSMState.STATE4;
-				} 
+				}
+
 			case STATE3:
-				if (stateCounter == 1) {
+				if (stateCounter == FORWARD) {
 					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
+				} else if (stateCounter == LEFT) {
 					return FSMState.STATE2;
-				} else if (stateCounter == 3) {
+				} else if (stateCounter == BACKWARD) {
 					return FSMState.STATE3;
-				} else if (stateCounter == 4) {
+				} else if (stateCounter == RIGHT) {
 					return FSMState.STATE4;
 				}
 
 			case STATE4:
-				if (stateCounter == 1) {
+				if (stateCounter == FORWARD) {
 					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
+				} else if (stateCounter == LEFT) {
 					return FSMState.STATE2;
-				} else if (stateCounter == 3) {
+				} else if (stateCounter == BACKWARD) {
 					return FSMState.STATE3;
-				} else if (stateCounter == 4) {
+				} else if (stateCounter == RIGHT) {
 					return FSMState.STATE4;
-				} 
+				}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -218,31 +228,32 @@ public class FSMSystem {
 		double roboX = -roboXPos;
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = -gyro.getAngle() % 360;
+		double currentAngle = -gyro.getAngle() % DEGREES_360;
 		System.out.println("gyro angle " + gyro.getAngle());
 		System.out.println("current angle " + currentAngle);
 
 		// calculates turn angle
 		double angle;
-		if (x == 0 && y > 0) {
-			angle = 90;
-		} else if (x == 0 && y < 0) {
-			angle = 270;
+		if ((int)(x - roboX) == 0 && (int)(y - roboYPos) > 0) {
+			angle = DEGREES_90;
+		} else if ((int)(x - roboX) == 0 && (int)(y - roboYPos) < 0) {
+			angle = DEGREES_270;
 		} else {
-			angle = Math.toDegrees(Math.atan((y - roboYPos)/(x - roboX)));
+			angle = Math.toDegrees(Math.atan((int)(y - roboYPos)/(int)(x - roboX)));
+			System.out.println("ANGLE " + angle);
 		}
 
-		if (x < 0) angle += DEGREES_180;
-		if (x > 0 && y < 0) angle += DEGREES_360;
+		if ((int)(x - roboX) < 0) angle += DEGREES_180;
+		if ((int)(x - roboX) > 0 && (int)(y - roboYPos) < 0) angle += DEGREES_360;
 
 		System.out.println("turn angle " + angle);
 
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
 		
-		// if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
-		// 	turnAmount -= DEGREES_360;
-		// }
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
 
 		System.out.println("turn amount: " + turnAmount);
 
@@ -253,7 +264,7 @@ public class FSMSystem {
 		System.out.println("x " + x + "y " + y);
 
 		// set motor power
-		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
+		if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD) && complete == false) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
 				System.out.println("left");
@@ -264,7 +275,7 @@ public class FSMSystem {
 				leftMotor.set(-TURN_POWER);
 				rightMotor.set(-TURN_POWER);
 			}
-		} else  if (dist > 2 && complete == false) { 
+		} else  if (dist > MOVE_THRESHOLD && complete == false) { 
 			System.out.println("moving");
 			leftMotor.set(-MOVE_POWER);
 			rightMotor.set(MOVE_POWER);
@@ -279,7 +290,7 @@ public class FSMSystem {
 		System.out.println();
 
 		// complete or not
-		if (!(turnAmount >= -10 && turnAmount <= 10) || dist > 2) {
+		if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD) || dist > MOVE_THRESHOLD) {
 			complete = false;
 		} else {
 			complete = true;
