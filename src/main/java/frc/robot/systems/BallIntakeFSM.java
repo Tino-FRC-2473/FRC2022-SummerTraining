@@ -147,5 +147,6 @@ public class BallIntakeFSM {
 		}
 		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
 		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+		SmartDashboard.putString("Current State", currentState + "");
 	}
 }

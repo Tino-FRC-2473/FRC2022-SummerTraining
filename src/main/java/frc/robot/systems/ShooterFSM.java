@@ -1,6 +1,7 @@
 package frc.robot.systems;
 
 // WPILib Imports
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -9,13 +10,13 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class TheNotoriousTwoTimerFSM {
-    /* ======================== Constants ======================== */
+public class ShooterFSM {
+	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
 		INIT_STATE,
-        TRANSFER_STATE,
-        SHOOT
+		TRANSFER_STATE,
+		SHOOT
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -26,7 +27,7 @@ public class TheNotoriousTwoTimerFSM {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax shooterMotor;
-    private CANSparkMax interMotor;
+	private CANSparkMax interMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,11 +35,12 @@ public class TheNotoriousTwoTimerFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public TheNotoriousTwoTimerFSM() {
+	public ShooterFSM() {
 		// Perform hardware init
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
-
+		interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
+										CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -61,7 +63,7 @@ public class TheNotoriousTwoTimerFSM {
 	 */
 	public void reset() {
 		currentState = FSMState.INIT_STATE;
-
+		updateDashboard(null);
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -72,15 +74,18 @@ public class TheNotoriousTwoTimerFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		updateDashboard(input);
 		switch (currentState) {
 			case INIT_STATE:
-				handleStartState(input);
+				handleInitState(input);
 				break;
 
 			case TRANSFER_STATE:
-				handleOtherState(input);
+				handleTransferState(input);
 				break;
-
+			case SHOOT:
+				handleShootState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -99,16 +104,25 @@ public class TheNotoriousTwoTimerFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+			case INIT_STATE:
+				if (ballInIntermediate()) {
+					return FSMState.TRANSFER_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.INIT_STATE;
 				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case TRANSFER_STATE:
+				if (!shooterReady() || !input.isShooterButtonPressed()) {
+					return FSMState.TRANSFER_STATE;
+				} else {
+					return FSMState.SHOOT;
+				}
 
+			case SHOOT:
+				if (input.isShooterButtonPressed()) {
+					return FSMState.SHOOT;
+				}
+				return FSMState.INIT_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -120,24 +134,44 @@ public class TheNotoriousTwoTimerFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+	private void handleInitState(TeleopInput input) {
+		shooterMotor.set(0);
+		interMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+	private void handleTransferState(TeleopInput input) {
+		shooterMotor.set(MOTOR_RUN_POWER);
+		interMotor.set(0);
 	}
 
-    private boolean shooterReady() {
-        return true;
-    }
+	private void handleShootState(TeleopInput input) {
+		interMotor.set(MOTOR_RUN_POWER);
+		shooterMotor.set(MOTOR_RUN_POWER);
+	}
 
-    private boolean ballInIntermediate() {
-        return true;
-    }
+	private boolean shooterReady() {
+		return true;
+	}
+
+	private boolean ballInIntermediate() {
+		return true;
+	}
+
+	private void updateDashboard(TeleopInput input) {
+		if (input != null) {
+			SmartDashboard.putBoolean("Shooter Button Pressed", input.isShooterButtonPressed());
+		} else {
+			SmartDashboard.putBoolean("Shooter Button Pressed", false);
+		}
+		SmartDashboard.putNumber("Shooter Motor Power", shooterMotor.get());
+		SmartDashboard.putNumber("Intermediate Motor Power", interMotor.get());
+		SmartDashboard.putBoolean("Shooter Ready", shooterReady());
+		SmartDashboard.putBoolean("Ball In Intermediate", ballInIntermediate());
+		SmartDashboard.putString("Current State", currentState + "");
+	}
 }
 
