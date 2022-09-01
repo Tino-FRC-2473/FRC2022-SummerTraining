@@ -4,6 +4,8 @@ package frc.robot.systems;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -65,8 +67,8 @@ public class BallIntakeFSM {
 	public void reset() {
 		currentState = FSMState.RETRACTED;
 		// Call one tick of update to ensure outputs reflect start state
-
 		//pcmCompressor.enableDigital();
+		updateDashboard(null);
 		update(null);
 	}
 	/**
@@ -76,6 +78,7 @@ public class BallIntakeFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		updateDashboard(input);
 		switch (currentState) {
 			case EXTENDED:
 				handleExtendedState(input);
@@ -134,5 +137,15 @@ public class BallIntakeFSM {
 	private void handleRetractedState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		armSolenoid.set(Value.kForward);
+	}
+
+	private void updateDashboard(TeleopInput input) {
+		if (input == null) {
+			SmartDashboard.putBoolean("Button Pressed", false);
+		} else {
+			SmartDashboard.putBoolean("Button Pressed", input.isIntakeButtonPressed());
+		}
+		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
+		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 	}
 }

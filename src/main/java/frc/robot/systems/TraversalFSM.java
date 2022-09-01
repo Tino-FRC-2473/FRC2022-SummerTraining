@@ -9,6 +9,7 @@ import com.revrobotics.SparkMaxLimitSwitch;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -18,24 +19,23 @@ public class TraversalFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_IDLE,
-		RETRACT_ARM, //grabbers latch on
-		IDLE_1,
-		IDLE_2,
-		LATCHED_RELEASE_TO_CONTINUE,
-		EXTEND_ARM_LITTLE,
-		IDLE_3,
-		ARM_PISTON_EXT, //roll back and extend
-		IDLE_4,
-		RETRACT_ARM2,
-		IDLE_5,
-		FINISHED_RELEASE_TO_CONTINUE,
-		FINISHED_EVERYTHING
+		IDLE,
+		EXTEND_TOTAL, //grabbers extend to max height
+		IDLE_MAX_EXTENDED,
+		RETRACTING_TO_MIN,
+		REST_STATE,
+		EXTEND_PARTIAL,
+		STATIC_HANG,
+		PNEUMATIC_ACTIVATE,
+		IDLE_TILT,
+		EXTENDING_TILT,
+		IDLE_MAX_EXTENDED2
 	}
 
 	private static final double ARM_MOTOR_RETRACT_POWER = -0.1;
 	private static final double ARM_MOTOR_EXTEND_POWER = 0.1;
-	private static final int ARM_ENCODER_LIMIT = 200;
+	private static final int ARM_ENCODER_LIMIT = 50;
+	private static final int MAX_CYCLE = 3;
 	private int cycleCount = 0;
 
 	/* ======================== Private variables ======================== */
@@ -47,6 +47,7 @@ public class TraversalFSM {
 	private DoubleSolenoid armSolenoid;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
+	private Timer pneumaticTimer;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -62,9 +63,12 @@ public class TraversalFSM {
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		armLimitSwitchFirst =
-		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		armLimitSwitchFirst.enableLimitSwitch(true);
 		armLimitSwitchSecond =
-		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
+		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		armLimitSwitchSecond.enableLimitSwitch(true);
+		pneumaticTimer = new Timer();
 		// Reset state machine
 		reset();
 	}
@@ -86,10 +90,12 @@ public class TraversalFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_IDLE;
+		currentState = FSMState.IDLE;
 		armMotor.getEncoder().setPosition(0);
 		cycleCount = 0;
 		armSolenoid.set(Value.kReverse); // reset piston
+		pneumaticTimer.reset();
+		updateDashboard(null);
 		update(null);
 	}
 	/**
@@ -99,52 +105,49 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		SmartDashboard.putString("Cycle Count", cycleCount + "");
-		System.out.println("Current State " + currentState);
+		updateDashboard(input);
 		switch (currentState) {
-			case START_IDLE:
-				handleStartIdleState(input);
+			case IDLE:
+				handleIdleState(input);
 				break;
-			case RETRACT_ARM:
-				handleFirstRetractState(input);
+			case EXTEND_TOTAL:
+				handleExtendTotalState(input);
 				break;
-			case IDLE_1:
-				handleFirstIdleState(input);
+			case IDLE_MAX_EXTENDED:
+				handleIdleMaxExtendedState(input);
 				break;
-			case IDLE_2:
-				handleSecondIdleState(input);
+			case RETRACTING_TO_MIN:
+				handleRetractingToMinState(input);
 				break;
-			case LATCHED_RELEASE_TO_CONTINUE:
-				handleLatchedRelease(input);
+			case REST_STATE:
+				handleRestState(input);
 				break;
-			case EXTEND_ARM_LITTLE:
-				handleExtendLittleState(input);
+			case EXTEND_PARTIAL:
+				handleExtendPartial(input);
 				break;
-			case IDLE_3:
-				handleIdleThreeState(input);
+			case STATIC_HANG:
+				handleStaticHang(input);
 				break;
-			case ARM_PISTON_EXT:
-				handleArmPistonExtendState(input);
+			case PNEUMATIC_ACTIVATE:
+				handlePneumaticActivate(input);
 				break;
-			case IDLE_4:
-				handleIdleFourState(input);
+			case IDLE_TILT:
+				handleIdleTilt(input);
 				break;
-			case RETRACT_ARM2:
-				handleRetractArm2(input);
+			case EXTENDING_TILT:
+				handleExtendingTilt(input);
 				break;
-			case IDLE_5:
-				handleIdleFiveState(input);
-				break;
-			case FINISHED_RELEASE_TO_CONTINUE:
-				handleFinishState(input);
-				break;
-			case FINISHED_EVERYTHING:
-				handleFinishedEverything(input);
+			case IDLE_MAX_EXTENDED2:
+				handleIdleMaxExtended2(input);
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		currentState = nextState(input);
+		FSMState state = nextState(input);
+		if (currentState != state) {
+			System.out.println(state);
+		}
+		currentState = state;
 	}
 
 	/* ======================== Private methods ======================== */
@@ -159,123 +162,84 @@ public class TraversalFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		if (input == null) {
-			return FSMState.START_IDLE;
+			return FSMState.IDLE;
 		}
 		switch (currentState) {
-			case START_IDLE:
+			case IDLE:
 				if (input.isClimberButtonPressed()) {
 					//if climber button is pressed, continue to next state
-					return FSMState.RETRACT_ARM;
+					return FSMState.EXTEND_TOTAL;
 				}
 				//else, stay in idle
-				return FSMState.START_IDLE;
-			case RETRACT_ARM:
-				if (!input.isClimberButtonPressed()) {
-					//if climber button is not pressed, go to idle
-					return FSMState.IDLE_1;
-				} else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
-					//if climber is pressed and limit switch has not been activated yet,
-					//continue to retract arm
-					return FSMState.RETRACT_ARM;
-				} else {
-					//climber button is pressed and limit switch activated, go to next state
-					return FSMState.LATCHED_RELEASE_TO_CONTINUE;
+				return FSMState.IDLE;
+			case EXTEND_TOTAL:
+				if (getFirstCondition()) {
+					return FSMState.IDLE_MAX_EXTENDED;
 				}
-			case IDLE_1:
+				return FSMState.EXTEND_TOTAL;
+			case IDLE_MAX_EXTENDED:
 				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay in idle
-					return FSMState.IDLE_1;
+					return FSMState.IDLE_MAX_EXTENDED;
 				}
 				//climber button pressed, return to previous state
-				return FSMState.RETRACT_ARM;
-			case LATCHED_RELEASE_TO_CONTINUE:
-				if (input.isClimberButtonPressed()) {
+				return FSMState.RETRACTING_TO_MIN;
+			case IDLE_MAX_EXTENDED2:
+				if (input.isClimberButtonReleased()) {
+					return FSMState.IDLE_MAX_EXTENDED;
+				}
+				return FSMState.IDLE_MAX_EXTENDED2;
+			case RETRACTING_TO_MIN:
+				if (getSecondCondition()) {
 					//if climber button is pressed stay in current state
 					//drivers need to release the button
-					return FSMState.LATCHED_RELEASE_TO_CONTINUE;
+					return FSMState.REST_STATE;
 				}
 				//button is released continue to next state
-				return FSMState.IDLE_2;
-			case IDLE_2:
+				return FSMState.RETRACTING_TO_MIN;
+			case REST_STATE:
 				if (!input.isClimberButtonPressed()) {
 					//button needs to be repressed to continue to next state, if not stay in IDLE2
-					return FSMState.IDLE_2;
+					return FSMState.REST_STATE;
 				}
 				//button is pressed so continue to next state
-				return FSMState.EXTEND_ARM_LITTLE;
-			case EXTEND_ARM_LITTLE:
-				if (cycleCount >= 2) {
-					//if there have already been two cycles
-					return FSMState.FINISHED_EVERYTHING;
+				armMotor.getEncoder().setPosition(0);
+				return FSMState.EXTEND_PARTIAL;
+			case EXTEND_PARTIAL:
+				if (littleExtensionEncoder()) {
+					cycleCount++;
+					return FSMState.STATIC_HANG;
 				}
-				if (!input.isClimberButtonPressed()) {
-					//if climber button not pressed go to idle
-					return FSMState.IDLE_3;
-				} else if (input.isClimberButtonPressed() && !armLimitSwitchSecond.isPressed()) {
-					//climber button pressed and encoder
-					//count less than threshold then continue to extend
-					return FSMState.EXTEND_ARM_LITTLE;
-				} else {
-					//climber button pressed and encoder threshold reached, go to next state
-					return FSMState.ARM_PISTON_EXT;
-				}
-			case IDLE_3:
-				if (!input.isClimberButtonPressed()) {
+				return FSMState.EXTEND_PARTIAL;
+			case STATIC_HANG:
+				if (!input.isClimberButtonPressed() || cycleCount == MAX_CYCLE) {
 					//climber button not pressed, stay in idle
-					return FSMState.IDLE_3;
+					return FSMState.STATIC_HANG;
 				}
 				//climber button pressed return to previous state
-				return FSMState.EXTEND_ARM_LITTLE;
-			case ARM_PISTON_EXT:
-				if (!input.isClimberButtonPressed()) {
-					//climber button not pressed, go to idle
-					return FSMState.IDLE_4;
-				} else if (input.isClimberButtonPressed() && littleExtensionEncoder()) {
-					//climber button pressed, but limit switch not activated, stay in same state
-					return FSMState.ARM_PISTON_EXT;
-				} else {
-					//climber button pressed and limit switch activated, go to next state
-					return FSMState.RETRACT_ARM2;
+				pneumaticTimer.reset();
+				pneumaticTimer.start();
+				return FSMState.PNEUMATIC_ACTIVATE;
+			case PNEUMATIC_ACTIVATE:
+				if (pneumaticTimer.hasElapsed(1)) {
+					return FSMState.IDLE_TILT;
 				}
-			case IDLE_4:
+				return FSMState.PNEUMATIC_ACTIVATE;
+			case IDLE_TILT:
 				if (!input.isClimberButtonPressed()) {
 					//climber button not pressed, stay idle
-					return FSMState.IDLE_4;
+					return FSMState.IDLE_TILT;
 				}
 				//climber button pressed, go to previous state
-				return FSMState.ARM_PISTON_EXT;
-			case RETRACT_ARM2:
-				if (!input.isClimberButtonPressed()) {
-					//climber button not pressed, go idle
-					return FSMState.IDLE_5;
-				} else if (input.isClimberButtonPressed() && !armLimitSwitchFirst.isPressed()) {
-					//while not first limit switch, stay in mode
-					return FSMState.RETRACT_ARM2;
+				return FSMState.EXTENDING_TILT;
+			case EXTENDING_TILT:
+				if (!getFirstCondition() && input.isClimberButtonPressed()) {
+					return FSMState.EXTENDING_TILT;
+				} else if (!input.isClimberButtonPressed()) {
+					return FSMState.IDLE_TILT;
 				} else {
-					//finished, go to next
-					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
+					return FSMState.IDLE_MAX_EXTENDED2;
 				}
-
-			case IDLE_5:
-				if (!input.isClimberButtonPressed()) {
-					//climber button not pressed, stay idle
-					return FSMState.IDLE_5;
-				}
-				//climber button pressed, return to previous state
-				return FSMState.RETRACT_ARM2;
-			case FINISHED_RELEASE_TO_CONTINUE:
-				//at this point driver needs to release button
-				//and repress to enter new cycle and start from beginning
-				if (input.isClimberButtonPressed()) {
-					return FSMState.FINISHED_RELEASE_TO_CONTINUE;
-				}
-				cycleCount++;
-				//button released, head to beginning to redo cycle
-				//increment cycle count counter
-				return FSMState.EXTEND_ARM_LITTLE;
-			case FINISHED_EVERYTHING:
-				//stays in this state forever
-				return FSMState.FINISHED_EVERYTHING;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -288,7 +252,7 @@ public class TraversalFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartIdleState(TeleopInput input) {
+	private void handleIdleState(TeleopInput input) {
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -297,64 +261,80 @@ public class TraversalFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleFirstRetractState(TeleopInput input) {
-		armMotor.set(ARM_MOTOR_RETRACT_POWER);
-		armSolenoid.set(Value.kReverse);
-	}
-
-	private void handleFirstIdleState(TeleopInput input) {
-		armMotor.set(0);
-	}
-
-	private void handleSecondIdleState(TeleopInput input) {
-		armMotor.set(0);
-	}
-
-	private void handleLatchedRelease(TeleopInput input) {
-		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
-	}
-
-	private void handleExtendLittleState(TeleopInput input) {
+	private void handleExtendTotalState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
 	}
 
-	private void handleIdleThreeState(TeleopInput input) {
+	private void handleIdleMaxExtendedState(TeleopInput input) {
 		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 	}
 
-	private void handleArmPistonExtendState(TeleopInput input) {
+	private void handleRetractingToMinState(TeleopInput input) {
+		armMotor.set(ARM_MOTOR_RETRACT_POWER);
+		armSolenoid.set(Value.kReverse);
+	}
+
+	private void handleRestState(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+	}
+
+	private void handleExtendPartial(TeleopInput input) {
+		armMotor.set(ARM_MOTOR_EXTEND_POWER);
+		armSolenoid.set(Value.kReverse);
+	}
+
+	private void handleStaticHang(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+	}
+
+	private void handlePneumaticActivate(TeleopInput input) {
 		armSolenoid.set(Value.kForward);
+		armMotor.set(0);
+	}
+
+	private void handleIdleTilt(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+	}
+
+	private void handleExtendingTilt(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-	}
-
-	private void handleIdleFourState(TeleopInput input) {
-		armMotor.set(0);
-	}
-
-	private void handleRetractArm2(TeleopInput input) {
-		armMotor.set(ARM_MOTOR_RETRACT_POWER);
 		armSolenoid.set(Value.kReverse);
 	}
 
-	private void handleIdleFiveState(TeleopInput input) {
-		armMotor.set(0);
-	}
-
-	private void handleFinishState(TeleopInput input) {
-		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
-
-	}
-
-	private void handleFinishedEverything(TeleopInput input) {
+	private void handleIdleMaxExtended2(TeleopInput input) {
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
-
 	private boolean littleExtensionEncoder() {
 		return armMotor.getEncoder().getPosition() >= ARM_ENCODER_LIMIT;
 	}
 
+	private boolean getFirstCondition() {
+		return armLimitSwitchFirst.isPressed();
+	}
+
+	private boolean getSecondCondition() {
+		return armLimitSwitchSecond.isPressed();
+	}
+
+	private void updateDashboard(TeleopInput input) {
+		if (input == null) {
+			SmartDashboard.putBoolean("Climber Button Pressed", false);
+		} else {
+			SmartDashboard.putBoolean("Climber Button Pressed", input.isClimberButtonPressed());
+		}
+		SmartDashboard.putNumber("Cycle Count", cycleCount);
+		SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
+		SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
+		SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		SmartDashboard.putNumber("Motor Power", armMotor.get());
+		SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
+		SmartDashboard.putString("Current State", currentState + "");
+		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+	}
 }
