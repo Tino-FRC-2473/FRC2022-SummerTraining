@@ -16,6 +16,7 @@ public final class HardwareMap {
 	//Shooter
 	public static final int CAN_ID_SPARK_SHOOTER = 5;
 	public static final int CAN_ID_SPARK_INTER = 6;
+
 	//Climber
 	public static final int CAN_ID_SPARK_CLIMBER = 2;
 

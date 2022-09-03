@@ -67,7 +67,6 @@ public class BallIntakeFSM {
 	public void reset() {
 		currentState = FSMState.RETRACTED;
 		// Call one tick of update to ensure outputs reflect start state
-		//pcmCompressor.enableDigital();
 		updateDashboard(null);
 		update(null);
 	}
@@ -79,6 +78,7 @@ public class BallIntakeFSM {
 	 */
 	public void update(TeleopInput input) {
 		updateDashboard(input);
+
 		switch (currentState) {
 			case EXTENDED:
 				handleExtendedState(input);
@@ -149,4 +149,5 @@ public class BallIntakeFSM {
 		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 		SmartDashboard.putString("Current State", currentState + "");
 	}
+
 }
