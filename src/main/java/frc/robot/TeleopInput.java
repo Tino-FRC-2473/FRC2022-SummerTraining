@@ -14,7 +14,6 @@ public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
 	private static final int RIGHT_JOYSTICK_PORT = 1;
-	private static final int THREE = 3;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
@@ -67,27 +66,6 @@ public class TeleopInput {
 	public boolean isIntakeButtonPressed() {
 		return leftJoystick.getRawButton(2);
 	}
-	/**
-	 * a.
-	 * @return boolean
-	 */
-	public boolean isIntakeButtonReleased() {
-		return leftJoystick.getRawButtonReleased(2);
-	}
-	/**
-	 * a.
-	 * @return boolean
-	 */
-	public boolean isClimberButtonPressed() {
-		return leftJoystick.getRawButton(THREE);
-	}
-	/**
-	 * a.
-	 * @return boolean
-	 */
-	public boolean isClimberButtonReleased() {
-		return leftJoystick.getRawButtonReleased(THREE);
-	}
 
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
@@ -104,4 +82,7 @@ public class TeleopInput {
 	public double getRightJoystickY() {
 		return rightJoystick.getY();
 	}
+
+	/* ======================== Private methods ======================== */
+
 }
