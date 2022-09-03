@@ -104,7 +104,4 @@ public class TeleopInput {
 	public double getRightJoystickY() {
 		return rightJoystick.getY();
 	}
-
-	/* ======================== Private methods ======================== */
-
 }
