@@ -177,7 +177,7 @@ public class TurretSystem {
 		if(input == null){
 			return currentState;
 		}
-		if(SHOOTER.getCurrentState() == ShooterSystem.FSMState.INTAKING || true){
+		if(SHOOTER.getCurrentState() == ShooterSystem.FSMState.INTAKING){
 			return FSMState.INTAKING;
 		}else{
 			return FSMState.LIVE_TURRET;
