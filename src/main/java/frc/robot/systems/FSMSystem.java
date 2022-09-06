@@ -38,6 +38,10 @@ public class FSMSystem {
 	private CANSparkMax topLeftMotorMecanum;
 	private CANSparkMax topRightMotorMecanum;
 
+	private static final double ODOMETRY_SCALAR_X = 0.8880486672;
+	private static final double ODOMETRY_SCALAR_Y = 1.1742067733;
+	private static final double DEG_TO_RAD_45 = Math.PI / 4;
+
 	private double bottomLeftMotorMecanumPower;
 	private double bottomRightMotorMecanumPower;
 	private double topLeftMotorMecanumPower;
@@ -58,6 +62,7 @@ public class FSMSystem {
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
+	 * @param coordinator FSMCoordinator object for FSM communication
 	 */
 	public FSMSystem(FSMCoordinator coordinator) {
 		this.coordinator = coordinator;
@@ -138,7 +143,7 @@ public class FSMSystem {
 			case TELE_STATE_2_MOTOR_DRIVE:
 				handleTeleOp2MotorState(input);
 				break;
-			
+
 			case TELE_STATE_MECANUM:
 				handleTeleOpMecanum(input);
 				break;
@@ -164,7 +169,7 @@ public class FSMSystem {
 
 			case TELE_STATE_2_MOTOR_DRIVE:
 				return FSMState.TELE_STATE_2_MOTOR_DRIVE;
-			
+
 			case TELE_STATE_MECANUM:
 				return FSMState.TELE_STATE_MECANUM;
 
@@ -180,56 +185,55 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleOp2MotorState(TeleopInput input) {
-		if(input == null) {
+		if (input == null) {
 			return;
 		}
 
 		if (isInArcadeDrive) {
-	
+
 			currentEncoderPos = ((leftMotor.getEncoder().getPosition()
 				- rightMotor.getEncoder().getPosition()) / 2.0);
-	
+
 			updateLineOdometryTele(gyroAngleForOdo, currentEncoderPos);
-	
+
 			double steerAngle = input.getSteerAngle();
 			double currentLeftPower = leftMotor.get();
 			double currentRightPower = rightMotor.get();
-	
-	
+
 			DrivePower targetPower = DriveModes.arcadeDrive(input.getRightJoystickY(),
 				steerAngle, currentLeftPower,
 				currentRightPower, true);
-	
+
 			// multiple speed modes
 			if (input.isLeftJoystickTriggerPressedRaw()) {
 				targetPower.scale(Constants.MAX_POWER);
 			} else {
 				targetPower.scale(Constants.REDUCED_MAX_POWER);
 			}
-	
+
 			DrivePower power;
-	
+
 			// acceleration
 			power = Functions.accelerate(targetPower, new DrivePower(currentLeftPower,
 				currentRightPower));
-	
+
 			// turning in place
 			if (Math.abs(input.getRightJoystickY()) < Constants.TURNING_IN_PLACE_THRESHOLD) {
 				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
 			}
-	
+
 			leftPower = power.getLeftPower();
 			rightPower = power.getRightPower();
-	
+
 
 			rightMotor.set(rightPower);
 			leftMotor.set(leftPower);
 
-		} else { 
+		} else {
 			leftMotor.set((input.getLeftJoystickY()));
 			rightMotor.set(-(input.getRightJoystickY()));
 		}
-		
+
 	}
 
 	/**
@@ -238,16 +242,17 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTeleOpMecanum(TeleopInput input) {
-		
-		if(input == null) {
+
+		if (input == null) {
             return;
         }
 
         double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
         double rightX = input.getRightJoystickX();
 
-        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX())) 
-            - Math.PI / 4;
+        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
+												input.getLeftJoystickX()))
+            									- DEG_TO_RAD_45;
 
         topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
         topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
@@ -281,13 +286,13 @@ public class FSMSystem {
 	 * @param gyroAngle robot's angle
 	 * @param currentEncoderPos robot's current position
 	 */
-	public void updateLineOdometryTele(double gyroAngle, double currentEncoderPos) {
+	public void updateLineOdometryTele(double gyroAngle, double odoCurrentEncoderPos) {
 
 		// double currentEncoderPos = ((-leftEncoderPos + rightEncoderPos) / 2.0);
-		double dEncoder = (currentEncoderPos - prevEncoderPos)
+		double dEncoder = (odoCurrentEncoderPos - prevEncoderPos)
 			/ Constants.REVOLUTIONS_PER_INCH;
-		double dX = dEncoder * Math.cos(Math.toRadians(gyroAngleForOdo)) * 0.8880486672;
-		double dY = dEncoder * Math.sin(Math.toRadians(gyroAngleForOdo)) * 1.1742067733;
+		double dX = dEncoder * Math.cos(Math.toRadians(gyroAngleForOdo)) * ODOMETRY_SCALAR_X;
+		double dY = dEncoder * Math.sin(Math.toRadians(gyroAngleForOdo)) * ODOMETRY_SCALAR_Y;
 
 		roboXPos += dX;
 		roboYPos += dY;
@@ -299,5 +304,5 @@ public class FSMSystem {
 		System.out.println("Gyro: " + gyroAngleForOdo);
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
-	 
+
 }
