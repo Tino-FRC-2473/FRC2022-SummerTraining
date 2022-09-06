@@ -2,9 +2,11 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxRelativeEncoder;
 
 import org.opencv.core.Point;
 
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -70,13 +72,13 @@ public class TurretSystem {
 
 	/* ======================== Private variables ======================== */
 	//Motor Ticks required to rotate turret by one degree
-	private static final double TICKS_PER_DEGREE = 500; //i have no idea
+	private static final double REVS_PER_DEGREE = 70.0/360; //i have no idea
 
 	//Range of motion: The turret can rotate 45 degrees in either direction
 	private static final double RANGE_OF_MOTION = 90;
 
-	private static final double LEFT_LIMIT = TICKS_PER_DEGREE * RANGE_OF_MOTION / 2;
-	private static final double RIGHT_LIMIT = -TICKS_PER_DEGREE * RANGE_OF_MOTION / 2;
+	private static final double LEFT_LIMIT = -REVS_PER_DEGREE * RANGE_OF_MOTION / 2;
+	private static final double RIGHT_LIMIT = REVS_PER_DEGREE * RANGE_OF_MOTION / 2;
 
 	private static final double TURRET_MAX_SPEED = 0.2;
 
@@ -132,6 +134,7 @@ public class TurretSystem {
 		currentState = FSMState.LIVE_TURRET;
 
 		turretMotor.set(0);
+		turretMotor.getEncoder().setPosition(0);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -174,7 +177,7 @@ public class TurretSystem {
 		if(input == null){
 			return currentState;
 		}
-		if(SHOOTER.getCurrentState() == ShooterSystem.FSMState.INTAKING){
+		if(SHOOTER.getCurrentState() == ShooterSystem.FSMState.INTAKING || true){
 			return FSMState.INTAKING;
 		}else{
 			return FSMState.LIVE_TURRET;
@@ -188,7 +191,7 @@ public class TurretSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIntakingState(TeleopInput input) {
-		referenceAngle = 0;
+		referenceAngle = -10;
 
 		driveTurret();
 	}
@@ -222,7 +225,8 @@ public class TurretSystem {
 
 	/* ------------------------ Helpers ------------------------ */
 	private final void driveTurret() {
-		double target = Math.min(Math.max(referenceAngle * TICKS_PER_DEGREE, LEFT_LIMIT), RIGHT_LIMIT);
-		turretMotor.set((target - turretMotor.getEncoder().getPosition()) / TICKS_PER_DEGREE / RANGE_OF_MOTION * TURRET_MAX_SPEED);
+		double target = Math.min(Math.max(referenceAngle * REVS_PER_DEGREE, LEFT_LIMIT), RIGHT_LIMIT);
+		turretMotor.set((target - turretMotor.getEncoder().getPosition()) / REVS_PER_DEGREE / RANGE_OF_MOTION * TURRET_MAX_SPEED/2 - 0.03);
+		System.out.println((target - turretMotor.getEncoder().getPosition()) );
 	}
 }
