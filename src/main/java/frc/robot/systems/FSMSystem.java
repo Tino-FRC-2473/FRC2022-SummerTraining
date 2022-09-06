@@ -11,9 +11,9 @@ import frc.robot.drive.DriveModes;
 import frc.robot.drive.DrivePower;
 import frc.robot.drive.Functions;
 import frc.robot.Constants;
+import frc.robot.FSMCoordinator;
 
 public class FSMSystem {
-
 
 	// FSM state definitions
 	public enum FSMState {
@@ -23,6 +23,7 @@ public class FSMSystem {
 	}
 
 	/* ======================== Private variables ======================== */
+	private final FSMCoordinator coordinator;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -58,7 +59,9 @@ public class FSMSystem {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
+	public FSMSystem(FSMCoordinator coordinator) {
+		this.coordinator = coordinator;
+
 		// Perform hardware init
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
 										CANSparkMax.MotorType.kBrushless);
