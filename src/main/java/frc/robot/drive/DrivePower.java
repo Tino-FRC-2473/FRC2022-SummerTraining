@@ -7,8 +7,8 @@ public class DrivePower {
 
 	/**
 	 * Constructor to create the DrivePower object.
-	 * @param leftPower set the left power
-	 * @param rightPower set the right power
+	 * @param leftPow set the left power
+	 * @param rightPow set the right power
 	 */
 	public DrivePower(double leftPow, double rightPow) {
 		leftPower = leftPow;
@@ -44,7 +44,7 @@ public class DrivePower {
 
 	/**
 	 * Sets the left power to the specified value.
-	 * @param leftPower new power to which the left power will be set
+	 * @param leftPow new power to which the left power will be set
 	 */
 	public void setLeftPower(double newLeftPower) {
 		leftPower = newLeftPower;
@@ -52,7 +52,7 @@ public class DrivePower {
 
 	/**
 	 * Sets the right power to the specified value.
-	 * @param rightPower new power to which the right power will be set
+	 * @param rightPow new power to which the right power will be set
 	 */
 	public void setRightPower(double newRightPower) {
 		rightPower = newRightPower;

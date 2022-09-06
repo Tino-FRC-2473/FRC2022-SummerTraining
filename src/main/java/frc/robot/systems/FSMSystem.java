@@ -62,10 +62,10 @@ public class FSMSystem {
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
-	 * @param coordinator FSMCoordinator object for FSM communication
+	 * @param fsmCoordinator FSMCoordinator object for FSM communication
 	 */
-	public FSMSystem(FSMCoordinator coordinator) {
-		this.coordinator = coordinator;
+	public FSMSystem(FSMCoordinator fsmCoordinator) {
+		coordinator = fsmCoordinator;
 
 		// Perform hardware init
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
@@ -133,7 +133,7 @@ public class FSMSystem {
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 
@@ -161,7 +161,7 @@ public class FSMSystem {
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -182,7 +182,7 @@ public class FSMSystem {
 	/**
 	 * Handle behavior in TELE_STATE_2_MOTOR_DRIVE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 */
 	private void handleTeleOp2MotorState(TeleopInput input) {
 		if (input == null) {
@@ -239,43 +239,43 @@ public class FSMSystem {
 	/**
 	 * Handle behavior in TELE_STATE_MECANUM.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 */
 	private void handleTeleOpMecanum(TeleopInput input) {
 
 		if (input == null) {
-            return;
-        }
+			return;
+		}
 
-        double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
-        double rightX = input.getRightJoystickX();
+		double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
+		double rightX = input.getRightJoystickX();
 
-        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
+		double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(),
 												input.getLeftJoystickX()))
-            									- DEG_TO_RAD_45;
+												- DEG_TO_RAD_45;
 
-        topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
-        topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
-        bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
-        bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
+		topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
+		topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
+		bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
+		bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
 
 		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
 		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
 		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
 		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
 
-        if (input.isLeftJoystickTriggerPressedRaw()) {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower);
-            topRightMotorMecanum.set(topRightMotorMecanumPower);
-        } else {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
-            topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
-        }
-    }
+		if (input.isLeftJoystickTriggerPressedRaw()) {
+			bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
+			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
+			topLeftMotorMecanum.set(topLeftMotorMecanumPower);
+			topRightMotorMecanum.set(topRightMotorMecanumPower);
+		} else {
+			bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
+			bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
+			topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
+			topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
+		}
+	}
 
 	private double ensureRange(double value, double min, double max) {
 		return Math.min(Math.max(value, min), max);
@@ -284,7 +284,7 @@ public class FSMSystem {
 	/**
 	 * Tracks the robo's position on the field.
 	 * @param gyroAngle robot's angle
-	 * @param currentEncoderPos robot's current position
+	 * @param odoCurrentEncoderPos robot's current position
 	 */
 	public void updateLineOdometryTele(double gyroAngle, double odoCurrentEncoderPos) {
 
