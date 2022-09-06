@@ -44,7 +44,7 @@ public class DrivePower {
 
 	/**
 	 * Sets the left power to the specified value.
-	 * @param leftPow new power to which the left power will be set
+	 * @param newLeftPower new power to which the left power will be set
 	 */
 	public void setLeftPower(double newLeftPower) {
 		leftPower = newLeftPower;
@@ -52,7 +52,7 @@ public class DrivePower {
 
 	/**
 	 * Sets the right power to the specified value.
-	 * @param rightPow new power to which the right power will be set
+	 * @param newRightPower new power to which the right power will be set
 	 */
 	public void setRightPower(double newRightPower) {
 		rightPower = newRightPower;
