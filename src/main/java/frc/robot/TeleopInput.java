@@ -95,6 +95,7 @@ public class TeleopInput {
 		return leftJoystick.getRawButtonReleased(THREE);
 	}
 
+
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
 	 * Get X axis of Right Joystick.
