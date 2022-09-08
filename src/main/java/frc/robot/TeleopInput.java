@@ -20,6 +20,10 @@ public class TeleopInput {
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 
+	private static final int ONE = 1;
+	private static final int TWO = 2;
+	private static final int THREE = 3;
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create a TeleopInput and register input devices. Note that while inputs
@@ -57,26 +61,38 @@ public class TeleopInput {
 	 * @return True if button is pressed
 	 */
 	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(1);
+		return leftJoystick.getRawButton(ONE);
 	}
 	/**
 	 * Get the value of the intake button.
 	 * @return True if button is pressed
 	 */
 	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(2);
+		return leftJoystick.getRawButton(TWO);
 	}
 
+	/**
+	 * Get the value of the intake button.
+	 * @return True if button is released
+	 */
 	public boolean isIntakeButtonReleased() {
-		return leftJoystick.getRawButtonReleased(2);
+		return leftJoystick.getRawButtonReleased(TWO);
 	}
 
+	/**
+	 * Get the value of the climber button.
+	 * @return True if button is pressed
+	 */
 	public boolean isClimberButtonPressed() {
-		return leftJoystick.getRawButton(3);
+		return leftJoystick.getRawButton(THREE);
 	}
 
+	/**
+	 * Get the value of the climber button.
+	 * @return True if button is released
+	 */
 	public boolean isClimberButtonReleased() {
-		return leftJoystick.getRawButtonReleased(3);
+		return leftJoystick.getRawButtonReleased(THREE);
 	}
 
 	/* ------------------------ Right Joystick ------------------------ */
