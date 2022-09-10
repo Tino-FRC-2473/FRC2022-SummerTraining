@@ -20,9 +20,9 @@ public class TeleopInput {
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 
-	private static final int ONE = 1;
-	private static final int TWO = 2;
-	private static final int THREE = 3;
+	private static final int SHOOTER_BUTTON_ID = 1;
+	private static final int INTAKE_BUTTON_ID = 2;
+	private static final int CLIMBER_BUTTON_ID = 3;
 
 	/* ======================== Constructor ======================== */
 	/**
