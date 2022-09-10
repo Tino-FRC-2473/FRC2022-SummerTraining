@@ -61,14 +61,14 @@ public class TeleopInput {
 	 * @return True if button is pressed
 	 */
 	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(ONE);
+		return leftJoystick.getRawButton(SHOOTER_BUTTON_ID);
 	}
 	/**
 	 * Get the value of the intake button.
 	 * @return True if button is pressed
 	 */
 	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(TWO);
+		return leftJoystick.getRawButton(INTAKE_BUTTON_ID);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class TeleopInput {
 	 * @return True if button is released
 	 */
 	public boolean isIntakeButtonReleased() {
-		return leftJoystick.getRawButtonReleased(TWO);
+		return leftJoystick.getRawButtonReleased(INTAKE_BUTTON_ID);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class TeleopInput {
 	 * @return True if button is pressed
 	 */
 	public boolean isClimberButtonPressed() {
-		return leftJoystick.getRawButton(THREE);
+		return leftJoystick.getRawButton(CLIMBER_BUTTON_ID);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class TeleopInput {
 	 * @return True if button is released
 	 */
 	public boolean isClimberButtonReleased() {
-		return leftJoystick.getRawButtonReleased(THREE);
+		return leftJoystick.getRawButtonReleased(CLIMBER_BUTTON_ID);
 	}
 
 
