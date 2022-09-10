@@ -3,9 +3,6 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import edu.wpi.first.wpilibj.SPI;
 import com.revrobotics.CANSparkMax;
-
-import org.opencv.core.Point;
-
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
@@ -18,9 +15,10 @@ public class FSMSystem {
 
 	// FSM state definitions
 	public enum FSMState {
-		TELE_STATE_2_MOTOR_DRIVE,
-		TELE_STATE_MECANUM,
-		PURE_PURSUIT
+		STATE1,
+		STATE2,
+		// STATE3,
+		// STATE4;
 	}
 
 	/* ======================== Private variables ======================== */
@@ -38,8 +36,24 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
-	private boolean complete;
+	private boolean turning = true;
+	private boolean moving = true;
+	private boolean complete = false;
+	private int stateCounter = 1;
 
+	private static final double TURN_POWER = 0.3;
+	private static final double MOVE_POWER = 0.1;
+	private static final double DEGREES_360 = 360;
+	private static final double DEGREES_180 = 180;
+	private static final double DEGREES_270 = 270;
+	private static final double DEGREES_90 = 90;
+	private static final double DIST = 30;
+	private static final double TURN_THRESHOLD = 8;
+	private static final double MOVE_THRESHOLD = 2;
+	private static final double FORWARD = 1;
+	private static final double LEFT = 2;
+	private static final double BACKWARD = 3;
+	private static final double RIGHT = 4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -54,10 +68,6 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
-		// leftPower = 0;
-		// rightPower = 0;
-
-		complete = false;
 		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
@@ -91,7 +101,7 @@ public class FSMSystem {
 		gyro.zeroYaw();
 		gyroAngleForOdo = 0;
 
-		currentState = FSMState.PURE_PURSUIT;
+		currentState = FSMState.STATE1;
 
 		roboXPos = 0;
 		roboYPos = 0;
@@ -118,9 +128,21 @@ public class FSMSystem {
 
 		switch (currentState) {
 
-			case PURE_PURSUIT:
-				handlePurePersuit(input, 0, -15, -15);
+			case STATE1:
+				goToPos(input, 30, 0);
 				break;
+
+			case STATE2:
+				goToPos(input, 60, 20);
+				break;
+
+			// case STATE3:
+			// 	handlePurePersuit(input, 0, DIST);
+			// 	break;
+
+			// case STATE4:
+			// 	handlePurePersuit(input, 0, 0);
+			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -141,8 +163,49 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 
-			case PURE_PURSUIT:
-				return FSMState.PURE_PURSUIT;
+			case STATE1:
+				if (stateCounter == FORWARD) {
+					return FSMState.STATE1;
+				} else if (stateCounter == LEFT) {
+					return FSMState.STATE2;
+				// } else if (stateCounter == BACKWARD) {
+				// 	return FSMState.STATE3;
+				// } else if (stateCounter == RIGHT) {
+				// 	return FSMState.STATE4;
+				}
+
+			case STATE2:
+				if (stateCounter == FORWARD) {
+					return FSMState.STATE1;
+				} else if (stateCounter == LEFT) {
+					return FSMState.STATE2;
+				// } else if (stateCounter == BACKWARD) {
+				// 	return FSMState.STATE3;
+				// } else if (stateCounter == RIGHT) {
+				// 	return FSMState.STATE4;
+				}
+
+			// case STATE3:
+			// 	if (stateCounter == FORWARD) {
+			// 		return FSMState.STATE1;
+			// 	} else if (stateCounter == LEFT) {
+			// 		return FSMState.STATE2;
+			// 	} else if (stateCounter == BACKWARD) {
+			// 		return FSMState.STATE3;
+			// 	} else if (stateCounter == RIGHT) {
+			// 		return FSMState.STATE4;
+			// 	}
+
+			// case STATE4:
+			// 	if (stateCounter == FORWARD) {
+			// 		return FSMState.STATE1;
+			// 	} else if (stateCounter == LEFT) {
+			// 		return FSMState.STATE2;
+			// 	} else if (stateCounter == BACKWARD) {
+			// 		return FSMState.STATE3;
+			// 	} else if (stateCounter == RIGHT) {
+			// 		return FSMState.STATE4;
+			// 	}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -150,70 +213,108 @@ public class FSMSystem {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
+
 	/**
 	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
-	 * @param startAngle robot's starting angle
 	 * @param x go to x position
 	 * @param y go to y position
 	 */
-	public void handlePurePersuit(TeleopInput input, double startAngle, double x, double y) {
+	public void goToPos(TeleopInput input, double x, double y) {
 
-		if(input == null) {
+		if (input != null) {
 			return;
 		}
 
+		System.out.println("t " + turning + " m " + moving);
+
 		double roboX = -roboXPos;
+		double roboY = roboYPos;
+		double deltaX = (x - roboX);
+		double deltaY = (y - roboY);
+		if (deltaX > -1 || deltaX < 1) deltaX = 0;
+		if (deltaY > -1 || deltaY < 1) deltaX = 0;
+		System.out.println("dx " + deltaX + " dy " + deltaY);
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = -calculateCurrentAngle(gyro.getAngle(), startAngle);
+		double currentAngle = -gyro.getAngle() % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
 
 		// calculates turn angle
 		double angle;
-		if (x == 0 && y > 0) {
-			angle = 90;
-		} else if (x == 0 && y < 0) {
-			angle = 270;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
 		} else {
-			angle = Math.toDegrees(Math.atan(y/x));
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
 		}
 
-		if (x < 0) angle += 180;
-		if (x > 0 && y < 0) angle += 360;
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		} if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
+		}
 
 		System.out.println("turn angle " + angle);
 
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
+
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
+
 		System.out.println("turn amount: " + turnAmount);
 
 		// calculates distance
-		double dist = Math.sqrt((y - roboYPos) * (y - roboYPos) + (x - roboX) * (x - roboX));
+		double dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
 		System.out.println("dist: " + dist);
 		System.out.println("curX: " + roboX + " curY: " + roboYPos);
+		System.out.println("x " + x + "y " + y);
+
+		// fix threshold errors
+		turnAmount += TURN_THRESHOLD / 2;
+		dist += MOVE_THRESHOLD;
 
 		// set motor power
-		if (!(turnAmount >= -10 && turnAmount <= 10) && complete == false) {
+		if ((turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) && !complete && turning) {
 			System.out.println("turning");
 			if (turnAmount > 0) {
-				leftMotor.set(0.4);
-				rightMotor.set(0.4);
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
 			} else if (turnAmount < 0) {
-				leftMotor.set(-0.4);
-				rightMotor.set(-0.4);
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
 			}
-		} else  if (dist > 2 && complete == false) {  // ??
+		} else  if (dist > MOVE_THRESHOLD && !complete && moving) { 
 			System.out.println("moving");
-			leftMotor.set(-0.1);
-			rightMotor.set(0.1);
-		} else {
+			leftMotor.set(-MOVE_POWER);
+			rightMotor.set(MOVE_POWER);
+		} else if (!complete) {
 			leftMotor.set(0);
 			rightMotor.set(0);
 			System.out.println("STOP");
 			complete = true;
-			System.out.println("right " + rightMotor.get() + "left " + leftMotor.get());
-			return;
+			turning = true;
+			moving = true;
+			stateCounter++;
+		}
+
+		// complete or not
+		if ((Math.abs(roboY) > Math.abs(y) + Math.abs(deltaX) / 2 || Math.abs(roboX) > Math.abs(x) + Math.abs(deltaY) / 2) && turning) {
+			moving = false;
+			System.out.println("HERE");
+		} else if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD)) {
+			complete = false;
+		} else if (dist > MOVE_THRESHOLD) {
+			complete = false;
+			turning = false;
+		} else {
+			complete = true;
+			turning = true;
+			moving = true;
 		}
 	}
 
@@ -236,69 +337,4 @@ public class FSMSystem {
 		prevEncoderPos = this.currentEncoderPos;
 		// return new Translation2d(robotPos.getX() + dX, robotPos.getY() + dY);
 	}
-
-	/**
-	 * Calculates current angle in field.
-	 * assume unit circle angles (east = 0, positive counterclockwise)
-	 * @param gyroAngle robot's angle
-	 * @param startAngle starting angle of robot
-	 * @return robot's angle in global plane
-	 */
-	public double calculateCurrentAngle(double gyroAngle, double startAngle) {
-		double angle = gyroAngle % 360;
-		angle += startAngle;
-		return angle;
-	}
-
-	//returns the equation of the line in an array that connects 2 points
-	//as a point. x coordinate is the slope and y coordinate is the
-	//y intercept
-
-	public double[] findEquationLine(double originX, double originY, double destX, double destY){
-		//create an array, m in 0th index & b in 1st index
-		//calculate the m
-		double slope = (destY - originY) / (destX - originX);
-		//calculate intercept
-		double yIncomplete = slope * destX;
-		double intercept = destY - yIncomplete;
-		//store in array
-		double[] equation = new double[2];
-		equation[0] = slope;
-		equation[1] = intercept;
-		return equation;
-	}
-
-
-	//returns the equation of a circle given the radius and the center of the circle
-	//through the format of an array
-
-	public double[] findEquationCircle(double radius, double centerX, double centerY){
-		//create array, h as 0th index, k as 1st index & r as 2nd index
-		double[] equation = new double[3];
-		//store r^2
-		double rsquared = radius * radius;
-		equation[2] = rsquared;
-		//store h
-		equation[0] = centerX;
-		//store k
-		equation[1] = centerY;
-		//edit LATER
-		return equation;
-	}
-
-	public void calculateIntersection(double radius, double centerX, double centerY, double originX, double originY, double destX, double destY){
-		double[] circ = findEquationCircle(radius, centerX, centerY);
-		double[] equation = findEquationLine(originX, originY, destX, destY);
-
-		//expanding
-		//y = mx + b
-
-		//(x - h)^2 + (y - k)^2 = r^2
-	}
-	// double xIntersection = 0;
-	// double yIntersection = 0;
-	// Point p = new Point(xIntersection, yIntersection);
-	// return p;
-
-	//calculateIntersection
 }
