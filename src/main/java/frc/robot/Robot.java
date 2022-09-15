@@ -5,7 +5,7 @@ package frc.robot;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.TimedRobot;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // Systems
 import frc.robot.systems.ShooterFSM;
 
@@ -18,6 +18,13 @@ public class Robot extends TimedRobot {
 
 	// Systems
 	private ShooterFSM fsmSystem;
+	private LimeLight limelight;
+
+	// ShuffleBoard and NetworkTables
+	private double turnDirection;
+	private double distanceToHub;
+	private double shootPower;
+
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -30,6 +37,8 @@ public class Robot extends TimedRobot {
 
 		// Instantiate all systems here
 		fsmSystem = new ShooterFSM();
+
+		limelight = new LimeLight();
 	}
 
 	@Override
@@ -46,12 +55,37 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
+		SmartDashboard.putString("Turn Direction", "Invalid");
+		SmartDashboard.putNumber("Distance To Hub", -1.0);
+
+		final double invalidPower = -6;
+		SmartDashboard.putNumber("Shooting Power", invalidPower);
 		fsmSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
+		shootPower = limelight.getMotorPower();
+		turnDirection = limelight.getTurningDirection();
+		distanceToHub = limelight.getHubDistance();
+
 		fsmSystem.update(input);
+
+		if (shootPower <= 1 && shootPower >= -1) {
+			SmartDashboard.getEntry("Shooting Power").setNumber(shootPower);
+		}
+
+		if (turnDirection == -1) {
+			SmartDashboard.getEntry("Turn Direction").setString("Left");
+		} else if (turnDirection == 0) {
+			SmartDashboard.getEntry("Turn Direction").setString("Stay");
+		} else if (turnDirection == 1) {
+			SmartDashboard.getEntry("Turn Direction").setString("Right");
+		} else {
+			SmartDashboard.getEntry("Turn Direction").setString("Invalid Entry");
+		}
+
+		SmartDashboard.getEntry("Distance To Hub").setNumber(distanceToHub);
 	}
 
 	@Override
