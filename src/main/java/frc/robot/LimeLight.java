@@ -126,25 +126,25 @@ public class LimeLight {
 	public double[] getBallPosition() {
 		return table.getEntry("llpython").getDoubleArray(defaultValue);
 	}
-
+	
 	/**
-	 * Gets data about the Hub Distance
+	 * Gets data about the Hub Distance.
 	 * @return a double
 	 */
 	public double getHubDistance() {
-		return table.getEntry("Distance").getDouble(0);
+	    return table.getEntry("Distance").getDouble(0);
 	}
-    
+
 	/**
-	 * Gets Turning Direction
+	 * Gets Turning Direction.
 	 * @return a double
 	 */
 	public double getTurningDirection() {
 		return table.getEntry("Turning Direction").getDouble(0);
 	}
-    
+
 	/**
-	 * Gets data about the Shooter Motor Power
+	 * Gets data about the Shooter Motor Power.
 	 * @return a double
 	 */
 	public double getMotorPower() {
