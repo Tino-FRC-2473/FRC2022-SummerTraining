@@ -49,7 +49,6 @@ public class TraversalFSM {
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
 	private Timer pneumaticTimer;
 
-
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -97,7 +96,6 @@ public class TraversalFSM {
 		armSolenoid.set(Value.kReverse); // reset piston
 		pneumaticTimer.reset();
 		updateDashboard(null);
-
 		update(null);
 	}
 	/**
@@ -107,7 +105,6 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-
 		updateDashboard(input);
 		switch (currentState) {
 			case IDLE:
@@ -142,18 +139,15 @@ public class TraversalFSM {
 				break;
 			case IDLE_MAX_EXTENDED2:
 				handleIdleMaxExtended2(input);
-
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-
 		FSMState state = nextState(input);
 		if (currentState != state) {
 			System.out.println(state);
 		}
 		currentState = state;
-
 	}
 
 	/* ======================== Private methods ======================== */
@@ -168,7 +162,6 @@ public class TraversalFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		if (input == null) {
-
 			return FSMState.IDLE;
 		}
 		switch (currentState) {
@@ -247,7 +240,6 @@ public class TraversalFSM {
 				} else {
 					return FSMState.IDLE_MAX_EXTENDED2;
 				}
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -261,7 +253,6 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
-
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -270,7 +261,6 @@ public class TraversalFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-
 	private void handleExtendTotalState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
@@ -287,14 +277,11 @@ public class TraversalFSM {
 	}
 
 	private void handleRestState(TeleopInput input) {
-
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
 
-
 	private void handleExtendPartial(TeleopInput input) {
-
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -350,5 +337,4 @@ public class TraversalFSM {
 		SmartDashboard.putString("Current State", currentState + "");
 		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 	}
-
 }
