@@ -127,14 +127,26 @@ public class LimeLight {
 		return table.getEntry("llpython").getDoubleArray(defaultValue);
 	}
 
+    /**
+	 * Gets data about the Hub Distance
+	 * @return a double
+	 */
     public double getHubDistance() {
         return table.getEntry("Distance").getDouble(0);
     }
     
+    /**
+	 * Gets Turning Direction
+	 * @return a double
+	 */
     public double getTurningDirection() {
         return table.getEntry("Turning Direction").getDouble(0);
     }
     
+    /**
+	 * Gets data about the Shooter Motor Power
+	 * @return a double
+	 */
     public double getMotorPower() {
         return table.getEntry("Motor Power").getDouble(0);
     }
