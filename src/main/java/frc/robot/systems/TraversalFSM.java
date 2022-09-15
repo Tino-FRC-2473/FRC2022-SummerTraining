@@ -1,16 +1,16 @@
 package frc.robot.systems;
 
 // WPILib Imports
-
-// Third party Hardware Imports
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxLimitSwitch;
-
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+// Third party Hardware Imports
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxLimitSwitch;
+
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -185,10 +185,10 @@ public class TraversalFSM {
 				//climber button pressed, return to previous state
 				return FSMState.RETRACTING_TO_MIN;
 			case IDLE_MAX_EXTENDED2:
-				if (input.isClimberButtonReleased()) {
-					return FSMState.IDLE_MAX_EXTENDED;
+				if (input.isClimberButtonPressed()) {
+					return FSMState.IDLE_MAX_EXTENDED2;
 				}
-				return FSMState.IDLE_MAX_EXTENDED2;
+				return FSMState.IDLE_MAX_EXTENDED;
 			case RETRACTING_TO_MIN:
 				if (getSecondCondition()) {
 					//if climber button is pressed stay in current state

@@ -20,9 +20,11 @@ public class ShooterFSM {
 		TRANSFER_STATE,
 		SHOOT
 	}
-	private static final float INTER_MOTOR_RUN_POWER = 0.1f;
-	private static final double PID_P = 1, PID_I = 0, PID_D = 0;
-	private double power = 0.1;
+	//private static final float INTER_MOTOR_RUN_POWER = 0.1f;
+	private static final double PID_P = 1;
+	private static final double PID_I = 0;
+	private static final double PID_D = 0;
+	private static final double POWER = 0.1;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -30,7 +32,7 @@ public class ShooterFSM {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax shooterMotor;
 	//private CANSparkMax interMotor;
-	private SparkMaxPIDController PIDcontroller;
+	private SparkMaxPIDController pidController;
 	private SparkMaxRelativeEncoder encoder;
 
 	/* ======================== Constructor ======================== */
@@ -43,11 +45,11 @@ public class ShooterFSM {
 		// Perform hardware init
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
-		PIDcontroller = shooterMotor.getPIDController();
-		PIDcontroller.setP(PID_P);
+		pidController = shooterMotor.getPIDController();
+		pidController.setP(PID_P);
 		encoder = (SparkMaxRelativeEncoder) shooterMotor.getEncoder();
-		PIDcontroller.setI(PID_I);
-		PIDcontroller.setD(PID_D);
+		pidController.setI(PID_I);
+		pidController.setD(PID_D);
 		//interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
 	//									CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
@@ -138,10 +140,9 @@ public class ShooterFSM {
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
-	
-	private double getPIDpower()
-	{
-		double error = power-encoder.getVelocity()/encoder.getVelocityConversionFactor();
+
+	private double getPIDpower() {
+		double error = POWER - encoder.getVelocity() / encoder.getVelocityConversionFactor();
 		System.out.println(encoder.getVelocity() + " " + encoder.getVelocityConversionFactor());
 		return PID_P * error;
 	}
