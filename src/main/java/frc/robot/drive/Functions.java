@@ -4,6 +4,9 @@ import frc.robot.Constants;
 
 public class Functions {
 
+	private static final double ACC_DEC_POW_SCALAR = 2.8;
+	private static final double ACC_DEC_MAX_POWER = 0.7;
+
 	/**
 	 * Calculated the new motor powers by accelerating the current
 	 * powers to the desire ones.
@@ -39,8 +42,8 @@ public class Functions {
 	 * @return the new power for turning
 	 */
 	public static double accelerateDecelerateTurn(double currentGyroAngle, double total) {
-		double power = -Math.pow((2.8 * Math.pow(currentGyroAngle - total / 2.0, 2))
-			/ (currentGyroAngle * currentGyroAngle), 2) + 0.7;
+		double power = -Math.pow((ACC_DEC_POW_SCALAR * Math.pow(currentGyroAngle - total / 2.0, 2))
+			/ (currentGyroAngle * currentGyroAngle), 2) + ACC_DEC_MAX_POWER;
 		return power;
 	}
 

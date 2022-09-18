@@ -43,6 +43,9 @@ public class FSMSystem {
 
 	private static final double ODOMETRY_SCALAR_X = 0.8880486672;
 	private static final double ODOMETRY_SCALAR_Y = 1.1742067733;
+	private static final double FULL_REVOLUTION = 360;
+	private static final double HALF_REVOLUTION = 180;
+	private static final double QUARTER_REVOLUTION = 90;
 	private static final double DEG_TO_RAD_45 = Math.PI / 4;
 
 	// private double bottomLeftMotorMecanumPower;
@@ -245,11 +248,11 @@ public class FSMSystem {
 
 	}
 
-	/**
-	 * Handle behavior in TELE_STATE_MECANUM.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
-	 */
+	// /**
+	//  * Handle behavior in TELE_STATE_MECANUM.
+	//  * @param input Global TeleopInput if robot in teleop mode or null if
+	//  *		the robot is in autonomous mode.
+	//  */
 	// private void handleTeleOpMecanum(TeleopInput input) {
 
 	// 	if (input == null) {
@@ -298,10 +301,10 @@ public class FSMSystem {
 	public double getHeading() {
 		double angle = startAngle - gyro.getYaw();
 		if (angle < 0) {
-			angle += 360;
+			angle += FULL_REVOLUTION;
 		}
-		if (angle > 360) {
-			angle -= 360;
+		if (angle > FULL_REVOLUTION) {
+			angle -= FULL_REVOLUTION;
 		}
 		return angle;
 	}
@@ -382,7 +385,7 @@ public class FSMSystem {
 		if (degreesToTurn > 0) {
 			leftMotor.set(power);
 			rightMotor.set(power);
-		} else if(degreesToTurn < 0) {
+		} else if (degreesToTurn < 0) {
 			leftMotor.set(-power);
 			rightMotor.set(-power);
 		} else {
@@ -419,11 +422,11 @@ public class FSMSystem {
 		// double heading = (getHeading() + 180) % 360 - 180;
 		double heading = (getHeading() % 360);
 		double angleToHub = Math.toDegrees(Math.atan2(roboXPos + Constants.HUB_X_COORDINATE,
-			-roboYPos + Constants.HUB_Y_COORDINATE)) - 90;
+			-roboYPos + Constants.HUB_Y_COORDINATE)) - QUARTER_REVOLUTION;
 
 		//calculating the difference between the two angles
-		double angleDifference = -((angleToHub - heading + 180) % 360 - 180);
-		if (angleDifference >= 360) {
+		double angleDifference = -((angleToHub - heading + HALF_REVOLUTION) % FULL_REVOLUTION - HALF_REVOLUTION);
+		if (angleDifference >= FULL_REVOLUTION) {
 			angleDifference = 0;
 		}
 		return angleDifference;
