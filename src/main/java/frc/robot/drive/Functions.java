@@ -32,6 +32,19 @@ public class Functions {
 	}
 
 	/**
+	 * Calculated the new motor power by accelerating and decelerating the current
+	 * powers to the desire ones.
+	 * @param currentGyroAngle the current gyro angle
+	 * @param total the desired angle
+	 * @return the new power for turning
+	 */
+	public static double accelerateDecelerateTurn(double currentGyroAngle, double total) {
+		double power = -Math.pow((2.8 * Math.pow(currentGyroAngle - total / 2.0, 2))
+			/ (currentGyroAngle * currentGyroAngle), 2) + 0.7;
+		return power;
+	}
+
+	/**
 	 * Calculates the adjusted power to set the motor given the joystick input.
 	 * @param joystickInput the joystick input
 	 * @return the adjusted motor power
