@@ -14,9 +14,9 @@ import frc.robot.drive.DriveModes;
 import frc.robot.drive.DrivePower;
 import frc.robot.drive.Functions;
 import frc.robot.Constants;
+import frc.robot.FSMCoordinator;
 
 public class FSMSystem {
-
 
 	// FSM state definitions
 	public enum FSMState {
@@ -26,6 +26,7 @@ public class FSMSystem {
 	}
 
 	/* ======================== Private variables ======================== */
+	private final FSMCoordinator coordinator;
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
@@ -39,6 +40,13 @@ public class FSMSystem {
 	// private CANSparkMax bottomRightMotorMecanum;
 	// private CANSparkMax topLeftMotorMecanum;
 	// private CANSparkMax topRightMotorMecanum;
+
+	private static final double ODOMETRY_SCALAR_X = 0.8880486672;
+	private static final double ODOMETRY_SCALAR_Y = 1.1742067733;
+	private static final double FULL_REVOLUTION = 360;
+	private static final double HALF_REVOLUTION = 180;
+	private static final double QUARTER_REVOLUTION = 90;
+	private static final double DEG_TO_RAD_45 = Math.PI / 4;
 
 	// private double bottomLeftMotorMecanumPower;
 	// private double bottomRightMotorMecanumPower;
@@ -61,8 +69,11 @@ public class FSMSystem {
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
+	 * @param fsmCoordinator FSMCoordinator object for FSM communication
 	 */
-	public FSMSystem() {
+	public FSMSystem(FSMCoordinator fsmCoordinator) {
+		coordinator = fsmCoordinator;
+
 		// Perform hardware init
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
 										CANSparkMax.MotorType.kBrushless);
@@ -132,7 +143,7 @@ public class FSMSystem {
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 
@@ -160,7 +171,7 @@ public class FSMSystem {
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -181,7 +192,7 @@ public class FSMSystem {
 	/**
 	 * Handle behavior in TELE_STATE_2_MOTOR_DRIVE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *		the robot is in autonomous mode.
 	 */
 	private void handleTeleOp2MotorState(TeleopInput input) {
 		if (input == null) {
@@ -198,7 +209,6 @@ public class FSMSystem {
 			double steerAngle = input.getSteerAngle();
 			double currentLeftPower = leftMotor.get();
 			double currentRightPower = rightMotor.get();
-
 
 			DrivePower targetPower = DriveModes.arcadeDrive(input.getLeftJoystickY(),
 				steerAngle, currentLeftPower,
@@ -238,11 +248,11 @@ public class FSMSystem {
 
 	}
 
-	/**
-	 * Handle behavior in TELE_STATE_MECANUM.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
+	// /**
+	//  * Handle behavior in TELE_STATE_MECANUM.
+	//  * @param input Global TeleopInput if robot in teleop mode or null if
+	//  *		the robot is in autonomous mode.
+	//  */
 	// private void handleTeleOpMecanum(TeleopInput input) {
 
 	// 	if (input == null) {
@@ -291,10 +301,10 @@ public class FSMSystem {
 	public double getHeading() {
 		double angle = startAngle - gyro.getYaw();
 		if (angle < 0) {
-			angle += 360;
+			angle += FULL_REVOLUTION;
 		}
-		if (angle > 360) {
-			angle -= 360;
+		if (angle > FULL_REVOLUTION) {
+			angle -= FULL_REVOLUTION;
 		}
 		return angle;
 	}
@@ -375,7 +385,7 @@ public class FSMSystem {
 		if (degreesToTurn > 0) {
 			leftMotor.set(power);
 			rightMotor.set(power);
-		} else if(degreesToTurn < 0) {
+		} else if (degreesToTurn < 0) {
 			leftMotor.set(-power);
 			rightMotor.set(-power);
 		} else {
@@ -410,13 +420,14 @@ public class FSMSystem {
 	 */
 	public double getAngleToHub() {
 		// double heading = (getHeading() + 180) % 360 - 180;
-		double heading = (getHeading() % 360);
+		double heading = (getHeading() % FULL_REVOLUTION);
 		double angleToHub = Math.toDegrees(Math.atan2(roboXPos + Constants.HUB_X_COORDINATE,
-			-roboYPos + Constants.HUB_Y_COORDINATE)) - 90;
+			-roboYPos + Constants.HUB_Y_COORDINATE)) - QUARTER_REVOLUTION;
 
 		//calculating the difference between the two angles
-		double angleDifference = -((angleToHub - heading + 180) % 360 - 180);
-		if (angleDifference >= 360) {
+		double angleDifference = -((angleToHub - heading + HALF_REVOLUTION) % FULL_REVOLUTION
+									- HALF_REVOLUTION);
+		if (angleDifference >= FULL_REVOLUTION) {
 			angleDifference = 0;
 		}
 		return angleDifference;

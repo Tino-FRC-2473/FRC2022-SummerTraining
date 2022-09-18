@@ -29,7 +29,9 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new FSMSystem();
+		FSMCoordinator coordinator = new FSMCoordinator();
+		fsmSystem = new FSMSystem(coordinator);
+		coordinator.addSystems(fsmSystem);
 	}
 
 	@Override
