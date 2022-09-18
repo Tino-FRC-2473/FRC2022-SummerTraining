@@ -420,12 +420,13 @@ public class FSMSystem {
 	 */
 	public double getAngleToHub() {
 		// double heading = (getHeading() + 180) % 360 - 180;
-		double heading = (getHeading() % 360);
+		double heading = (getHeading() % FULL_REVOLUTION);
 		double angleToHub = Math.toDegrees(Math.atan2(roboXPos + Constants.HUB_X_COORDINATE,
 			-roboYPos + Constants.HUB_Y_COORDINATE)) - QUARTER_REVOLUTION;
 
 		//calculating the difference between the two angles
-		double angleDifference = -((angleToHub - heading + HALF_REVOLUTION) % FULL_REVOLUTION - HALF_REVOLUTION);
+		double angleDifference = -((angleToHub - heading + HALF_REVOLUTION) % FULL_REVOLUTION
+									- HALF_REVOLUTION);
 		if (angleDifference >= FULL_REVOLUTION) {
 			angleDifference = 0;
 		}
