@@ -49,6 +49,7 @@ public class TraversalFSM {
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
 	private DigitalInput firstMagneticSwitch;
+	private DigitalInput secondMagneticSwitch;
 	private Timer pneumaticTimer;
 
 	/* ======================== Constructor ======================== */
@@ -64,13 +65,14 @@ public class TraversalFSM {
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst =
-		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchFirst.enableLimitSwitch(true);
-		armLimitSwitchSecond =
-		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchSecond.enableLimitSwitch(true);
+		//armLimitSwitchFirst =
+		//armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		//armLimitSwitchFirst.enableLimitSwitch(true);
+		//armLimitSwitchSecond =
+		//armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		//armLimitSwitchSecond.enableLimitSwitch(true);
 		firstMagneticSwitch = new DigitalInput(0);
+		secondMagneticSwitch = new DigitalInput(1);
 		pneumaticTimer = new Timer();
 		// Reset state machine
 		reset();
@@ -109,7 +111,6 @@ public class TraversalFSM {
 	 */
 	public void update(TeleopInput input) {
 		updateDashboard(input);
-		System.out.println(firstMagneticSwitch.get());
 		switch (currentState) {
 			case IDLE:
 				handleIdleState(input);
@@ -319,11 +320,13 @@ public class TraversalFSM {
 	}
 
 	private boolean getFirstCondition() {
-		return armLimitSwitchFirst.isPressed();
+		//return armLimitSwitchFirst.isPressed();
+		return firstMagneticSwitch.get();
 	}
 
 	private boolean getSecondCondition() {
-		return armLimitSwitchSecond.isPressed();
+		//return armLimitSwitchSecond.isPressed();
+		return secondMagneticSwitch.get();
 	}
 
 	private void updateDashboard(TeleopInput input) {
@@ -334,8 +337,10 @@ public class TraversalFSM {
 		}
 		SmartDashboard.putNumber("Cycle Count", cycleCount);
 		SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
-		SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
-		SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		//SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
+		//SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		SmartDashboard.putBoolean("Extension Limit Switch", firstMagneticSwitch.get());
+		SmartDashboard.putBoolean("Retraction Limit Switch", secondMagneticSwitch.get());
 		SmartDashboard.putNumber("Motor Power", armMotor.get());
 		SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
 		SmartDashboard.putString("Current State", currentState + "");

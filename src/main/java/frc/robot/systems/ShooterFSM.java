@@ -7,6 +7,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.SparkMaxRelativeEncoder;
+import com.revrobotics.Rev2mDistanceSensor;
+import com.revrobotics.Rev2mDistanceSensor.Port;
+import com.revrobotics.Rev2mDistanceSensor.Unit;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -21,19 +24,21 @@ public class ShooterFSM {
 		SHOOT
 	}
 	//private static final float INTER_MOTOR_RUN_POWER = 0.1f;
-	private static final double PID_P = 1;
-	private static final double PID_I = 0;
-	private static final double PID_D = 0;
+	// private static final double PID_P = 1;
+	// private static final double PID_I = 0;
+	// private static final double PID_D = 0;
 	private static final double POWER = 0.1;
+	private static final double INCHES_THRESHOLD = 3;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax shooterMotor;
-	//private CANSparkMax interMotor;
+	private CANSparkMax interMotor;
 	private SparkMaxPIDController pidController;
 	private SparkMaxRelativeEncoder encoder;
+	private Rev2mDistanceSensor distSensor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -45,13 +50,14 @@ public class ShooterFSM {
 		// Perform hardware init
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
-		pidController = shooterMotor.getPIDController();
-		pidController.setP(PID_P);
-		encoder = (SparkMaxRelativeEncoder) shooterMotor.getEncoder();
-		pidController.setI(PID_I);
-		pidController.setD(PID_D);
-		//interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
-	//									CANSparkMax.MotorType.kBrushless);
+		//pidController = shooterMotor.getPIDController();
+		//pidController.setP(PID_P);
+		//encoder = (SparkMaxRelativeEncoder) shooterMotor.getEncoder();
+		//pidController.setI(PID_I);
+		//pidController.setD(PID_D);
+		interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
+									CANSparkMax.MotorType.kBrushless);
+		distSensor = new Rev2mDistanceSensor(Port.kMXP);
 		// Reset state machine
 		reset();
 	}
@@ -144,11 +150,11 @@ public class ShooterFSM {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 
-	private double getPIDpower() {
-		double error = POWER - encoder.getVelocity() / encoder.getVelocityConversionFactor();
-		System.out.println(encoder.getVelocity() + " " + encoder.getVelocityConversionFactor());
-		return PID_P * error;
-	}
+	// private double getPIDpower() {
+	// 	double error = POWER - encoder.getVelocity() / encoder.getVelocityConversionFactor();
+	// 	System.out.println(encoder.getVelocity() + " " + encoder.getVelocityConversionFactor());
+	// 	return PID_P * error;
+	// }
 	/**
 	 * Handle behavior in START_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
@@ -156,7 +162,7 @@ public class ShooterFSM {
 	 */
 	private void handleInitState(TeleopInput input) {
 		shooterMotor.set(0);
-		//interMotor.set(0);
+		interMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -164,13 +170,13 @@ public class ShooterFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleTransferState(TeleopInput input) {
-		shooterMotor.set(getPIDpower());
-		//interMotor.set(0);
+		shooterMotor.set(POWER);
+		interMotor.set(0);
 	}
 
 	private void handleShootState(TeleopInput input) {
-		//interMotor.set(INTER_MOTOR_RUN_POWER);
-		shooterMotor.set(getPIDpower());
+		interMotor.set(POWER);
+		shooterMotor.set(POWER);
 	}
 
 	private boolean shooterReady() {
@@ -178,7 +184,10 @@ public class ShooterFSM {
 	}
 
 	private boolean ballInIntermediate() {
-		return true;
+		if (distSensor.getRange(Unit.kInches) < INCHES_THRESHOLD) {
+			return true;
+		}
+		return false;
 	}
 
 	private void updateDashboard(TeleopInput input) {
@@ -188,7 +197,7 @@ public class ShooterFSM {
 			SmartDashboard.putBoolean("Shooter Button Pressed", false);
 		}
 		SmartDashboard.putNumber("Shooter Motor Power", shooterMotor.get());
-		//SmartDashboard.putNumber("Intermediate Motor Power", interMotor.get());
+		SmartDashboard.putNumber("Intermediate Motor Power", interMotor.get());
 		SmartDashboard.putBoolean("Shooter Ready", shooterReady());
 		SmartDashboard.putBoolean("Ball In Intermediate", ballInIntermediate());
 		SmartDashboard.putString("Current State", currentState + "");
