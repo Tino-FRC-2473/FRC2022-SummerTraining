@@ -114,6 +114,9 @@ public class ShooterFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.INIT_STATE;
+		}
 		switch (currentState) {
 			case INIT_STATE:
 				if (ballInIntermediate()) {

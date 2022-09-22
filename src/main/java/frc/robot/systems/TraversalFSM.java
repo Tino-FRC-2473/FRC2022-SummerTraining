@@ -1,5 +1,6 @@
 package frc.robot.systems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 // WPILib Imports
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -47,6 +48,7 @@ public class TraversalFSM {
 	private DoubleSolenoid armSolenoid;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
+	private DigitalInput firstMagneticSwitch;
 	private Timer pneumaticTimer;
 
 	/* ======================== Constructor ======================== */
@@ -68,6 +70,7 @@ public class TraversalFSM {
 		armLimitSwitchSecond =
 		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
 		armLimitSwitchSecond.enableLimitSwitch(true);
+		firstMagneticSwitch = new DigitalInput(0);
 		pneumaticTimer = new Timer();
 		// Reset state machine
 		reset();
@@ -106,6 +109,7 @@ public class TraversalFSM {
 	 */
 	public void update(TeleopInput input) {
 		updateDashboard(input);
+		System.out.println(firstMagneticSwitch.get());
 		switch (currentState) {
 			case IDLE:
 				handleIdleState(input);

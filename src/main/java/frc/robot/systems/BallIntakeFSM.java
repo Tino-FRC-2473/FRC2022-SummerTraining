@@ -103,6 +103,9 @@ public class BallIntakeFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.RETRACTED;
+		}
 		switch (currentState) {
 			case EXTENDED:
 				if (input.isIntakeButtonReleased()) {
