@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Timer;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -39,6 +40,7 @@ public class ShooterFSM {
 	private SparkMaxPIDController pidController;
 	private SparkMaxRelativeEncoder encoder;
 	private Rev2mDistanceSensor distSensor;
+	private Timer shooterTimer;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -59,6 +61,7 @@ public class ShooterFSM {
 									CANSparkMax.MotorType.kBrushless);
 		distSensor = new Rev2mDistanceSensor(Port.kMXP);
 		// Reset state machine
+		shooterTimer = new Timer();
 		reset();
 	}
 
@@ -81,6 +84,7 @@ public class ShooterFSM {
 	public void reset() {
 		currentState = FSMState.INIT_STATE;
 		updateDashboard(null);
+		shooterTimer.reset();
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -126,6 +130,8 @@ public class ShooterFSM {
 		switch (currentState) {
 			case INIT_STATE:
 				if (ballInIntermediate()) {
+					shooterTimer.reset();
+					shooterTimer.start();
 					return FSMState.TRANSFER_STATE;
 				} else {
 					return FSMState.INIT_STATE;
@@ -180,7 +186,10 @@ public class ShooterFSM {
 	}
 
 	private boolean shooterReady() {
-		return true;
+		if (shooterTimer.hasElapsed(1)) {
+			return true;
+		}
+		return false;
 	}
 
 	private boolean ballInIntermediate() {
