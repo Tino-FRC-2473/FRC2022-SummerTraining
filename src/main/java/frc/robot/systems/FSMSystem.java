@@ -27,10 +27,10 @@ public class FSMSystem {
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
 
-	private CANSparkMax bottomLeftMotorMecanum;
-	private CANSparkMax bottomRightMotorMecanum;
-	private CANSparkMax topLeftMotorMecanum;
-	private CANSparkMax topRightMotorMecanum;
+	// private CANSparkMax bottomLeftMotorMecanum;
+	// private CANSparkMax bottomRightMotorMecanum;
+	// private CANSparkMax topLeftMotorMecanum;
+	// private CANSparkMax topRightMotorMecanum;
 
 	private double bottomLeftMotorMecanumPower;
 	private double bottomRightMotorMecanumPower;
@@ -51,14 +51,14 @@ public class FSMSystem {
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
-										CANSparkMax.MotorType.kBrushless);
-		topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
-										CANSparkMax.MotorType.kBrushless);
+		// topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// bottomLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_LEFT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// topLeftMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_LEFT,
+		// 								CANSparkMax.MotorType.kBrushless);
+		// topRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_TOP_RIGHT,
+		// 								CANSparkMax.MotorType.kBrushless);
 
 		// Reset state machine
 		reset();
@@ -84,12 +84,12 @@ public class FSMSystem {
 	 */
 	public void reset() {
 
-		bottomLeftMotorMecanum.set(0);
-		bottomRightMotorMecanum.set(0);
-		topLeftMotorMecanum.set(0);
-		topRightMotorMecanum.set(0);
+		// bottomLeftMotorMecanum.set(0);
+		// bottomRightMotorMecanum.set(0);
+		// topLeftMotorMecanum.set(0);
+		// topRightMotorMecanum.set(0);
 
-		currentState = FSMState.TELE_STATE_MECANUM;
+		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -107,9 +107,9 @@ public class FSMSystem {
 				handleTeleOp2MotorState(input);
 				break;
 			
-			case TELE_STATE_MECANUM:
-				handleTeleOpMecanum(input);
-				break;
+			// case TELE_STATE_MECANUM:
+			// 	handleTeleOpMecanum(input);
+			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -163,40 +163,40 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleTeleOpMecanum(TeleopInput input) {
+	// private void handleTeleOpMecanum(TeleopInput input) {
 		
-		if(input == null) {
-            return;
-        }
+	// 	if(input == null) {
+    //         return;
+    //     }
 
-        double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
-        double rightX = input.getRightJoystickX();
+    //     double hypot = Math.hypot(input.getLeftJoystickX(), input.getLeftJoystickY());
+    //     double rightX = input.getRightJoystickX();
 
-        double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX())) 
-            - Math.PI / 4;
+    //     double robotAngleFrontBack = (Math.atan2(input.getLeftJoystickY(), input.getLeftJoystickX())) 
+    //         - Math.PI / 4;
 
-        topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
-        topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
-        bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
-        bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
+    //     topLeftMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) + rightX;
+    //     topRightMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) - rightX;
+    //     bottomLeftMotorMecanumPower = hypot * Math.sin(robotAngleFrontBack) + rightX;
+    //     bottomRightMotorMecanumPower = hypot * Math.cos(robotAngleFrontBack) - rightX;
 
-		topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
-		topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
-		bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
-		bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
+	// 	topLeftMotorMecanumPower = ensureRange(topLeftMotorMecanumPower, -1, 1);
+	// 	topRightMotorMecanumPower = ensureRange(topRightMotorMecanumPower, -1, 1);
+	// 	bottomLeftMotorMecanumPower = ensureRange(bottomLeftMotorMecanumPower, -1, 1);
+	// 	bottomRightMotorMecanumPower = ensureRange(bottomRightMotorMecanumPower, -1, 1);
 
-        if (input.isLeftJoystickTriggerPressedRaw()) {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower);
-            topRightMotorMecanum.set(topRightMotorMecanumPower);
-        } else {
-            bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
-            bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
-            topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
-            topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
-        }
-    }
+    //     if (input.isLeftJoystickTriggerPressedRaw()) {
+    //         bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower);
+    //         bottomRightMotorMecanum.set(bottomRightMotorMecanumPower);
+    //         topLeftMotorMecanum.set(topLeftMotorMecanumPower);
+    //         topRightMotorMecanum.set(topRightMotorMecanumPower);
+    //     } else {
+    //         bottomLeftMotorMecanum.set(bottomLeftMotorMecanumPower / 2);
+    //         bottomRightMotorMecanum.set(bottomRightMotorMecanumPower / 2);
+    //         topLeftMotorMecanum.set(topLeftMotorMecanumPower / 2);
+    //         topRightMotorMecanum.set(topRightMotorMecanumPower / 2);
+    //     }
+    // }
 
 	private double ensureRange(double value, double min, double max) {
 		return Math.min(Math.max(value, min), max);

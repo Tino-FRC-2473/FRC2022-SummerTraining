@@ -9,9 +9,9 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_RIGHT = 1;
 	public static final int CAN_ID_SPARK_DRIVE_LEFT = 3;
 
-	public static final int CAN_ID_SPARK_DRIVE_BOTTOM_LEFT = 1;
-	public static final int CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT = 2;
-	public static final int CAN_ID_SPARK_DRIVE_TOP_LEFT = 3;
-	public static final int CAN_ID_SPARK_DRIVE_TOP_RIGHT = 4;
+	// public static final int CAN_ID_SPARK_DRIVE_BOTTOM_LEFT = 1;
+	// public static final int CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT = 2;
+	// public static final int CAN_ID_SPARK_DRIVE_TOP_LEFT = 3;
+	// public static final int CAN_ID_SPARK_DRIVE_TOP_RIGHT = 4;
 
 }
