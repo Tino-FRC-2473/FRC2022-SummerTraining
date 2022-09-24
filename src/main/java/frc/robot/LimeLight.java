@@ -13,7 +13,9 @@ public class LimeLight {
 	private NetworkTableEntry ty;
 	private NetworkTableEntry ta;
 
-	private double[] defaultValue = new double[] {-1, -1};
+	private double[] defaultValue = new double[] {-1, -1, -1};
+
+
 
 	/**
 	 * LimeLight Constructor.
@@ -132,7 +134,7 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getHubDistance() {
-		return table.getEntry("Distance").getDouble(0);
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[1];
 	}
 
 	/**
@@ -140,7 +142,7 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getTurningDirection() {
-		return table.getEntry("Turning Direction").getDouble(0);
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[2];
 	}
 
 	/**
@@ -148,6 +150,6 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getMotorPower() {
-		return table.getEntry("Motor Power").getDouble(0);
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[0];
 	}
 }
