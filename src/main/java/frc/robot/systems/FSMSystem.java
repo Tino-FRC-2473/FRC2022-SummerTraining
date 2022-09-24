@@ -15,10 +15,11 @@ public class FSMSystem {
 
 	// FSM state definitions
 	public enum FSMState {
-		STATE1,
-		STATE2,
-		// STATE3,
-		// STATE4;
+		P1,
+		// P2,
+		// P3,
+		// P4,
+		TURN_TO_HUB;
 	}
 
 	/* ======================== Private variables ======================== */
@@ -41,19 +42,15 @@ public class FSMSystem {
 	private boolean complete = false;
 	private int stateCounter = 1;
 
-	private static final double TURN_POWER = 0.3;
+	//private static final double START_ANGLE = -19.938;
+	private static final double TURN_POWER = 0.05;
 	private static final double MOVE_POWER = 0.1;
 	private static final double DEGREES_360 = 360;
 	private static final double DEGREES_180 = 180;
 	private static final double DEGREES_270 = 270;
 	private static final double DEGREES_90 = 90;
-	private static final double DIST = 30;
-	private static final double TURN_THRESHOLD = 8;
+	private static final double TURN_THRESHOLD = 4;
 	private static final double MOVE_THRESHOLD = 2;
-	private static final double FORWARD = 1;
-	private static final double LEFT = 2;
-	private static final double BACKWARD = 3;
-	private static final double RIGHT = 4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -101,11 +98,11 @@ public class FSMSystem {
 		gyro.zeroYaw();
 		gyroAngleForOdo = 0;
 
-		currentState = FSMState.STATE1;
+		currentState = FSMState.P1;
 
 		roboXPos = 0;
 		roboYPos = 0;
-		System.out.println(roboXPos + " " + roboYPos);
+		//System.out.println(roboXPos + " " + roboYPos);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -128,21 +125,25 @@ public class FSMSystem {
 
 		switch (currentState) {
 
-			case STATE1:
-				goToPos(input, 30, 0);
+			case P1:
+				goToPos(input, 117.047, 0);
 				break;
 
-			case STATE2:
-				goToPos(input, 60, 20);
+			// case P2:
+			// 	goToPos(input, 117.047, -31.623);
+			// 	break;
+
+			// case P3:
+			// 	goToPos(input, 56.814, 117.516);
+			// 	break;
+
+			// case P4:
+			// 	goToPos(input, 0, 0);
+			// 	break;	
+
+			case TURN_TO_HUB:
+				turnToHub(input);
 				break;
-
-			// case STATE3:
-			// 	handlePurePersuit(input, 0, DIST);
-			// 	break;
-
-			// case STATE4:
-			// 	handlePurePersuit(input, 0, 0);
-			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -163,49 +164,90 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 
-			case STATE1:
-				if (stateCounter == FORWARD) {
-					return FSMState.STATE1;
-				} else if (stateCounter == LEFT) {
-					return FSMState.STATE2;
-				// } else if (stateCounter == BACKWARD) {
-				// 	return FSMState.STATE3;
-				// } else if (stateCounter == RIGHT) {
-				// 	return FSMState.STATE4;
+			case P1:
+				if (stateCounter == 1) {
+					return FSMState.P1;
+				} else if (stateCounter == 2) {
+					return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
 				}
 
-			case STATE2:
-				if (stateCounter == FORWARD) {
-					return FSMState.STATE1;
-				} else if (stateCounter == LEFT) {
-					return FSMState.STATE2;
-				// } else if (stateCounter == BACKWARD) {
-				// 	return FSMState.STATE3;
-				// } else if (stateCounter == RIGHT) {
-				// 	return FSMState.STATE4;
+			// case P2:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P3:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P4:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			case TURN_TO_HUB:
+				if (stateCounter == 1) {
+					return FSMState.P1;
+				} else if (stateCounter == 2) {
+					return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
 				}
-
-			// case STATE3:
-			// 	if (stateCounter == FORWARD) {
-			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == LEFT) {
-			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == BACKWARD) {
-			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == RIGHT) {
-			// 		return FSMState.STATE4;
-			// 	}
-
-			// case STATE4:
-			// 	if (stateCounter == FORWARD) {
-			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == LEFT) {
-			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == BACKWARD) {
-			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == RIGHT) {
-			// 		return FSMState.STATE4;
-			// 	}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -233,12 +275,12 @@ public class FSMSystem {
 		double roboY = roboYPos;
 		double deltaX = (x - roboX);
 		double deltaY = (y - roboY);
-		if (deltaX > -1 || deltaX < 1) deltaX = 0;
-		if (deltaY > -1 || deltaY < 1) deltaX = 0;
+		if (deltaX > -1 && deltaX < 1) deltaX = 0;
+		if (deltaY > -1 && deltaY < 1) deltaY = 0;
 		System.out.println("dx " + deltaX + " dy " + deltaY);
 
 		// assume unit circle angles (east = 0, positive counterclockwise)
-		double currentAngle = -gyro.getAngle() % DEGREES_360;
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
 		System.out.println("current angle " + currentAngle);
 
 		// calculates turn angle
@@ -270,13 +312,13 @@ public class FSMSystem {
 
 		// calculates distance
 		double dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
-		System.out.println("dist: " + dist);
-		System.out.println("curX: " + roboX + " curY: " + roboYPos);
+		// System.out.println("dist: " + dist);
+		System.out.print("(" + roboX + "," + roboYPos + ")");
 		System.out.println("x " + x + "y " + y);
 
 		// fix threshold errors
+		dist += MOVE_THRESHOLD / 2;
 		turnAmount += TURN_THRESHOLD / 2;
-		dist += MOVE_THRESHOLD;
 
 		// set motor power
 		if ((turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) && !complete && turning) {
@@ -303,9 +345,9 @@ public class FSMSystem {
 		}
 
 		// complete or not
-		if ((Math.abs(roboY) > Math.abs(y) + Math.abs(deltaX) / 2 || Math.abs(roboX) > Math.abs(x) + Math.abs(deltaY) / 2) && turning) {
+		if (((Math.abs(roboY) > Math.abs(y) + Math.abs(deltaX) / 2 || Math.abs(roboX) > Math.abs(x) + Math.abs(deltaY) / 2)) && !complete) {
 			moving = false;
-			System.out.println("HERE");
+			//System.out.println("HERE");
 		} else if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD)) {
 			complete = false;
 		} else if (dist > MOVE_THRESHOLD) {
@@ -315,6 +357,67 @@ public class FSMSystem {
 			complete = true;
 			turning = true;
 			moving = true;
+		}
+	}
+
+	public void turnToHub(TeleopInput input) {
+
+		double roboX = -roboXPos;
+		double roboY = roboYPos;
+		double deltaX = (-roboX);
+		double deltaY = (-roboY);
+		if (deltaX > -1 && deltaX < 1) deltaX = 0;
+		if (deltaY > -1 && deltaY < 1) deltaY = 0;
+		//System.out.println("dx " + deltaX + " dy " + deltaY);
+
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
+
+		// calculates turn angle
+		double angle;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
+		} else {
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
+		}
+
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		} if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
+		}
+
+		System.out.println("turn angle hub " + angle);
+
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
+
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
+
+		// fix threshold errors
+		turnAmount += TURN_THRESHOLD / 2;
+
+		System.out.println("hub turn amount: " + turnAmount);
+
+		if (turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) {
+			System.out.println("turning to hub");
+			if (turnAmount > 0) {
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
+			}
+		} else {
+			System.out.println("STOP");
+			leftMotor.set(0);
+			rightMotor.set(0);
+			stateCounter++;
 		}
 	}
 
