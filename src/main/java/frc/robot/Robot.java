@@ -18,6 +18,7 @@ public class Robot extends TimedRobot {
 
 	// Systems
 	private FSMSystem fsmSystem;
+	private LimeLight limelight;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -30,6 +31,8 @@ public class Robot extends TimedRobot {
 
 		// Instantiate all systems here
 		fsmSystem = new FSMSystem();
+		limelight = new LimeLight();
+		limelight.setOffLimelight();
 	}
 
 	@Override
@@ -47,11 +50,13 @@ public class Robot extends TimedRobot {
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
 		fsmSystem.reset();
+		limelight.update();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		fsmSystem.update(input);
+		limelight.update();
 	}
 
 	@Override
