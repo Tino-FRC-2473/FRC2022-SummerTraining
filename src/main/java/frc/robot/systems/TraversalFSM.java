@@ -1,16 +1,17 @@
 package frc.robot.systems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 // WPILib Imports
-
-// Third party Hardware Imports
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxLimitSwitch;
-
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+// Third party Hardware Imports
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxLimitSwitch;
+
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
@@ -47,8 +48,9 @@ public class TraversalFSM {
 	private DoubleSolenoid armSolenoid;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
+	private DigitalInput firstMagneticSwitch;
+	private DigitalInput secondMagneticSwitch;
 	private Timer pneumaticTimer;
-
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -63,12 +65,14 @@ public class TraversalFSM {
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst =
-		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchFirst.enableLimitSwitch(true);
-		armLimitSwitchSecond =
-		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchSecond.enableLimitSwitch(true);
+		//armLimitSwitchFirst =
+		//armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		//armLimitSwitchFirst.enableLimitSwitch(true);
+		//armLimitSwitchSecond =
+		//armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
+		//armLimitSwitchSecond.enableLimitSwitch(true);
+		firstMagneticSwitch = new DigitalInput(0);
+		secondMagneticSwitch = new DigitalInput(1);
 		pneumaticTimer = new Timer();
 		// Reset state machine
 		reset();
@@ -97,7 +101,6 @@ public class TraversalFSM {
 		armSolenoid.set(Value.kReverse); // reset piston
 		pneumaticTimer.reset();
 		updateDashboard(null);
-
 		update(null);
 	}
 	/**
@@ -107,7 +110,6 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-
 		updateDashboard(input);
 		switch (currentState) {
 			case IDLE:
@@ -142,18 +144,15 @@ public class TraversalFSM {
 				break;
 			case IDLE_MAX_EXTENDED2:
 				handleIdleMaxExtended2(input);
-
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-
 		FSMState state = nextState(input);
 		if (currentState != state) {
 			System.out.println(state);
 		}
 		currentState = state;
-
 	}
 
 	/* ======================== Private methods ======================== */
@@ -168,7 +167,6 @@ public class TraversalFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		if (input == null) {
-
 			return FSMState.IDLE;
 		}
 		switch (currentState) {
@@ -192,10 +190,10 @@ public class TraversalFSM {
 				//climber button pressed, return to previous state
 				return FSMState.RETRACTING_TO_MIN;
 			case IDLE_MAX_EXTENDED2:
-				if (input.isClimberButtonReleased()) {
-					return FSMState.IDLE_MAX_EXTENDED;
+				if (input.isClimberButtonPressed()) {
+					return FSMState.IDLE_MAX_EXTENDED2;
 				}
-				return FSMState.IDLE_MAX_EXTENDED2;
+				return FSMState.IDLE_MAX_EXTENDED;
 			case RETRACTING_TO_MIN:
 				if (getSecondCondition()) {
 					//if climber button is pressed stay in current state
@@ -247,7 +245,6 @@ public class TraversalFSM {
 				} else {
 					return FSMState.IDLE_MAX_EXTENDED2;
 				}
-
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -261,7 +258,6 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
-
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -270,7 +266,6 @@ public class TraversalFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-
 	private void handleExtendTotalState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
@@ -287,14 +282,11 @@ public class TraversalFSM {
 	}
 
 	private void handleRestState(TeleopInput input) {
-
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
 
-
 	private void handleExtendPartial(TeleopInput input) {
-
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -328,11 +320,13 @@ public class TraversalFSM {
 	}
 
 	private boolean getFirstCondition() {
-		return armLimitSwitchFirst.isPressed();
+		//return armLimitSwitchFirst.isPressed();
+		return firstMagneticSwitch.get();
 	}
 
 	private boolean getSecondCondition() {
-		return armLimitSwitchSecond.isPressed();
+		//return armLimitSwitchSecond.isPressed();
+		return secondMagneticSwitch.get();
 	}
 
 	private void updateDashboard(TeleopInput input) {
@@ -343,12 +337,13 @@ public class TraversalFSM {
 		}
 		SmartDashboard.putNumber("Cycle Count", cycleCount);
 		SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
-		SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
-		SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		//SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
+		//SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		SmartDashboard.putBoolean("Extension Limit Switch", firstMagneticSwitch.get());
+		SmartDashboard.putBoolean("Retraction Limit Switch", secondMagneticSwitch.get());
 		SmartDashboard.putNumber("Motor Power", armMotor.get());
 		SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
 		SmartDashboard.putString("Current State", currentState + "");
 		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 	}
-
 }
