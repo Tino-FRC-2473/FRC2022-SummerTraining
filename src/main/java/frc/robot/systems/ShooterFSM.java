@@ -3,14 +3,13 @@ package frc.robot.systems;
 // WPILib Imports
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.I2C.Port;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.ColorSensorV3;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.SparkMaxRelativeEncoder;
-import com.revrobotics.Rev2mDistanceSensor;
-import com.revrobotics.Rev2mDistanceSensor.Port;
-import com.revrobotics.Rev2mDistanceSensor.Unit;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -21,6 +20,7 @@ public class ShooterFSM {
 	// FSM state definitions
 	public enum FSMState {
 		INIT_STATE,
+		MID_STATE,
 		TRANSFER_STATE,
 		SHOOT
 	}
@@ -29,7 +29,8 @@ public class ShooterFSM {
 	// private static final double PID_I = 0;
 	// private static final double PID_D = 0;
 	private static final double POWER = 0.1;
-	private static final double INCHES_THRESHOLD = 3;
+	private static final double PROXIMITY_THRESHOLD = 1500;
+	private static final double SHOOT_TIME = 1.5;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -37,10 +38,12 @@ public class ShooterFSM {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax shooterMotor;
 	private CANSparkMax interMotor;
+	private CANSparkMax intakeMotor;
 	private SparkMaxPIDController pidController;
 	private SparkMaxRelativeEncoder encoder;
-	private Rev2mDistanceSensor distSensor;
+	//private Rev2mDistanceSensor distSensor;
 	private Timer shooterTimer;
+	private ColorSensorV3 color;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -59,7 +62,9 @@ public class ShooterFSM {
 		//pidController.setD(PID_D);
 		interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
 									CANSparkMax.MotorType.kBrushless);
-		distSensor = new Rev2mDistanceSensor(Port.kMXP);
+		intakeMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTAKE,
+									CANSparkMax.MotorType.kBrushless);
+		color = new ColorSensorV3(Port.kOnboard);
 		// Reset state machine
 		shooterTimer = new Timer();
 		reset();
@@ -100,7 +105,9 @@ public class ShooterFSM {
 			case INIT_STATE:
 				handleInitState(input);
 				break;
-
+			case MID_STATE:
+				handleMidState(input);
+				break;
 			case TRANSFER_STATE:
 				handleTransferState(input);
 				break;
@@ -130,13 +137,17 @@ public class ShooterFSM {
 		switch (currentState) {
 			case INIT_STATE:
 				if (ballInIntermediate()) {
-					shooterTimer.reset();
-					shooterTimer.start();
-					return FSMState.TRANSFER_STATE;
+					return FSMState.MID_STATE;
 				} else {
 					return FSMState.INIT_STATE;
 				}
-
+			case MID_STATE:
+				if (input.isShooterButtonPressed()) {
+					shooterTimer.reset();
+					shooterTimer.start();
+					return FSMState.TRANSFER_STATE;
+				}
+				return FSMState.MID_STATE;
 			case TRANSFER_STATE:
 				if (!shooterReady() || !input.isShooterButtonPressed()) {
 					return FSMState.TRANSFER_STATE;
@@ -169,6 +180,13 @@ public class ShooterFSM {
 	private void handleInitState(TeleopInput input) {
 		shooterMotor.set(0);
 		interMotor.set(0);
+		intakeMotor.set(POWER);
+	}
+
+	private void handleMidState(TeleopInput input) {
+		shooterMotor.set(0);
+		interMotor.set(0);
+		intakeMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -178,22 +196,24 @@ public class ShooterFSM {
 	private void handleTransferState(TeleopInput input) {
 		shooterMotor.set(POWER);
 		interMotor.set(0);
+		intakeMotor.set(0);
 	}
 
 	private void handleShootState(TeleopInput input) {
 		interMotor.set(POWER);
 		shooterMotor.set(POWER);
+		intakeMotor.set(POWER);
 	}
 
 	private boolean shooterReady() {
-		if (shooterTimer.hasElapsed(1)) {
+		if (shooterTimer.hasElapsed(SHOOT_TIME)) {
 			return true;
 		}
 		return false;
 	}
 
 	private boolean ballInIntermediate() {
-		if (distSensor.getRange(Unit.kInches) < INCHES_THRESHOLD) {
+		if (color.getProximity() >= PROXIMITY_THRESHOLD) {
 			return true;
 		}
 		return false;
