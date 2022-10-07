@@ -41,6 +41,8 @@ public class TraversalFSM {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax armMotor;
 	private DoubleSolenoid armSolenoid;
+	private CANSparkMax armMotor2;
+	private DoubleSolenoid armSolenoid2;
 	private SparkMaxLimitSwitch armLimitSwitchFirst;
 	private SparkMaxLimitSwitch armLimitSwitchSecond;
 
@@ -58,12 +60,11 @@ public class TraversalFSM {
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		armLimitSwitchFirst =
-		armMotor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchFirst.enableLimitSwitch(true);
-		armLimitSwitchSecond =
-		armMotor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchSecond.enableLimitSwitch(true);
+		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER2,
+			CANSparkMax.MotorType.kBrushless);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
+			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND2,
+			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT2);
 		// Reset state machine
 		reset();
 	}
@@ -88,7 +89,9 @@ public class TraversalFSM {
 		currentState = FSMState.IDLE;
 		armMotor.getEncoder().setPosition(0);
 		cycleCount = 0;
-		armSolenoid.set(Value.kReverse); // reset piston
+		armSolenoid.set(Value.kReverse);
+		armMotor2.getEncoder().setPosition(0);
+		armSolenoid2.set(Value.kReverse); // reset piston
 		updateDashboard(null);
 
 		update(null);
@@ -185,6 +188,7 @@ public class TraversalFSM {
 				}
 				//button is pressed so continue to next state
 				armMotor.getEncoder().setPosition(0);
+				armMotor2.getEncoder().setPosition(0);
 				return FSMState.EXTEND_PARTIAL;
 			case EXTEND_PARTIAL:
 				if (littleExtensionEncoder()) {
@@ -207,9 +211,10 @@ public class TraversalFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
-
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
+		armMotor2.set(0);
+		armSolenoid2.set(Value.kReverse);
 	}
 	/**
 	 * Handle behavior in first retract state.
@@ -220,9 +225,13 @@ public class TraversalFSM {
 	private void handleExtendTotalState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
+		armMotor2.set(ARM_MOTOR_EXTEND_POWER);
+		armSolenoid2.set(Value.kReverse);
 	}
 
 	private void handleIdleMaxExtendedState(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -230,22 +239,28 @@ public class TraversalFSM {
 	private void handleRetractingToMinState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_RETRACT_POWER);
 		armSolenoid.set(Value.kReverse);
+		armMotor.set(ARM_MOTOR_RETRACT_POWER);
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleRestState(TeleopInput input) {
-
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
 
 
 	private void handleExtendPartial(TeleopInput input) {
-
+		armMotor.set(ARM_MOTOR_EXTEND_POWER);
+		armSolenoid.set(Value.kReverse);
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kReverse);
 	}
 
 	private void handleStaticHang(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 	}
@@ -271,11 +286,14 @@ public class TraversalFSM {
 			SmartDashboard.putBoolean("Climber Button Pressed", input.isClimberButtonPressed());
 		}
 		SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
-		SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
-		SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
+		SmartDashboard.putNumber("Motor Encoder Position", armMotor2.getEncoder().getPosition());
+		// SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
+		// SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
 		SmartDashboard.putNumber("Motor Power", armMotor.get());
+		SmartDashboard.putNumber("Motor Power", armMotor2.get());
 		SmartDashboard.putString("Current State", currentState + "");
 		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid2.get().equals(Value.kForward));
 	}
 
 }
