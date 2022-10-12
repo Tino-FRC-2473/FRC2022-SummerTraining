@@ -49,7 +49,7 @@ public class FSMSystem {
 	private static final double DEGREES_180 = 180;
 	private static final double DEGREES_270 = 270;
 	private static final double DEGREES_90 = 90;
-	private static final double TURN_THRESHOLD = 4;
+	private static final double TURN_THRESHOLD = 3;
 	private static final double MOVE_THRESHOLD = 2;
 
 	/* ======================== Constructor ======================== */
@@ -313,7 +313,7 @@ public class FSMSystem {
 		// calculates distance
 		double dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
 		// System.out.println("dist: " + dist);
-		System.out.print("(" + roboX + "," + roboYPos + ")");
+		System.out.println("curX: " + roboX + " curY: " + roboYPos);
 		System.out.println("x " + x + "y " + y);
 
 		// fix threshold errors
@@ -390,17 +390,16 @@ public class FSMSystem {
 			angle += DEGREES_360;
 		}
 
+		if (angle < 0) {
+			angle -= 5;
+		} else {
+			angle += 5;
+		}
+
 		System.out.println("turn angle hub " + angle);
 
 		// calculate turn amount
 		double turnAmount = angle - currentAngle;
-
-		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
-			turnAmount -= DEGREES_360;
-		}
-
-		// fix threshold errors
-		turnAmount += TURN_THRESHOLD / 2;
 
 		System.out.println("hub turn amount: " + turnAmount);
 
