@@ -41,11 +41,13 @@ public class FSMSystem {
 	private double velocity2 = 0;
 	private int stateCounter = 1;
 
+	private int pointNum = 0;
+	private int n = 0;
+	private double[][] waypoints = new double [2][n];
+
 	private static final double ROBOT_WIDTH = 20;
 	private static final double MOVE_POWER = 0.1;
 	private static final double MOVE_THRESHOLD = 2;
-	private static final double FORWARD = 1;
-	private static final double LEFT = 2;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -156,46 +158,46 @@ public class FSMSystem {
 		switch (currentState) {
 
 			case STATE1:
-				if (stateCounter == FORWARD) {
+				if (stateCounter == 1) {
 					return FSMState.STATE1;
-				} else if (stateCounter == LEFT) {
+				} else if (stateCounter == 2) {
 					return FSMState.STATE2;
-				// } else if (stateCounter == BACKWARD) {
+				// } else if (stateCounter == 3) {
 				// 	return FSMState.STATE3;
-				// } else if (stateCounter == RIGHT) {
+				// } else if (stateCounter == 4) {
 				// 	return FSMState.STATE4;
 				}
 
 			case STATE2:
-				if (stateCounter == FORWARD) {
+				if (stateCounter == 1) {
 					return FSMState.STATE1;
-				} else if (stateCounter == LEFT) {
+				} else if (stateCounter == 2) {
 					return FSMState.STATE2;
-				// } else if (stateCounter == BACKWARD) {
+				// } else if (stateCounter == 3) {
 				// 	return FSMState.STATE3;
-				// } else if (stateCounter == RIGHT) {
+				// } else if (stateCounter == 4) {
 				// 	return FSMState.STATE4;
 				}
 
 			// case STATE3:
-			// 	if (stateCounter == FORWARD) {
+			// 	if (stateCounter == 1) {
 			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == LEFT) {
+			// 	} else if (stateCounter == 2) {
 			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == BACKWARD) {
+			// 	} else if (stateCounter == 3) {
 			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == RIGHT) {
+			// 	} else if (stateCounter == 4) {
 			// 		return FSMState.STATE4;
 			// 	}
 
 			// case STATE4:
-			// 	if (stateCounter == FORWARD) {
+			// 	if (stateCounter == 1) {
 			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == LEFT) {
+			// 	} else if (stateCounter == 2) {
 			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == BACKWARD) {
+			// 	} else if (stateCounter == 3) {
 			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == RIGHT) {
+			// 	} else if (stateCounter == 4) {
 			// 		return FSMState.STATE4;
 			// 	}
 
@@ -220,78 +222,91 @@ public class FSMSystem {
 	 * @param curveDist distance at which robot should start turning
 	 * @param left whether the robot should turn left or right
 	 */
-	public void handlePurePursuit(TeleopInput input, double x, double y, double curveDist, double x1, double y1, double x2, double y2, boolean left) {
+	public void handlePurePursuit(TeleopInput input, double lookAheadDist) {
 
 		if (input != null) {
-			return;
+			return;			
 		}
-
-		System.out.println("t " + turning + " m " + moving);
 
 		double roboX = -roboXPos;
 		double roboY = roboYPos;
-		double deltaX = (x - roboX);
-		double deltaY = (y - roboY);
-		System.out.println("dx " + deltaX + " dy " + deltaY);
-
-
-		// calculates distance
-		double dist;
-		if (moving) {
-			dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
-			System.out.println("dist: " + dist);
-			System.out.println("curX: " + roboX + " curY: " + roboYPos);
-			System.out.println("x " + x + "y " + y);
-
-			// fix threshold errors
-			dist += MOVE_THRESHOLD - curveDist;
-		} else {
-			dist = 0;
-		}
-
-		// calculates turn velocity
-		double velocity1 = 0;
-		if (turning) {
-			double c = Math.sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1));
-			double cosTheta = (c*c -2*curveDist*curveDist) / (-2*curveDist*curveDist);
-			double theta = Math.abs(Math.acos(cosTheta));
-			velocity1 = velocity2 * ((curveDist * Math.tan(theta / 2) - ROBOT_WIDTH / 2) / (curveDist * Math.tan(theta / 2) + ROBOT_WIDTH / 2));
-		}
-
-		// complete or not
-		if (dist > MOVE_THRESHOLD) {
-			moving = false;
-		 } else if (Math.abs(x2 - roboX) <= MOVE_THRESHOLD && Math.abs(y2 - roboY) <= MOVE_THRESHOLD) {
-			turning = false;
-		} else {
-			turning = true;
-			moving = true;
-		}
-
-		// set motor power
-		if (turning) {
-			System.out.println("turning");
-			if (left) {
-				leftMotor.set(velocity1 / 7.95867322835);
-				rightMotor.set(velocity2 / 7.95867322835);
-			} else if (!left) {
-				leftMotor.set(velocity2 / 7.95867322835);
-				rightMotor.set(velocity1 / 7.95867322835);
-			}
-		} else  if (moving) { 
-			System.out.println("moving");
-			leftMotor.set(-MOVE_POWER);
-			rightMotor.set(MOVE_POWER);
-		} else if (!turning && !moving) {
-			leftMotor.set(0);
-			rightMotor.set(0);
-			System.out.println("STOP");
-			turning = true;
-			moving = true;
-			stateCounter++;
-		}
-
+		double goalX = waypoints[0][pointNum];
+		double goalY = waypoints[2][pointNum];
+		
 	}
+	// public void handlePurePursuit(TeleopInput input, double x, double y, double curveDist, double x1, double y1, double x2, double y2, boolean left) {
+
+	// 	if (input != null) {
+	// 		return;
+	// 	}
+		
+
+	// 	System.out.println("t " + turning + " m " + moving);
+
+	// 	double roboX = -roboXPos;
+	// 	double roboY = roboYPos;
+	// 	double deltaX = (x - roboX);
+	// 	double deltaY = (y - roboY);
+	// 	System.out.println("dx " + deltaX + " dy " + deltaY);
+
+
+	// 	// calculates distance
+	// 	double dist;
+	// 	if (moving) {
+	// 		dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
+	// 		System.out.println("dist: " + dist);
+	// 		System.out.println("curX: " + roboX + " curY: " + roboYPos);
+	// 		System.out.println("x " + x + "y " + y);
+
+	// 		// fix threshold errors
+	// 		dist += MOVE_THRESHOLD - curveDist;
+	// 	} else {
+	// 		dist = 0;
+	// 	}
+
+	// 	// calculates turn velocity
+	// 	double velocity1 = 0;
+	// 	if (turning) {
+	// 		double c = Math.sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1));
+	// 		double cosTheta = (c*c -2*curveDist*curveDist) / (-2*curveDist*curveDist);
+	// 		double theta = Math.abs(Math.acos(cosTheta));
+	// 		velocity1 = velocity2 * ((curveDist * Math.tan(theta / 2) - ROBOT_WIDTH / 2) / (curveDist * Math.tan(theta / 2) + ROBOT_WIDTH / 2));
+	// 	}
+
+	// 	// complete or not
+	// 	if (dist > MOVE_THRESHOLD) {
+	// 		moving = false;
+	// 	 } else if (Math.abs(x2 - roboX) <= MOVE_THRESHOLD && Math.abs(y2 - roboY) <= MOVE_THRESHOLD) {
+	// 		turning = false;
+	// 	} else {
+	// 		turning = true;
+	// 		moving = true;
+	// 	}
+
+	// 	// set motor power
+	// 	if (turning) {
+	// 		System.out.println("turning");
+	// 		if (left) {
+	// 			leftMotor.set(velocity1 / 7.95867322835);
+	// 			rightMotor.set(velocity2 / 7.95867322835);
+	// 		} else if (!left) {
+	// 			leftMotor.set(velocity2 / 7.95867322835);
+	// 			rightMotor.set(velocity1 / 7.95867322835);
+	// 		}
+	// 	} else  if (moving) { 
+	// 		System.out.println("moving");
+	// 		leftMotor.set(-MOVE_POWER);
+	// 		rightMotor.set(MOVE_POWER);
+	// 	} else if (!turning && !moving) {
+	// 		leftMotor.set(0);
+	// 		rightMotor.set(0);
+	// 		System.out.println("STOP");
+	// 		turning = true;
+	// 		moving = true;
+	// 		stateCounter++;
+	// 	}
+
+	// }
 
 	/**
 	 * Tracks the robo's position on the field.
