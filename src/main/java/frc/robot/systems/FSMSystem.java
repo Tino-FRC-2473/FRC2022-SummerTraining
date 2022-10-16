@@ -3,9 +3,6 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import edu.wpi.first.wpilibj.SPI;
 import com.revrobotics.CANSparkMax;
-
-import java.util.Arrays;
-
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
@@ -18,7 +15,11 @@ public class FSMSystem {
 
 	// FSM state definitions
 	public enum FSMState {
-		PURE_PERSUIT;
+		P1,
+		// P2,
+		// P3,
+		// P4,
+		TURN_TO_HUB;
 	}
 
 	/* ======================== Private variables ======================== */
@@ -36,17 +37,20 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
+	private boolean turning = true;
+	private boolean moving = true;
+	private boolean complete = false;
 	private int stateCounter = 1;
-	private int partitions = 8; // should be even
-	private double[][] waypoints = new double[2][partitions + 1];
-	private int target = 0;
-	private double innerVelocity = 0; // in/s
-	private double outerVelocity = 2; // in/s
-	private int pointNum = 0;
-	private double lookAheadDistance = 10;
-	private boolean firstRun = true;
 
-	private static final double ROBOT_WIDTH = 20;
+	//private static final double START_ANGLE = -19.938;
+	private static final double TURN_POWER = 0.05;
+	private static final double MOVE_POWER = 0.1;
+	private static final double DEGREES_360 = 360;
+	private static final double DEGREES_180 = 180;
+	private static final double DEGREES_270 = 270;
+	private static final double DEGREES_90 = 90;
+	private static final double TURN_THRESHOLD = 3;
+	private static final double MOVE_THRESHOLD = 2;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -94,11 +98,11 @@ public class FSMSystem {
 		gyro.zeroYaw();
 		gyroAngleForOdo = 0;
 
-		currentState = FSMState.PURE_PERSUIT;
+		currentState = FSMState.P1;
 
 		roboXPos = 0;
 		roboYPos = 0;
-		System.out.println(roboXPos + " " + roboYPos);
+		//System.out.println(roboXPos + " " + roboYPos);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -121,10 +125,25 @@ public class FSMSystem {
 
 		switch (currentState) {
 
-			case PURE_PERSUIT:
-				handlePurePursuit(input, 0, 0, 20, 0, 30, 20, 0);
+			case P1:
+				goToPos(input, 117.047, 0);
 				break;
 
+			// case P2:
+			// 	goToPos(input, 117.047, -31.623);
+			// 	break;
+
+			// case P3:
+			// 	goToPos(input, 56.814, 117.516);
+			// 	break;
+
+			// case P4:
+			// 	goToPos(input, 0, 0);
+			// 	break;	
+
+			case TURN_TO_HUB:
+				turnToHub(input);
+				break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -145,9 +164,89 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 
-			case PURE_PERSUIT:
+			case P1:
 				if (stateCounter == 1) {
-					return FSMState.PURE_PERSUIT;
+					return FSMState.P1;
+				} else if (stateCounter == 2) {
+					return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
+				}
+
+			// case P2:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P3:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P4:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			case TURN_TO_HUB:
+				if (stateCounter == 1) {
+					return FSMState.P1;
+				} else if (stateCounter == 2) {
+					return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
 				}
 
 			default:
@@ -161,93 +260,164 @@ public class FSMSystem {
 	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
+	 * @param x go to x position
+	 * @param y go to y position
 	 */
-	public void handlePurePursuit(TeleopInput input, double x1, double y1, double mx, double my, double x2, double y2, int dir) {
+	public void goToPos(TeleopInput input, double x, double y) {
 
 		if (input != null) {
-			return;			
+			return;
 		}
+
+		System.out.println("t " + turning + " m " + moving);
 
 		double roboX = -roboXPos;
 		double roboY = roboYPos;
-		double currentAngle = (-gyro.getAngle()) % 360;
-		
-		if (firstRun) {
-			calculateWaypoints(x1, y1, mx, my, x2, y2);
-			firstRun = false;
+		double deltaX = (x - roboX);
+		double deltaY = (y - roboY);
+		if (deltaX > -1 && deltaX < 1) deltaX = 0;
+		if (deltaY > -1 && deltaY < 1) deltaY = 0;
+		System.out.println("dx " + deltaX + " dy " + deltaY);
+
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
+
+		// calculates turn angle
+		double angle;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
+		} else {
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
 		}
 
-		if (target != findTargetPoint(roboX, roboY)) { // when there is a new target point
-
-			if (target == -1) resetPurePursuitProperties(8, 10, 0);
-
-			pointNum++; // robot has advanced to a new point
-			target = findTargetPoint(roboX, roboY);
-			innerVelocity = calculateInnerCurveVelocity(currentAngle, roboX, roboY, waypoints[0][target], waypoints[1][target], outerVelocity);
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		} if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
 		}
 
-		// set motor powers (note: velcoties must be between [-7.9, +7.9])
-		if (dir == 0) { // turning left
-			leftMotor.set(innerVelocity / 7.95867322835);
-			rightMotor.set(outerVelocity / 7.95867322835);
-		} else if (dir == 1) { // turning right
-			leftMotor.set(outerVelocity / 7.95867322835);
-			rightMotor.set(innerVelocity / 7.95867322835);
-		}
-	}
+		System.out.println("turn angle " + angle);
 
-	public void calculateWaypoints(double x1, double y1, double mx, double my, double x2, double y2) {
-		double dx1 = 2 * (mx - x1) / partitions;
-		double dy1 = 2 * (my - y1) / partitions;
-		for (int i = 0; i <= partitions / 2; i++) {
-			waypoints[0][i] = x1 + i * dx1;
-			waypoints[1][i] = y1 + i * dy1;
-		}
-		double dx2 = 2 * (x2 - mx) / partitions;
-		double dy2 = 2 * (y2 - my) / partitions;
-		for (int i = partitions / 2 + 1; i <= partitions; i++) {
-			waypoints[0][i] = mx + (i - partitions / 2) * dx2;
-			waypoints[1][i] = my + (i - partitions / 2) * dy2;
-		}
-		System.out.println(Arrays.deepToString(waypoints));
-	}
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
 
-	public int findTargetPoint(double x, double y) {
-		double closestDist = 1000000;
-		int target = -1; // index of target point
-		for (int i = pointNum; i < waypoints[0].length; i++) {
-			double dist = Math.hypot(waypoints[0][i] - x, waypoints[1][i] - y); // distance between current pos and potential target point
-			if (Math.abs(lookAheadDistance - dist) <= closestDist) {
-				closestDist = Math.abs(lookAheadDistance - dist);
-				target = i;
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
+
+		System.out.println("turn amount: " + turnAmount);
+
+		// calculates distance
+		double dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
+		// System.out.println("dist: " + dist);
+		System.out.println("curX: " + roboX + " curY: " + roboYPos);
+		System.out.println("x " + x + "y " + y);
+
+		// fix threshold errors
+		dist += MOVE_THRESHOLD / 2;
+		turnAmount += TURN_THRESHOLD / 2;
+
+		// set motor power
+		if ((turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) && !complete && turning) {
+			System.out.println("turning");
+			if (turnAmount > 0) {
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
 			}
+		} else  if (dist > MOVE_THRESHOLD && !complete && moving) { 
+			System.out.println("moving");
+			leftMotor.set(-MOVE_POWER);
+			rightMotor.set(MOVE_POWER);
+		} else if (!complete) {
+			leftMotor.set(0);
+			rightMotor.set(0);
+			System.out.println("STOP");
+			complete = true;
+			turning = true;
+			moving = true;
+			stateCounter++;
 		}
-		System.out.println(target);
-		return target;
+
+		// complete or not
+		if (((Math.abs(roboY) > Math.abs(y) + Math.abs(deltaX) / 2 || Math.abs(roboX) > Math.abs(x) + Math.abs(deltaY) / 2)) && !complete) {
+			moving = false;
+			//System.out.println("HERE");
+		} else if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD)) {
+			complete = false;
+		} else if (dist > MOVE_THRESHOLD) {
+			complete = false;
+			turning = false;
+		} else {
+			complete = true;
+			turning = true;
+			moving = true;
+		}
 	}
 
-	public double calculateInnerCurveVelocity(double startAngle, double x1, double y1, double x2, double y2, double outerVelocity) {
-		double theta = Math.atan2(y2 - y1, x2 - x1) - startAngle;
-		if (theta == 0) return outerVelocity; // innerVelocity = outerVelocity (going straight)
+	public void turnToHub(TeleopInput input) {
 
-		double radius = Math.tan(theta) * Math.hypot(y2 - y1, x2 - x1) + (1 / Math.tan(theta)) * Math.hypot(y2 - y1, x2 - x1);
-		double innerS = 2 * theta * (radius - ROBOT_WIDTH); // inner curve length
-		double outerS = 2 * theta * (radius + ROBOT_WIDTH); // outer curve length
-		double innerVelocity = outerVelocity * (innerS/outerS); // (ensures that inner velcoity must be <= outer velocity)
-		System.out.println(innerVelocity);
-		return innerVelocity;
-	}
+		double roboX = -roboXPos;
+		double roboY = roboYPos;
+		double deltaX = (-roboX);
+		double deltaY = (-roboY);
+		if (deltaX > -1 && deltaX < 1) deltaX = 0;
+		if (deltaY > -1 && deltaY < 1) deltaY = 0;
+		//System.out.println("dx " + deltaX + " dy " + deltaY);
 
-	public void resetPurePursuitProperties(int partitions, double lookAheadDistance, double outerVelocity) {
-		this.partitions = partitions; // should be even
-		waypoints = new double[2][partitions + 1];
-		this.lookAheadDistance = lookAheadDistance;
-		target = 0;
-		pointNum = 0;
-		innerVelocity = 0; // in/s
-		this.outerVelocity = outerVelocity; // in/s
-		firstRun = true;
-		stateCounter++;
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
+
+		// calculates turn angle
+		double angle;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
+		} else {
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
+		}
+
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		} if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
+		}
+
+		if (angle < 0) {
+			angle -= 5;
+		} else {
+			angle += 5;
+		}
+
+		System.out.println("turn angle hub " + angle);
+
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
+
+		System.out.println("hub turn amount: " + turnAmount);
+
+		if (turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) {
+			System.out.println("turning to hub");
+			if (turnAmount > 0) {
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
+			}
+		} else {
+			System.out.println("STOP");
+			leftMotor.set(0);
+			rightMotor.set(0);
+			stateCounter++;
+		}
 	}
 
 	/**
