@@ -3,6 +3,9 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import edu.wpi.first.wpilibj.SPI;
 import com.revrobotics.CANSparkMax;
+
+import java.util.Arrays;
+
 import com.kauailabs.navx.frc.AHRS;
 
 // Robot Imports
@@ -15,10 +18,7 @@ public class FSMSystem {
 
 	// FSM state definitions
 	public enum FSMState {
-		STATE1,
-		STATE2,
-		// STATE3,
-		// STATE4;
+		PURE_PERSUIT;
 	}
 
 	/* ======================== Private variables ======================== */
@@ -36,18 +36,17 @@ public class FSMSystem {
 	private double gyroAngleForOdo = 0;
 	private AHRS gyro;
 
-	private boolean turning = true;
-	private boolean moving = true;
-	private double velocity2 = 0;
 	private int stateCounter = 1;
-
+	private int partitions = 8; // should be even
+	private double[][] waypoints = new double[2][partitions + 1];
+	private int target = 0;
+	private double innerVelocity = 0; // in/s
+	private double outerVelocity = 2; // in/s
 	private int pointNum = 0;
-	private int n = 0;
-	private double[][] waypoints = new double [2][n];
+	private double lookAheadDistance = 10;
+	private boolean firstRun = true;
 
 	private static final double ROBOT_WIDTH = 20;
-	private static final double MOVE_POWER = 0.1;
-	private static final double MOVE_THRESHOLD = 2;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -95,7 +94,7 @@ public class FSMSystem {
 		gyro.zeroYaw();
 		gyroAngleForOdo = 0;
 
-		currentState = FSMState.STATE1;
+		currentState = FSMState.PURE_PERSUIT;
 
 		roboXPos = 0;
 		roboYPos = 0;
@@ -122,21 +121,10 @@ public class FSMSystem {
 
 		switch (currentState) {
 
-			case STATE1:
-				handlePurePursuit(input, 60.0, 0.0, 20.0, 40.0, 0.0, 60.0, 20.0, true);
+			case PURE_PERSUIT:
+				handlePurePursuit(input, 0, 0, 20, 0, 30, 20, 0);
 				break;
 
-			// case STATE2:
-			// 	handlePurePursuit(input, 60, 20);
-			// 	break;
-
-			// case STATE3:
-			// 	handlePurePersuit(input, 0, DIST);
-			// 	break;
-
-			// case STATE4:
-			// 	handlePurePersuit(input, 0, 0);
-			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -157,49 +145,10 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 
-			case STATE1:
+			case PURE_PERSUIT:
 				if (stateCounter == 1) {
-					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
-					return FSMState.STATE2;
-				// } else if (stateCounter == 3) {
-				// 	return FSMState.STATE3;
-				// } else if (stateCounter == 4) {
-				// 	return FSMState.STATE4;
+					return FSMState.PURE_PERSUIT;
 				}
-
-			case STATE2:
-				if (stateCounter == 1) {
-					return FSMState.STATE1;
-				} else if (stateCounter == 2) {
-					return FSMState.STATE2;
-				// } else if (stateCounter == 3) {
-				// 	return FSMState.STATE3;
-				// } else if (stateCounter == 4) {
-				// 	return FSMState.STATE4;
-				}
-
-			// case STATE3:
-			// 	if (stateCounter == 1) {
-			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == 2) {
-			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == 3) {
-			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == 4) {
-			// 		return FSMState.STATE4;
-			// 	}
-
-			// case STATE4:
-			// 	if (stateCounter == 1) {
-			// 		return FSMState.STATE1;
-			// 	} else if (stateCounter == 2) {
-			// 		return FSMState.STATE2;
-			// 	} else if (stateCounter == 3) {
-			// 		return FSMState.STATE3;
-			// 	} else if (stateCounter == 4) {
-			// 		return FSMState.STATE4;
-			// 	}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -212,17 +161,8 @@ public class FSMSystem {
 	 * Handle behavior in PURE_PERSUIT.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
-	 * @param x go to x position
-	 * @param y go to y position
-	 * @param v2 velocity of the wheel that is making the larger turn
-	 * @param x1 x position on line 1 curveDist away from the interestion
-	 * @param y1 y position on line 1 curveDist away from the interestion
-	 * @param x2 x position on line 2 curveDist away from the interestion
-	 * @param y2 y position on line 3 curveDist away from the interestion
-	 * @param curveDist distance at which robot should start turning
-	 * @param left whether the robot should turn left or right
 	 */
-	public void handlePurePursuit(TeleopInput input, double lookAheadDist) {
+	public void handlePurePursuit(TeleopInput input, double x1, double y1, double mx, double my, double x2, double y2, int dir) {
 
 		if (input != null) {
 			return;			
@@ -230,83 +170,85 @@ public class FSMSystem {
 
 		double roboX = -roboXPos;
 		double roboY = roboYPos;
-		double goalX = waypoints[0][pointNum];
-		double goalY = waypoints[2][pointNum];
+		double currentAngle = (-gyro.getAngle()) % 360;
 		
+		if (firstRun) {
+			calculateWaypoints(x1, y1, mx, my, x2, y2);
+			firstRun = false;
+		}
+
+		if (target != findTargetPoint(roboX, roboY)) { // when there is a new target point
+
+			if (target == -1) resetPurePursuitProperties(8, 10, 0);
+
+			pointNum++; // robot has advanced to a new point
+			target = findTargetPoint(roboX, roboY);
+			innerVelocity = calculateInnerCurveVelocity(currentAngle, roboX, roboY, waypoints[0][target], waypoints[1][target], outerVelocity);
+		}
+
+		// set motor powers (note: velcoties must be between [-7.9, +7.9])
+		if (dir == 0) { // turning left
+			leftMotor.set(innerVelocity / 7.95867322835);
+			rightMotor.set(outerVelocity / 7.95867322835);
+		} else if (dir == 1) { // turning right
+			leftMotor.set(outerVelocity / 7.95867322835);
+			rightMotor.set(innerVelocity / 7.95867322835);
+		}
 	}
-	// public void handlePurePursuit(TeleopInput input, double x, double y, double curveDist, double x1, double y1, double x2, double y2, boolean left) {
 
-	// 	if (input != null) {
-	// 		return;
-	// 	}
-		
+	public void calculateWaypoints(double x1, double y1, double mx, double my, double x2, double y2) {
+		double dx1 = 2 * (mx - x1) / partitions;
+		double dy1 = 2 * (my - y1) / partitions;
+		for (int i = 0; i <= partitions / 2; i++) {
+			waypoints[0][i] = x1 + i * dx1;
+			waypoints[1][i] = y1 + i * dy1;
+		}
+		double dx2 = 2 * (x2 - mx) / partitions;
+		double dy2 = 2 * (y2 - my) / partitions;
+		for (int i = partitions / 2 + 1; i <= partitions; i++) {
+			waypoints[0][i] = mx + (i - partitions / 2) * dx2;
+			waypoints[1][i] = my + (i - partitions / 2) * dy2;
+		}
+		System.out.println(Arrays.deepToString(waypoints));
+	}
 
-	// 	System.out.println("t " + turning + " m " + moving);
+	public int findTargetPoint(double x, double y) {
+		double closestDist = 1000000;
+		int target = -1; // index of target point
+		for (int i = pointNum; i < waypoints[0].length; i++) {
+			double dist = Math.hypot(waypoints[0][i] - x, waypoints[1][i] - y); // distance between current pos and potential target point
+			if (Math.abs(lookAheadDistance - dist) <= closestDist) {
+				closestDist = Math.abs(lookAheadDistance - dist);
+				target = i;
+			}
+		}
+		System.out.println(target);
+		return target;
+	}
 
-	// 	double roboX = -roboXPos;
-	// 	double roboY = roboYPos;
-	// 	double deltaX = (x - roboX);
-	// 	double deltaY = (y - roboY);
-	// 	System.out.println("dx " + deltaX + " dy " + deltaY);
+	public double calculateInnerCurveVelocity(double startAngle, double x1, double y1, double x2, double y2, double outerVelocity) {
+		double theta = Math.atan2(y2 - y1, x2 - x1) - startAngle;
+		if (theta == 0) return outerVelocity; // innerVelocity = outerVelocity (going straight)
 
+		double radius = Math.tan(theta) * Math.hypot(y2 - y1, x2 - x1) + (1 / Math.tan(theta)) * Math.hypot(y2 - y1, x2 - x1);
+		double innerS = 2 * theta * (radius - ROBOT_WIDTH); // inner curve length
+		double outerS = 2 * theta * (radius + ROBOT_WIDTH); // outer curve length
+		double innerVelocity = outerVelocity * (innerS/outerS); // (ensures that inner velcoity must be <= outer velocity)
+		System.out.println(innerVelocity);
+		return innerVelocity;
+	}
 
-	// 	// calculates distance
-	// 	double dist;
-	// 	if (moving) {
-	// 		dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
-	// 		System.out.println("dist: " + dist);
-	// 		System.out.println("curX: " + roboX + " curY: " + roboYPos);
-	// 		System.out.println("x " + x + "y " + y);
-
-	// 		// fix threshold errors
-	// 		dist += MOVE_THRESHOLD - curveDist;
-	// 	} else {
-	// 		dist = 0;
-	// 	}
-
-	// 	// calculates turn velocity
-	// 	double velocity1 = 0;
-	// 	if (turning) {
-	// 		double c = Math.sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1));
-	// 		double cosTheta = (c*c -2*curveDist*curveDist) / (-2*curveDist*curveDist);
-	// 		double theta = Math.abs(Math.acos(cosTheta));
-	// 		velocity1 = velocity2 * ((curveDist * Math.tan(theta / 2) - ROBOT_WIDTH / 2) / (curveDist * Math.tan(theta / 2) + ROBOT_WIDTH / 2));
-	// 	}
-
-	// 	// complete or not
-	// 	if (dist > MOVE_THRESHOLD) {
-	// 		moving = false;
-	// 	 } else if (Math.abs(x2 - roboX) <= MOVE_THRESHOLD && Math.abs(y2 - roboY) <= MOVE_THRESHOLD) {
-	// 		turning = false;
-	// 	} else {
-	// 		turning = true;
-	// 		moving = true;
-	// 	}
-
-	// 	// set motor power
-	// 	if (turning) {
-	// 		System.out.println("turning");
-	// 		if (left) {
-	// 			leftMotor.set(velocity1 / 7.95867322835);
-	// 			rightMotor.set(velocity2 / 7.95867322835);
-	// 		} else if (!left) {
-	// 			leftMotor.set(velocity2 / 7.95867322835);
-	// 			rightMotor.set(velocity1 / 7.95867322835);
-	// 		}
-	// 	} else  if (moving) { 
-	// 		System.out.println("moving");
-	// 		leftMotor.set(-MOVE_POWER);
-	// 		rightMotor.set(MOVE_POWER);
-	// 	} else if (!turning && !moving) {
-	// 		leftMotor.set(0);
-	// 		rightMotor.set(0);
-	// 		System.out.println("STOP");
-	// 		turning = true;
-	// 		moving = true;
-	// 		stateCounter++;
-	// 	}
-
-	// }
+	public void resetPurePursuitProperties(int partitions, double lookAheadDistance, double outerVelocity) {
+		this.partitions = partitions; // should be even
+		waypoints = new double[2][partitions + 1];
+		this.lookAheadDistance = lookAheadDistance;
+		target = 0;
+		pointNum = 0;
+		innerVelocity = 0; // in/s
+		this.outerVelocity = outerVelocity; // in/s
+		firstRun = true;
+		stateCounter++;
+	}
 
 	/**
 	 * Tracks the robo's position on the field.
