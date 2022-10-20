@@ -7,7 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 // Systems
-import frc.robot.systems.FSMSystem;
+import frc.robot.systems.DriveFSMSystem;
+import frc.robot.systems.CompressorSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,8 +18,9 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private FSMSystem fsmSystem;
-	private LimeLight limelight;
+	private DriveFSMSystem fsmSystem;
+
+	private static final boolean RUN_COMPRESSOR = true;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -30,15 +32,15 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new FSMSystem();
-		limelight = new LimeLight();
-		limelight.setOffLimelight();
+		fsmSystem = new DriveFSMSystem();
+
+		new CompressorSystem(RUN_COMPRESSOR);
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		fsmSystem.reset();
+		fsmSystem.resetAutonomous();
 	}
 
 	@Override
@@ -49,14 +51,12 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		fsmSystem.reset();
-		limelight.update();
+		fsmSystem.resetTeleop();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		fsmSystem.update(input);
-		limelight.update();
 	}
 
 	@Override

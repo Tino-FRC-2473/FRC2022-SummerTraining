@@ -3,6 +3,8 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.SPI;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -10,13 +12,12 @@ import com.kauailabs.navx.frc.AHRS;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import frc.robot.LimeLight;
 import frc.robot.drive.DriveModes;
 import frc.robot.drive.DrivePower;
 import frc.robot.drive.Functions;
 import frc.robot.Constants;
 
-public class Drive {
+public class DriveFSMSystem {
 
 
 	// FSM state definitions
@@ -25,7 +26,12 @@ public class Drive {
 		TELE_STATE_MECANUM,
 		PURE_PURSUIT,
 		TURNING_STATE,
-		IDLE
+		IDLE,
+		P1,
+		// P2,
+		// P3,
+		// P4,
+		// TURN_TO_HUB
 	}
 
 	/* ======================== Private variables ======================== */
@@ -35,11 +41,28 @@ public class Drive {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
+
+	private CANSparkMax intakeMotor;
+	private CANSparkMax leftMoverMotor;
+	private CANSparkMax rightMoverMotor;
+
+	private CANSparkMax shooterFeederMotor;
+	private CANSparkMax shooterShooterMotor;
+
+	private CANSparkMax climberLeftMotor;
+	private CANSparkMax climberRightMotor;
+
+	private DoubleSolenoid intakeDeploySolenoid;
+
+	private DoubleSolenoid solenoidNotUsed1;
+	private DoubleSolenoid solenoidNotUsed2;
+
 	private double leftPower;
 	private double rightPower;
-	private LimeLight limelight;
 
 	private boolean finishedTurning;
+
+	private boolean toggle = false;
 
 	// private CANSparkMax bottomLeftMotorMecanum;
 	// private CANSparkMax bottomRightMotorMecanum;
@@ -61,6 +84,22 @@ public class Drive {
 	private AHRS gyro;
 	private double startAngle;
 
+	// AUTO Constants
+	private boolean turning = true;
+	private boolean moving = true;
+	private boolean complete = false;
+	private int stateCounter = 1;
+
+	//private static final double START_ANGLE = -19.938;
+	private static final double TURN_POWER = 0.1;
+	private static final double MOVE_POWER = 0.4;
+	private static final double DEGREES_360 = 360;
+	private static final double DEGREES_180 = 180;
+	private static final double DEGREES_270 = 270;
+	private static final double DEGREES_90 = 90;
+	private static final double TURN_THRESHOLD = 4;
+	private static final double MOVE_THRESHOLD = 2;
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -68,17 +107,49 @@ public class Drive {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public Drive() {
+	public DriveFSMSystem() {
 		// Perform hardware init
 		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
 										CANSparkMax.MotorType.kBrushless);
 		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
 
+		intakeMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTAKE,
+										CANSparkMax.MotorType.kBrushless);
+
+		leftMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_LEFT_MOVE,
+										CANSparkMax.MotorType.kBrushless);
+
+		rightMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_RIGHT_MOVE,
+										CANSparkMax.MotorType.kBrushless);
+
+		shooterFeederMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_TRANSFERER,
+										CANSparkMax.MotorType.kBrushless);
+
+		shooterShooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_SHOOT,
+										CANSparkMax.MotorType.kBrushed);
+
+		intakeDeploySolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_EXTEND,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_RETRACT);
+
+		solenoidNotUsed1 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_1,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_2);
+
+		solenoidNotUsed2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_3,
+										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_4);
+
+		climberLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER_SUCKS,
+										CANSparkMax.MotorType.kBrushless);
+
+		climberRightMotor = new CANSparkMax(10,
+										CANSparkMax.MotorType.kBrushless);
+
 		leftPower = 0;
 		rightPower = 0;
 
-		limelight = new LimeLight();
 
 		finishedTurning = false;
 
@@ -95,7 +166,7 @@ public class Drive {
 		startAngle = 0;
 
 		// Reset state machine
-		reset();
+		resetAutonomous();
 
 	}
 
@@ -116,7 +187,7 @@ public class Drive {
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
-	public void reset() {
+	public void resetAutonomous() {
 
 		// bottomLeftMotorMecanum.set(0);
 		// bottomRightMotorMecanum.set(0);
@@ -128,6 +199,32 @@ public class Drive {
 
 		gyro.reset();
 		gyro.zeroYaw();
+		gyroAngleForOdo = 0;
+
+		currentState = FSMState.P1;
+
+		roboXPos = 0;
+		roboYPos = 0;
+
+		// Call one tick of update to ensure outputs reflect start state
+		update(null);
+	}
+	/**
+	 * A.
+	 */
+	public void resetTeleop() {
+
+		// bottomLeftMotorMecanum.set(0);
+		// bottomRightMotorMecanum.set(0);
+		// topLeftMotorMecanum.set(0);
+		// topRightMotorMecanum.set(0);
+
+		rightMotor.getEncoder().setPosition(0);
+		leftMotor.getEncoder().setPosition(0);
+
+		gyro.reset();
+		gyro.zeroYaw();
+		gyroAngleForOdo = 0;
 
 		currentState = FSMState.TELE_STATE_2_MOTOR_DRIVE;
 
@@ -148,6 +245,11 @@ public class Drive {
 
 		gyroAngleForOdo = gyro.getAngle();
 
+		currentEncoderPos = ((leftMotor.getEncoder().getPosition()
+			- rightMotor.getEncoder().getPosition()) / 2.0);
+
+		updateLineOdometryTele(gyro.getAngle());
+
 		switch (currentState) {
 			case TELE_STATE_2_MOTOR_DRIVE:
 				handleTeleOp2MotorState(input);
@@ -157,13 +259,33 @@ public class Drive {
 			// 	handleTeleOpMecanum(input);
 			// 	break;
 
-			case TURNING_STATE:
-				handleTurnState(input, 90);
-				break;
+			// case TURNING_STATE:
+			// 	handleTurnState(input, 90);
+			// 	break;
 
 			case IDLE:
 				handleIdleState(input);
 				break;
+
+			case P1:
+				goToPos(input, 117.047, 0);
+				break;
+
+			// case P2:
+			// 	goToPos(input, 117.047, -31.623);
+			// 	break;
+
+			// case P3:
+			// 	goToPos(input, 56.814, 117.516);
+			// 	break;
+
+			// case P4:
+			// 	goToPos(input, 0, 0);
+			// 	break;
+
+			// case TURN_TO_HUB:
+			// 	turnToHub(input);
+			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -200,6 +322,94 @@ public class Drive {
 
 			case IDLE:
 				return FSMState.IDLE;
+
+			case P1:
+				if (stateCounter == 1) {
+					return FSMState.P1;
+				} else if (stateCounter == 2) {
+					return FSMState.TELE_STATE_2_MOTOR_DRIVE;
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
+				}
+
+			// case P2:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P3:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case P4:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.P2;
+			// 	} else if (stateCounter == 4) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 5) {
+			// 		return FSMState.P3;
+			// 	} else if (stateCounter == 6) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 7) {
+			// 		return FSMState.P4;
+			// 	}
+
+			// case TURN_TO_HUB:
+			// 	if (stateCounter == 1) {
+			// 		return FSMState.P1;
+			// 	} else if (stateCounter == 2) {
+			// 		return FSMState.TURN_TO_HUB;
+			// 	} else if (stateCounter == 3) {
+			// 		return FSMState.TELE_STATE_2_MOTOR_DRIVE;
+			// 	}
+				// } else if (stateCounter == 3) {
+				// 	return FSMState.P2;
+				// } else if (stateCounter == 4) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 5) {
+				// 	return FSMState.P3;
+				// } else if (stateCounter == 6) {
+				// 	return FSMState.TURN_TO_HUB;
+				// } else if (stateCounter == 7) {
+				// 	return FSMState.P4;
+
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -260,10 +470,90 @@ public class Drive {
 			rightPower = power.getRightPower();
 
 
+			// if (input.isIntakeButtonPressed()) {
+			// 	intakeDeploySolenoid.set(DoubleSolenoid.Value.kForward);
+			// 	intakeMotor.set(0.8);
+			// } else {
+			// 	intakeDeploySolenoid.set(DoubleSolenoid.Value.kReverse);
+			// 	intakeMotor.set(0);
+			// }
+
+			// if (toggle) {
+			// 	intakeDeploySolenoid.set(DoubleSolenoid.Value.kForward);
+
+			// 	intakeMotor.set(0.8);
+			// 	// leftMoverMotor.set(-0.2);
+			// 	// rightMoverMotor.set(0.2);
+			// } else {
+			// 	intakeDeploySolenoid.set(DoubleSolenoid.Value.kReverse);
+			// 	intakeMotor.set(0);
+			// 	// leftMoverMotor.set(0);
+			// 	// rightMoverMotor.set(0);
+			// }
+
+			// Intake Code: OG (Mayand)
+			if (input.isIntakeButtonPressed()) {
+				intakeDeploySolenoid.set(DoubleSolenoid.Value.kForward);
+
+				intakeMotor.set(0.8);
+				leftMoverMotor.set(-0.4);
+				rightMoverMotor.set(0.4);
+			} else {
+				intakeDeploySolenoid.set(DoubleSolenoid.Value.kReverse);
+				intakeMotor.set(0);
+				leftMoverMotor.set(0);
+				rightMoverMotor.set(0);
+			}
+
+			if (input.isShootButtonPressed()) {
+				leftMoverMotor.set(-0.2);
+				rightMoverMotor.set(0.2);
+
+
+				shooterShooterMotor.set(-0.9);
+				shooterFeederMotor.set(0.6);
+			} else {
+
+				leftMoverMotor.set(0);
+				rightMoverMotor.set(0);
+
+				shooterShooterMotor.set(0);
+				shooterFeederMotor.set(0);
+			}
+
 			rightMotor.set(rightPower);
 			leftMotor.set(leftPower);
 
-			System.out.println("distance: " + limelight.getHubDistance());
+			//clinber
+			// if(input.lC()){
+			// 	climberRightMotor.set(-0.4);
+			// 	climberLeftMotor.set(-0.4);
+			// }else if(input.rC()){
+			// 	climberRightMotor.set(0.4);
+			// 	climberLeftMotor.set(0.4 );
+			// }else{
+			// 	climberRightMotor.set(0);
+			// 	climberLeftMotor.set(0);
+			// }
+
+			// rightMotor Edits
+			if (input.rC()) {
+				climberRightMotor.set(0.4);
+			} else if (input.rCC()) {
+				climberRightMotor.set(-0.4);
+			} else {
+				climberRightMotor.set(0);
+			}
+
+			// leftMotor edits
+			if (input.lC()) {
+				climberLeftMotor.set(0.4);
+			} else if (input.lCC()) {
+				climberLeftMotor.set(-0.4);
+			} else {
+				climberLeftMotor.set(0);
+			}
+
 
 
 		} else {
@@ -452,7 +742,7 @@ public class Drive {
 		if (degreesToTurn > 0) {
 			leftMotor.set(power);
 			rightMotor.set(power);
-		} else if(degreesToTurn < 0) {
+		} else if (degreesToTurn < 0) {
 			leftMotor.set(-power);
 			rightMotor.set(-power);
 		} else {
@@ -498,5 +788,185 @@ public class Drive {
 		}
 		return angleDifference;
 	}
+
+	/**
+	 * Handle behavior in PURE_PERSUIT.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 * @param x go to x position
+	 * @param y go to y position
+	 */
+	public void goToPos(TeleopInput input, double x, double y) {
+
+		if (input != null) {
+			return;
+		}
+
+		System.out.println("t " + turning + " m " + moving);
+
+		double roboX = -roboXPos;
+		double roboY = roboYPos;
+		double deltaX = (x - roboX);
+		double deltaY = (y - roboY);
+		if (deltaX > -1 && deltaX < 1) {
+			deltaX = 0;
+		}
+		if (deltaY > -1 && deltaY < 1) {
+			deltaY = 0;
+		}
+		System.out.println("dx " + deltaX + " dy " + deltaY);
+
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
+
+		// calculates turn angle
+		double angle;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
+		} else {
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
+		}
+
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		}
+		if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
+		}
+
+		System.out.println("turn angle " + angle);
+
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
+
+		if (Math.abs(turnAmount - DEGREES_360) < Math.abs(turnAmount)) {
+			turnAmount -= DEGREES_360;
+		}
+
+		System.out.println("turn amount: " + turnAmount);
+
+		// calculates distance
+		double dist = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
+		// System.out.println("dist: " + dist);
+		System.out.print("(" + roboX + "," + roboYPos + ")");
+		System.out.println("x " + x + "y " + y);
+
+		// fix threshold errors
+		dist += MOVE_THRESHOLD / 2;
+		turnAmount += TURN_THRESHOLD / 2;
+
+		// set motor power
+		if ((turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) && !complete && turning) {
+			System.out.println("turning");
+			if (turnAmount > 0) {
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
+			}
+		} else  if (dist > MOVE_THRESHOLD && !complete && moving) {
+			System.out.println("moving");
+			leftMotor.set(-MOVE_POWER);
+			rightMotor.set(MOVE_POWER);
+		} else if (!complete) {
+			leftMotor.set(0);
+			rightMotor.set(0);
+			System.out.println("STOP");
+			complete = true;
+			turning = true;
+			moving = true;
+			stateCounter++;
+		}
+
+		// complete or not
+		if (((Math.abs(roboY) > Math.abs(y) + Math.abs(deltaX) / 2 || Math.abs(roboX) > Math.abs(x) + Math.abs(deltaY) / 2)) && !complete) {
+			moving = false;
+			//System.out.println("HERE");
+		} else if (!(turnAmount >= -TURN_THRESHOLD && turnAmount <= TURN_THRESHOLD)) {
+			complete = false;
+		} else if (dist > MOVE_THRESHOLD) {
+			complete = false;
+			turning = false;
+		} else {
+			complete = true;
+			turning = true;
+			moving = true;
+		}
+	}
+
+	public void turnToHub(TeleopInput input) {
+
+		double roboX = -roboXPos;
+		double roboY = roboYPos;
+		double deltaX = (-roboX);
+		double deltaY = (-roboY);
+		if (deltaX > -1 && deltaX < 1) {
+			deltaX = 0;
+		}
+		if (deltaY > -1 && deltaY < 1) {
+			deltaY = 0;
+		}
+		//System.out.println("dx " + deltaX + " dy " + deltaY);
+
+		// assume unit circle angles (east = 0, positive counterclockwise)
+		double currentAngle = (-gyro.getAngle()) % DEGREES_360;
+		System.out.println("current angle " + currentAngle);
+
+		// calculates turn angle
+		double angle;
+		if (deltaX == 0 && deltaY >= 0) {
+			angle = DEGREES_90;
+		} else if (deltaX == 0 && deltaY < 0) {
+			angle = DEGREES_270;
+		} else {
+			angle = Math.toDegrees(Math.atan(deltaY / deltaX));
+		}
+
+		if (deltaX < 0) {
+			angle += DEGREES_180;
+		}
+		if (deltaX > 0 && deltaY < 0) {
+			angle += DEGREES_360;
+		}
+
+		if (angle < 0) {
+			angle -= 5;
+		} else {
+			angle += 5;
+		}
+
+		System.out.println("turn angle hub " + angle);
+
+		// calculate turn amount
+		double turnAmount = angle - currentAngle;
+
+		System.out.println("hub turn amount: " + turnAmount);
+
+		if (turnAmount < -TURN_THRESHOLD || turnAmount > TURN_THRESHOLD) {
+			System.out.println("turning to hub");
+			if (turnAmount > 0) {
+				leftMotor.set(TURN_POWER);
+				rightMotor.set(TURN_POWER);
+			} else if (turnAmount < 0) {
+				leftMotor.set(-TURN_POWER);
+				rightMotor.set(-TURN_POWER);
+			}
+		} else {
+			System.out.println("STOP");
+			leftMotor.set(0);
+			rightMotor.set(0);
+			stateCounter++;
+		}
+	}
+
+	/**
+	 * Tracks the robo's position on the field.
+	 * @param gyroAngle robot's angle
+	 * @param currentEncoderPos robot's current position
+	 */
 
 }
