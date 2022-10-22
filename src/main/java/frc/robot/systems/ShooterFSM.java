@@ -1,10 +1,13 @@
 package frc.robot.systems;
 
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.I2C.Port;
 // WPILib Imports
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.ColorSensorV3;
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -14,12 +17,12 @@ public class ShooterFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		INIT_STATE,
-		TRANSFER_STATE,
+		NO_BALL_STATE,
+		WAIT_FOR_MOTOR,
+		SHOOTER_READY,
 		SHOOT
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -27,7 +30,14 @@ public class ShooterFSM {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax shooterMotor;
-	private CANSparkMax interMotor;
+	private CANSparkMax transferMotor;
+	private CANSparkMax intakeMotor;
+	private ColorSensorV3 colorSensor;
+	private Timer shooterTimer;
+	//constants
+	private static final double INTAKE_POWER = 0.5;
+	private static final double TRANSFER_POWER = 1;
+	private static final double MOTOR_RUN_POWER = 1;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -39,8 +49,12 @@ public class ShooterFSM {
 		// Perform hardware init
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
-		interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
+		transferMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
 										CANSparkMax.MotorType.kBrushless);
+		intakeMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
+										CANSparkMax.MotorType.kBrushless);
+		colorSensor = new ColorSensorV3(Port.kOnboard);
+		shooterTimer = new Timer();
 		// Reset state machine
 		reset();
 	}
@@ -62,7 +76,10 @@ public class ShooterFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.INIT_STATE;
+		currentState = FSMState.NO_BALL_STATE;
+		shooterMotor.set(0);
+		intakeMotor.set(INTAKE_POWER);
+		transferMotor.set(0);
 		updateDashboard(null);
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -76,12 +93,14 @@ public class ShooterFSM {
 	public void update(TeleopInput input) {
 		updateDashboard(input);
 		switch (currentState) {
-			case INIT_STATE:
-				handleInitState(input);
+			case NO_BALL_STATE:
+				handleNoBallState(input);
 				break;
-
-			case TRANSFER_STATE:
-				handleTransferState(input);
+			case WAIT_FOR_MOTOR:
+				handleWaitForMotorState(input);
+				break;
+			case SHOOTER_READY:
+				handleShooterReadyState(input);
 				break;
 			case SHOOT:
 				handleShootState(input);
@@ -104,28 +123,42 @@ public class ShooterFSM {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case INIT_STATE:
-				if (ballInIntermediate()) {
-					return FSMState.TRANSFER_STATE;
+			case NO_BALL_STATE:
+				if (!colorSensorDetectsBall()) {
+					return FSMState.NO_BALL_STATE;
 				} else {
-					return FSMState.INIT_STATE;
+					shooterTimer.reset();
+					shooterTimer.start();
+					return FSMState.WAIT_FOR_MOTOR;
 				}
 
-			case TRANSFER_STATE:
-				if (!shooterReady() || !input.isShooterButtonPressed()) {
-					return FSMState.TRANSFER_STATE;
+			case WAIT_FOR_MOTOR:
+				if (shooterTimer.get() <= 1) {
+					return FSMState.WAIT_FOR_MOTOR;
 				} else {
+					return FSMState.SHOOTER_READY;
+				}
+
+			case SHOOTER_READY:
+				if (!input.isShooterButtonPressed()) {
 					return FSMState.SHOOT;
 				}
-
+				shooterTimer.reset();
+				shooterTimer.start();
+				return FSMState.SHOOT;
 			case SHOOT:
-				if (input.isShooterButtonPressed()) {
+				if (shooterTimer.get() <= 1) {
 					return FSMState.SHOOT;
 				}
-				return FSMState.INIT_STATE;
+				return FSMState.NO_BALL_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
+	}
+
+	private boolean colorSensorDetectsBall() {
+		//implement later
+		return false;
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -134,30 +167,35 @@ public class ShooterFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleInitState(TeleopInput input) {
+	private void handleNoBallState(TeleopInput input) {
 		shooterMotor.set(0);
-		interMotor.set(0);
+		intakeMotor.set(INTAKE_POWER);
+		transferMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleTransferState(TeleopInput input) {
+	private void handleWaitForMotorState(TeleopInput input) {
 		shooterMotor.set(MOTOR_RUN_POWER);
-		interMotor.set(0);
+		transferMotor.set(0);
+		intakeMotor.set(0);
+	}
+
+	private void handleShooterReadyState(TeleopInput input) {
+		shooterMotor.set(MOTOR_RUN_POWER);
+		transferMotor.set(0);
+		intakeMotor.set(0);
 	}
 
 	private void handleShootState(TeleopInput input) {
-		interMotor.set(MOTOR_RUN_POWER);
 		shooterMotor.set(MOTOR_RUN_POWER);
+		transferMotor.set(TRANSFER_POWER);
+		intakeMotor.set(INTAKE_POWER);
 	}
 
 	private boolean shooterReady() {
-		return true;
-	}
-
-	private boolean ballInIntermediate() {
 		return true;
 	}
 
@@ -168,9 +206,8 @@ public class ShooterFSM {
 			SmartDashboard.putBoolean("Shooter Button Pressed", false);
 		}
 		SmartDashboard.putNumber("Shooter Motor Power", shooterMotor.get());
-		SmartDashboard.putNumber("Intermediate Motor Power", interMotor.get());
+		SmartDashboard.putNumber("Intermediate Motor Power", intakeMotor.get());
 		SmartDashboard.putBoolean("Shooter Ready", shooterReady());
-		SmartDashboard.putBoolean("Ball In Intermediate", ballInIntermediate());
 		SmartDashboard.putString("Current State", currentState + "");
 	}
 }

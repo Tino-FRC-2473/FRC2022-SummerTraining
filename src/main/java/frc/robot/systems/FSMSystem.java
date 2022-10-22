@@ -21,7 +21,7 @@ public class FSMSystem {
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
-
+	
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax exampleMotor;
