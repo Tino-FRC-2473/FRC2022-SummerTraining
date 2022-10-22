@@ -1,11 +1,6 @@
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -14,12 +9,12 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class BallIntakeFSM {
+public class ClimberFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		EXTENDED,
-		RETRACTED
+		IDLE,
+
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -29,8 +24,7 @@ public class BallIntakeFSM {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax intakeMotor;
-	private DoubleSolenoid armSolenoid;
+	private CANSparkMax exampleMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,12 +32,11 @@ public class BallIntakeFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public BallIntakeFSM() {
+	public FSMSystem() {
 		// Perform hardware init
-		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
+		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+										CANSparkMax.MotorType.kBrushless);
+
 		// Reset state machine
 		reset();
 	}
@@ -65,9 +58,9 @@ public class BallIntakeFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.RETRACTED;
+		currentState = FSMState.START_STATE;
+
 		// Call one tick of update to ensure outputs reflect start state
-		updateDashboard(null);
 		update(null);
 	}
 	/**
@@ -77,15 +70,15 @@ public class BallIntakeFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		updateDashboard(input);
-
 		switch (currentState) {
-			case EXTENDED:
-				handleExtendedState(input);
+			case START_STATE:
+				handleStartState(input);
 				break;
-			case RETRACTED:
-				handleRetractedState(input);
+
+			case OTHER_STATE:
+				handleOtherState(input);
 				break;
+
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -103,10 +96,20 @@ public class BallIntakeFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		if (input.isIntakeButtonPressed()) {
-			return FSMState.EXTENDED;
+		switch (currentState) {
+			case START_STATE:
+				if (input != null) {
+					return FSMState.OTHER_STATE;
+				} else {
+					return FSMState.START_STATE;
+				}
+
+			case OTHER_STATE:
+				return FSMState.OTHER_STATE;
+
+			default:
+				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		return FSMState.RETRACTED;
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -115,29 +118,15 @@ public class BallIntakeFSM {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleExtendedState(TeleopInput input) {
-		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kReverse);
+	private void handleStartState(TeleopInput input) {
+		exampleMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleRetractedState(TeleopInput input) {
-		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kForward);
+	private void handleOtherState(TeleopInput input) {
+		exampleMotor.set(MOTOR_RUN_POWER);
 	}
-
-	private void updateDashboard(TeleopInput input) {
-		if (input == null) {
-			SmartDashboard.putBoolean("Button Pressed", false);
-		} else {
-			SmartDashboard.putBoolean("Button Pressed", input.isIntakeButtonPressed());
-		}
-		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
-		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
-		SmartDashboard.putString("Current State", currentState + "");
-	}
-
 }
