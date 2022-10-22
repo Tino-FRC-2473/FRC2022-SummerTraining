@@ -117,41 +117,41 @@ public class DriveFSMSystem {
 		intakeMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTAKE,
 										CANSparkMax.MotorType.kBrushless);
 
-		leftMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_LEFT_MOVE,
-										CANSparkMax.MotorType.kBrushless);
+		// leftMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_LEFT_MOVE,
+		// 								CANSparkMax.MotorType.kBrushless);
 
-		rightMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_RIGHT_MOVE,
-										CANSparkMax.MotorType.kBrushless);
+		// rightMoverMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_RIGHT_MOVE,
+		// 								CANSparkMax.MotorType.kBrushless);
 
-		shooterFeederMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_TRANSFERER,
-										CANSparkMax.MotorType.kBrushless);
+		// shooterFeederMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_TRANSFERER,
+		// 								CANSparkMax.MotorType.kBrushless);
 
-		shooterShooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_SHOOT,
-										CANSparkMax.MotorType.kBrushed);
+		// shooterShooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER_SHOOT,
+		// 								CANSparkMax.MotorType.kBrushed);
 
 		intakeDeploySolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_EXTEND,
 										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_RETRACT);
 
-		solenoidNotUsed1 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_1,
-										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_2);
+		// solenoidNotUsed1 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		// 								HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_1,
+		// 								HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_2);
 
-		solenoidNotUsed2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_3,
-										HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_4);
+		// solenoidNotUsed2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		// 								HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_3,
+		// 								HardwareMap.PCM_CHANNEL_INTAKE_SOLENOID_4);
 
-		climberLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER_SUCKS,
-										CANSparkMax.MotorType.kBrushless);
+		// climberLeftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER_SUCKS,
+		// 								CANSparkMax.MotorType.kBrushless);
 
-		climberRightMotor = new CANSparkMax(10,
-										CANSparkMax.MotorType.kBrushless);
+		// climberRightMotor = new CANSparkMax(10,
+		// 								CANSparkMax.MotorType.kBrushless);
 
 		leftPower = 0;
 		rightPower = 0;
 
 
-		finishedTurning = false;
+		// finishedTurning = false;
 
 		// bottomRightMotorMecanum = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BOTTOM_RIGHT,
 		// 								CANSparkMax.MotorType.kBrushless);
@@ -429,13 +429,10 @@ public class DriveFSMSystem {
 
 		if (isInArcadeDrive) {
 
-			// System.out.println("VELOC: " + gyro.getVelocityX());
-			// System.out.print("POPO: " + leftMotor.get());
-
 			currentEncoderPos = ((leftMotor.getEncoder().getPosition()
 				- rightMotor.getEncoder().getPosition()) / 2.0);
 
-			// updateLineOdometryTele(gyroAngleForOdo);
+			updateLineOdometryTele(gyroAngleForOdo);
 
 			double steerAngle = input.getSteerAngle();
 			double currentLeftPower = leftMotor.get();
@@ -464,7 +461,7 @@ public class DriveFSMSystem {
 				power = Functions.turnInPlace(input.getRightJoystickY(), steerAngle);
 			}
 
-			// System.out.println("ANGLE: " + getAngleToHub());
+			System.out.println("ANGLE: " + getAngleToHub());
 
 			leftPower = power.getLeftPower();
 			rightPower = power.getRightPower();
@@ -496,33 +493,30 @@ public class DriveFSMSystem {
 				intakeDeploySolenoid.set(DoubleSolenoid.Value.kForward);
 
 				intakeMotor.set(0.8);
-				leftMoverMotor.set(-0.4);
-				rightMoverMotor.set(0.4);
+	
 			} else {
 				intakeDeploySolenoid.set(DoubleSolenoid.Value.kReverse);
 				intakeMotor.set(0);
-				leftMoverMotor.set(0);
-				rightMoverMotor.set(0);
 			}
 
-			if (input.isShootButtonPressed()) {
-				leftMoverMotor.set(-0.2);
-				rightMoverMotor.set(0.2);
+			// if (input.isShootButtonPressed()) {
+			// 	leftMoverMotor.set(-0.2);
+			// 	rightMoverMotor.set(0.2);
 
 
-				shooterShooterMotor.set(-0.9);
-				shooterFeederMotor.set(0.6);
-			} else {
+			// 	shooterShooterMotor.set(-0.9);
+			// 	shooterFeederMotor.set(0.6);
+			// } else {
 
-				leftMoverMotor.set(0);
-				rightMoverMotor.set(0);
+			// 	leftMoverMotor.set(0);
+			// 	rightMoverMotor.set(0);
 
-				shooterShooterMotor.set(0);
-				shooterFeederMotor.set(0);
-			}
+			// 	shooterShooterMotor.set(0);
+			// 	shooterFeederMotor.set(0);
+			// }
 
-			rightMotor.set(rightPower);
-			leftMotor.set(leftPower);
+			// rightMotor.set(rightPower);
+			// leftMotor.set(leftPower);
 
 			//clinber
 			// if(input.lC()){
@@ -537,22 +531,22 @@ public class DriveFSMSystem {
 			// }
 
 			// rightMotor Edits
-			if (input.rC()) {
-				climberRightMotor.set(0.4);
-			} else if (input.rCC()) {
-				climberRightMotor.set(-0.4);
-			} else {
-				climberRightMotor.set(0);
-			}
+			// if (input.rC()) {
+			// 	climberRightMotor.set(0.4);
+			// } else if (input.rCC()) {
+			// 	climberRightMotor.set(-0.4);
+			// } else {
+			// 	climberRightMotor.set(0);
+			// }
 
 			// leftMotor edits
-			if (input.lC()) {
-				climberLeftMotor.set(0.4);
-			} else if (input.lCC()) {
-				climberLeftMotor.set(-0.4);
-			} else {
-				climberLeftMotor.set(0);
-			}
+			// if (input.lC()) {
+			// 	climberLeftMotor.set(0.4);
+			// } else if (input.lCC()) {
+			// 	climberLeftMotor.set(-0.4);
+			// } else {
+			// 	climberLeftMotor.set(0);
+			// }
 
 
 
@@ -560,6 +554,10 @@ public class DriveFSMSystem {
 			leftMotor.set((input.getLeftJoystickY()));
 			rightMotor.set(-(input.getRightJoystickY()));
 		}
+
+		leftMotor.set(0);
+		rightMotor.set(0);
+		
 
 	}
 
