@@ -103,20 +103,10 @@ public class BallIntakeFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		switch (currentState) {
-			case EXTENDED:
-				if (input.isIntakeButtonReleased()) {
-					return FSMState.RETRACTED;
-				}
-				return FSMState.EXTENDED;
-			case RETRACTED:
-				if (input.isIntakeButtonReleased()) {
-					return FSMState.EXTENDED;
-				}
-				return FSMState.RETRACTED;
-			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
+		if (input.isIntakeButtonPressed()) {
+			return FSMState.EXTENDED;
 		}
+		return FSMState.RETRACTED;
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
