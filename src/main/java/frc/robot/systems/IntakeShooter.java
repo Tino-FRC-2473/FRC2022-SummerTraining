@@ -8,8 +8,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.I2C.Port;
 
-import java.net.http.HttpClient.Redirect;
-
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorSensorV3;
