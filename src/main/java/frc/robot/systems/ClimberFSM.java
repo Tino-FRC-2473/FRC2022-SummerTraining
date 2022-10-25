@@ -28,7 +28,8 @@ public class ClimberFSM {
 		STATIC_HANG,
 		PNEUMATIC_ACTIVATE,
 		IDLE_TILT,
-		EXTENDING_TILT
+		EXTENDING_TILT,
+		HIT_NEXT_HOOK
 	}
 	private static final float ARM_MOTOR_EXTEND_POWER = 0.1f;
 	private static final float ARM_MOTOR_RETRACT_POWER = 0.1f;
@@ -131,6 +132,9 @@ public class ClimberFSM {
 			case EXTENDING_TILT:
 				handleExtendingTiltState(input);
 				break;
+			case HIT_NEXT_HOOK:
+				handleHitNextHookState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -226,9 +230,15 @@ public class ClimberFSM {
 				} else if (!input.isClimberButtonPressed()) {
 					return FSMState.IDLE_TILT;
 				} else {
+					pneumaticTimer.reset();
+					pneumaticTimer.start();
+					return FSMState.HIT_NEXT_HOOK;
+				}
+			case HIT_NEXT_HOOK:
+				if (pneumaticTimer.hasElapsed(1)) {
 					return FSMState.IDLE_MAX_EXTENDED;
 				}
-
+				return FSMState.HIT_NEXT_HOOK;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -294,6 +304,11 @@ public class ClimberFSM {
 	private void handleExtendingTiltState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
 		armSolenoid.set(Value.kForward);
+	}
+
+	private void handleHitNextHookState(TeleopInput input) {
+		armMotor.set(0);
+		armSolenoid.set(Value.kReverse);
 	}
 
 	private boolean getFirstCondition() {
