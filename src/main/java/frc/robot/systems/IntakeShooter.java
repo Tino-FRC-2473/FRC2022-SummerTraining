@@ -25,7 +25,8 @@ public class IntakeShooter {
 		RETRACTED_RUNNING,
 		INTERMEDIATE_IDLE,
         PREP_SHOOTER_MOTOR,
-        SHOOT
+        SHOOT,
+		EJECT
 	}
 
 	private static final double PROXIMITY_THRESHOLD = 1500;
@@ -36,6 +37,7 @@ public class IntakeShooter {
     private static final double SHOOT_DELAY = 1;
 	private static final double RETRACTED_RUNNING_DELAY =1;
     private static final double SHOOT_POWER = 0.2;
+	private static final double MAX_SHOOT_POWER = 0.3;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -119,6 +121,8 @@ public class IntakeShooter {
                 break;
 			case RETRACTED_RUNNING:
 				handleRetractedRunningState(input);
+			case EJECT:
+				handleEjectState(input);
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -138,12 +142,16 @@ public class IntakeShooter {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
             case RETRACTED_STOP:
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
                 if (ballInIntermediate())
                     return FSMState.INTERMEDIATE_IDLE;
                 if (input.isIntakeButtonPressed())
                     return FSMState.EXTENDED_RUNNING;
                 return FSMState.RETRACTED_STOP;
             case EXTENDED_RUNNING:
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
                 if (ballInIntermediate())
                     return FSMState.INTERMEDIATE_IDLE;
                 if (input.isIntakeButtonPressed())
@@ -151,6 +159,8 @@ public class IntakeShooter {
                 shooterTimer.reset();
 				return FSMState.RETRACTED_RUNNING;
             case RETRACTED_RUNNING:
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
 				if (ballInIntermediate())
 					return FSMState.INTERMEDIATE_IDLE;
                 if (input.isIntakeButtonPressed())
@@ -159,26 +169,36 @@ public class IntakeShooter {
 					return FSMState.RETRACTED_STOP;
 				return FSMState.RETRACTED_RUNNING;
 			case INTERMEDIATE_IDLE:
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
 				if (input.isShooterButtonPressed()) {
 					shooterTimer.reset();
 					return FSMState.PREP_SHOOTER_MOTOR;
 				}
 				return FSMState.INTERMEDIATE_IDLE;
             case PREP_SHOOTER_MOTOR:
-                if (shooterReady()) {
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
+				if (shooterReady()) {
                     shooterTimer.reset();
                     return FSMState.SHOOT;
                 }
                 return FSMState.PREP_SHOOTER_MOTOR;
             case SHOOT:
-                if (!shooterFinished())
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;    
+				if (!shooterFinished())
                     return FSMState.SHOOT;
                 if (ballInIntermediate())
                     return FSMState.INTERMEDIATE_IDLE;
                 if (input.isIntakeButtonPressed())
 					return FSMState.EXTENDED_RUNNING;
 				return FSMState.RETRACTED_STOP;
-            default:
+            case EJECT:
+				if (input.isEjectButtonPressed())
+					return FSMState.EJECT;
+				return FSMState.RETRACTED_STOP;
+			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
         }
         
@@ -201,6 +221,14 @@ public class IntakeShooter {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
+	private void handleEjectState(TeleopInput input)
+	{
+		intakeMotor.set(0);
+		armSolenoid.set(Value.kReverse);
+        interMotor1.set(INTER1_RUN_POWER);
+        interMotor2.set(INTER2_RUN_POWER);
+        shooterMotor.set(MAX_SHOOT_POWER);
+	}
 	private void handleExtendedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		armSolenoid.set(Value.kForward);
@@ -208,11 +236,6 @@ public class IntakeShooter {
         interMotor2.set(0);
         shooterMotor.set(0);
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
 	private void handleIntermediateIdleState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);

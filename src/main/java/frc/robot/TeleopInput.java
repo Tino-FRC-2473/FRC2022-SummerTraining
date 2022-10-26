@@ -23,6 +23,7 @@ public class TeleopInput {
 	private static final int SHOOTER_BUTTON_ID = 1;
 	private static final int INTAKE_BUTTON_ID = 2;
 	private static final int CLIMBER_BUTTON_ID = 3;
+	private static final int EJECT_BUTTON_ID = 4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -77,6 +78,10 @@ public class TeleopInput {
 	 */
 	public boolean isIntakeButtonReleased() {
 		return leftJoystick.getRawButtonReleased(INTAKE_BUTTON_ID);
+	}
+
+	public boolean isEjectButtonPressed() {
+		return leftJoystick.getRawButton(EJECT_BUTTON_ID);
 	}
 
 	/**
