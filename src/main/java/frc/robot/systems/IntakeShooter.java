@@ -21,9 +21,9 @@ public class IntakeShooter {
 	// FSM state definitions
 	public enum FSMState {
 		EXTENDED_RUNNING,
-		RETRACTED_STOP,
+		RETRACTED_NO_BALL,
 		RETRACTED_RUNNING,
-		INTERMEDIATE_IDLE,
+		RETRACTED_BALL,
 		PREP_SHOOTER_MOTOR,
 		SHOOT,
 		EJECT
@@ -89,7 +89,7 @@ public class IntakeShooter {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.RETRACTED_STOP;
+		currentState = FSMState.RETRACTED_NO_BALL;
 		// Call one tick of update to ensure outputs reflect start state
 		updateDashboard(null);
 		update(null);
@@ -104,14 +104,14 @@ public class IntakeShooter {
 		updateDashboard(input);
 
 		switch (currentState) {
-			case RETRACTED_STOP:
-				handleRetractedStopState(input);
+			case RETRACTED_NO_BALL:
+				handleRetractedNoBallState(input);
 				break;
 			case EXTENDED_RUNNING:
 				handleExtendedRunningState(input);
 				break;
-			case INTERMEDIATE_IDLE:
-				handleIntermediateIdleState(input);
+			case RETRACTED_BALL:
+				handleRetractedBallState(input);
 				break;
 			case PREP_SHOOTER_MOTOR:
 				handlePrepMotorState(input);
@@ -141,23 +141,23 @@ public class IntakeShooter {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case RETRACTED_STOP:
+			case RETRACTED_NO_BALL:
 				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
 				}
 				if (ballInIntermediate()) {
-					return FSMState.INTERMEDIATE_IDLE;
+					return FSMState.RETRACTED_BALL;
 				}
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.EXTENDED_RUNNING;
 				}
-				return FSMState.RETRACTED_STOP;
+				return FSMState.RETRACTED_NO_BALL;
 			case EXTENDED_RUNNING:
 				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
 				}
 				if (ballInIntermediate()) {
-					return FSMState.INTERMEDIATE_IDLE;
+					return FSMState.RETRACTED_BALL;
 				}
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.EXTENDED_RUNNING;
@@ -169,16 +169,16 @@ public class IntakeShooter {
 					return FSMState.EJECT;
 				}
 				if (ballInIntermediate()) {
-					return FSMState.INTERMEDIATE_IDLE;
+					return FSMState.RETRACTED_BALL;
 				}
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.EXTENDED_RUNNING;
 				}
 				if (shooterTimer.hasElapsed(RETRACTED_RUNNING_DELAY)) {
-					return FSMState.RETRACTED_STOP;
+					return FSMState.RETRACTED_NO_BALL;
 				}
 				return FSMState.RETRACTED_RUNNING;
-			case INTERMEDIATE_IDLE:
+			case RETRACTED_BALL:
 				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
 				}
@@ -186,7 +186,7 @@ public class IntakeShooter {
 					shooterTimer.reset();
 					return FSMState.PREP_SHOOTER_MOTOR;
 				}
-				return FSMState.INTERMEDIATE_IDLE;
+				return FSMState.RETRACTED_BALL;
 			case PREP_SHOOTER_MOTOR:
 				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
@@ -204,17 +204,17 @@ public class IntakeShooter {
 					return FSMState.SHOOT;
 				}
 				if (ballInIntermediate()) {
-					return FSMState.INTERMEDIATE_IDLE;
+					return FSMState.RETRACTED_BALL;
 				}
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.EXTENDED_RUNNING;
 				}
-				return FSMState.RETRACTED_STOP;
+				return FSMState.RETRACTED_NO_BALL;
 			case EJECT:
 				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
 				}
-				return FSMState.RETRACTED_STOP;
+				return FSMState.RETRACTED_NO_BALL;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -251,7 +251,7 @@ public class IntakeShooter {
 		interMotor2.set(0);
 		shooterMotor.set(0);
 	}
-	private void handleIntermediateIdleState(TeleopInput input) {
+	private void handleRetractedBallState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 		interMotor1.set(0);
@@ -266,7 +266,7 @@ public class IntakeShooter {
 		shooterMotor.set(0);
 	}
 
-	private void handleRetractedStopState(TeleopInput input) {
+	private void handleRetractedNoBallState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
 		interMotor1.set(0);
