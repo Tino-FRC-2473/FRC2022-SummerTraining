@@ -20,23 +20,23 @@ public class IntakeShooter {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-        EXTENDED_RUNNING,
-        RETRACTED_STOP,
+		EXTENDED_RUNNING,
+		RETRACTED_STOP,
 		RETRACTED_RUNNING,
 		INTERMEDIATE_IDLE,
-        PREP_SHOOTER_MOTOR,
-        SHOOT,
+		PREP_SHOOTER_MOTOR,
+		SHOOT,
 		EJECT
 	}
 
 	private static final double PROXIMITY_THRESHOLD = 1500;
 	private static final float MOTOR_RUN_POWER = 0.1f;
-    private static final float INTER1_RUN_POWER = 0.1f;
-    private static final float INTER2_RUN_POWER = 0.1f;
-    private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
-    private static final double SHOOT_DELAY = 1;
-	private static final double RETRACTED_RUNNING_DELAY =1;
-    private static final double SHOOT_POWER = 0.2;
+	private static final float INTER1_RUN_POWER = 0.1f;
+	private static final float INTER2_RUN_POWER = 0.1f;
+	private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
+	private static final double SHOOT_DELAY = 1;
+	private static final double RETRACTED_RUNNING_DELAY = 1;
+	private static final double SHOOT_POWER = 0.2;
 	private static final double MAX_SHOOT_POWER = 0.3;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -45,11 +45,11 @@ public class IntakeShooter {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax intakeMotor;
 	private DoubleSolenoid armSolenoid;
-    private CANSparkMax interMotor1;
-    private CANSparkMax interMotor2;
-    private CANSparkMax shooterMotor;
-    private ColorSensorV3 color;
-    private Timer shooterTimer;
+	private CANSparkMax interMotor1;
+	private CANSparkMax interMotor2;
+	private CANSparkMax shooterMotor;
+	private ColorSensorV3 color;
+	private Timer shooterTimer;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -63,11 +63,11 @@ public class IntakeShooter {
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
-        interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
-        interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
-        shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
+		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
+		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
-        color = new ColorSensorV3(Port.kOnboard);
+		color = new ColorSensorV3(Port.kOnboard);
 		// Reset state machine
 		reset();
 	}
@@ -110,15 +110,15 @@ public class IntakeShooter {
 			case EXTENDED_RUNNING:
 				handleExtendedRunningState(input);
 				break;
-            case INTERMEDIATE_IDLE:
-                handleIntermediateIdleState(input);
-                break;
-            case PREP_SHOOTER_MOTOR:
-                handlePrepMotorState(input);
-                break;
-            case SHOOT:
-                handleShoot(input);
-                break;
+			case INTERMEDIATE_IDLE:
+				handleIntermediateIdleState(input);
+				break;
+			case PREP_SHOOTER_MOTOR:
+				handlePrepMotorState(input);
+				break;
+			case SHOOT:
+				handleShoot(input);
+				break;
 			case RETRACTED_RUNNING:
 				handleRetractedRunningState(input);
 			case EJECT:
@@ -141,75 +141,91 @@ public class IntakeShooter {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-            case RETRACTED_STOP:
-				if (input.isEjectButtonPressed())
+			case RETRACTED_STOP:
+				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
-                if (ballInIntermediate())
-                    return FSMState.INTERMEDIATE_IDLE;
-                if (input.isIntakeButtonPressed())
-                    return FSMState.EXTENDED_RUNNING;
-                return FSMState.RETRACTED_STOP;
-            case EXTENDED_RUNNING:
-				if (input.isEjectButtonPressed())
-					return FSMState.EJECT;
-                if (ballInIntermediate())
-                    return FSMState.INTERMEDIATE_IDLE;
-                if (input.isIntakeButtonPressed())
-                    return FSMState.EXTENDED_RUNNING;
-                shooterTimer.reset();
-				return FSMState.RETRACTED_RUNNING;
-            case RETRACTED_RUNNING:
-				if (input.isEjectButtonPressed())
-					return FSMState.EJECT;
-				if (ballInIntermediate())
+				}
+				if (ballInIntermediate()) {
 					return FSMState.INTERMEDIATE_IDLE;
-                if (input.isIntakeButtonPressed())
+				}
+				if (input.isIntakeButtonPressed()) {
 					return FSMState.EXTENDED_RUNNING;
-				if (shooterTimer.hasElapsed(RETRACTED_RUNNING_DELAY))
+				}
+				return FSMState.RETRACTED_STOP;
+			case EXTENDED_RUNNING:
+				if (input.isEjectButtonPressed()) {
+					return FSMState.EJECT;
+				}
+				if (ballInIntermediate()) {
+					return FSMState.INTERMEDIATE_IDLE;
+				}
+				if (input.isIntakeButtonPressed()) {
+					return FSMState.EXTENDED_RUNNING;
+				}
+				shooterTimer.reset();
+				return FSMState.RETRACTED_RUNNING;
+			case RETRACTED_RUNNING:
+				if (input.isEjectButtonPressed()) {
+					return FSMState.EJECT;
+				}
+				if (ballInIntermediate()) {
+					return FSMState.INTERMEDIATE_IDLE;
+				}
+				if (input.isIntakeButtonPressed()) {
+					return FSMState.EXTENDED_RUNNING;
+				}
+				if (shooterTimer.hasElapsed(RETRACTED_RUNNING_DELAY)) {
 					return FSMState.RETRACTED_STOP;
+				}
 				return FSMState.RETRACTED_RUNNING;
 			case INTERMEDIATE_IDLE:
-				if (input.isEjectButtonPressed())
+				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
+				}
 				if (input.isShooterButtonPressed()) {
 					shooterTimer.reset();
 					return FSMState.PREP_SHOOTER_MOTOR;
 				}
 				return FSMState.INTERMEDIATE_IDLE;
-            case PREP_SHOOTER_MOTOR:
-				if (input.isEjectButtonPressed())
+			case PREP_SHOOTER_MOTOR:
+				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
+				}
 				if (shooterReady()) {
-                    shooterTimer.reset();
-                    return FSMState.SHOOT;
-                }
-                return FSMState.PREP_SHOOTER_MOTOR;
-            case SHOOT:
-				if (input.isEjectButtonPressed())
-					return FSMState.EJECT;    
-				if (!shooterFinished())
-                    return FSMState.SHOOT;
-                if (ballInIntermediate())
-                    return FSMState.INTERMEDIATE_IDLE;
-                if (input.isIntakeButtonPressed())
-					return FSMState.EXTENDED_RUNNING;
-				return FSMState.RETRACTED_STOP;
-            case EJECT:
-				if (input.isEjectButtonPressed())
+					shooterTimer.reset();
+					return FSMState.SHOOT;
+				}
+				return FSMState.PREP_SHOOTER_MOTOR;
+			case SHOOT:
+				if (input.isEjectButtonPressed()) {
 					return FSMState.EJECT;
+				}
+				if (!shooterFinished()) {
+					return FSMState.SHOOT;
+				}
+				if (ballInIntermediate()) {
+					return FSMState.INTERMEDIATE_IDLE;
+				}
+				if (input.isIntakeButtonPressed()) {
+					return FSMState.EXTENDED_RUNNING;
+				}
+				return FSMState.RETRACTED_STOP;
+			case EJECT:
+				if (input.isEjectButtonPressed()) {
+					return FSMState.EJECT;
+				}
 				return FSMState.RETRACTED_STOP;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
-        }
-        
+		}
 	}
-    private boolean shooterReady() {
+	private boolean shooterReady() {
 		return shooterTimer.hasElapsed(PREP_SHOOTER_MOTOR_DELAY);
 	}
-    private boolean shooterFinished() {
-        return shooterTimer.hasElapsed(SHOOT_DELAY);
-    }
-    private boolean ballInIntermediate() {
+	private boolean shooterFinished() {
+		return shooterTimer.hasElapsed(SHOOT_DELAY);
+	}
+	private boolean ballInIntermediate() {
 		if (color.getProximity() < PROXIMITY_THRESHOLD) {
 			return true;
 		}
@@ -221,59 +237,58 @@ public class IntakeShooter {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleEjectState(TeleopInput input)
-	{
+	private void handleEjectState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
-        interMotor1.set(INTER1_RUN_POWER);
-        interMotor2.set(INTER2_RUN_POWER);
-        shooterMotor.set(MAX_SHOOT_POWER);
+		interMotor1.set(INTER1_RUN_POWER);
+		interMotor2.set(INTER2_RUN_POWER);
+		shooterMotor.set(MAX_SHOOT_POWER);
 	}
 	private void handleExtendedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		armSolenoid.set(Value.kForward);
-        interMotor1.set(INTER1_RUN_POWER);
-        interMotor2.set(0);
-        shooterMotor.set(0);
+		interMotor1.set(INTER1_RUN_POWER);
+		interMotor2.set(0);
+		shooterMotor.set(0);
 	}
 	private void handleIntermediateIdleState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
-        interMotor1.set(0);
-        interMotor2.set(0);
-        shooterMotor.set(0);
+		interMotor1.set(0);
+		interMotor2.set(0);
+		shooterMotor.set(0);
 	}
 	private void handleRetractedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		armSolenoid.set(Value.kReverse);
-        interMotor1.set(INTER1_RUN_POWER);
-        interMotor2.set(0);
-        shooterMotor.set(0);
+		interMotor1.set(INTER1_RUN_POWER);
+		interMotor2.set(0);
+		shooterMotor.set(0);
 	}
 
-    private void handleRetractedStopState(TeleopInput input) {
+	private void handleRetractedStopState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
-        interMotor1.set(0);
-        interMotor2.set(0);
-        shooterMotor.set(0);
+		interMotor1.set(0);
+		interMotor2.set(0);
+		shooterMotor.set(0);
 	}
 
-    private void handlePrepMotorState(TeleopInput input) {
+	private void handlePrepMotorState(TeleopInput input) {
 		intakeMotor.set(0);
 		armSolenoid.set(Value.kReverse);
-        interMotor1.set(0);
-        interMotor2.set(0);
-        shooterMotor.set(SHOOT_POWER);
-        //change shoot power to be cv power
+		interMotor1.set(0);
+		interMotor2.set(0);
+		shooterMotor.set(SHOOT_POWER);
+		//change shoot power to be cv power
 	}
 
-    private void handleShoot(TeleopInput input) {
+	private void handleShoot(TeleopInput input) {
 		intakeMotor.set(0);
 		interMotor1.set(INTER1_RUN_POWER);
-        interMotor2.set(INTER2_RUN_POWER);
+		interMotor2.set(INTER2_RUN_POWER);
 		armSolenoid.set(Value.kReverse);
-        shooterMotor.set(SHOOT_POWER);
+		shooterMotor.set(SHOOT_POWER);
 	}
 
 	private void updateDashboard(TeleopInput input) {
