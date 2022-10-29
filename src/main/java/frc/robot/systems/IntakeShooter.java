@@ -29,15 +29,15 @@ public class IntakeShooter {
 		EJECT
 	}
 
-	private static final double PROXIMITY_THRESHOLD = 1500;
+	private static final double PROXIMITY_THRESHOLD = 0;
 	private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final float INTER1_RUN_POWER = 0.1f;
 	private static final float INTER2_RUN_POWER = 0.1f;
 	private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
 	private static final double SHOOT_DELAY = 1;
 	private static final double RETRACTED_RUNNING_DELAY = 1;
-	private static final double SHOOT_POWER = 0.2;
-	private static final double MAX_SHOOT_POWER = 0.3;
+	private static final double SHOOT_POWER = 0.1;
+	private static final double MAX_SHOOT_POWER = 0.1;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -59,7 +59,14 @@ public class IntakeShooter {
 	 */
 	public IntakeShooter() {
 		// Perform hardware init
-		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
+		/*IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		*BRUSHED OR BRUSHLESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		*!
+		*!
+		*!
+		*DONT EXPLODE MOTOR!!!!!!!!!!!!!
+		*/
+		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushed);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
@@ -91,7 +98,7 @@ public class IntakeShooter {
 	public void reset() {
 		currentState = FSMState.RETRACTED_NO_BALL;
 		// Call one tick of update to ensure outputs reflect start state
-		updateDashboard(null);
+		//updateDashboard(null);
 		update(null);
 	}
 	/**
@@ -101,8 +108,7 @@ public class IntakeShooter {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		updateDashboard(input);
-
+		//updateDashboard(input);
 		switch (currentState) {
 			case RETRACTED_NO_BALL:
 				handleRetractedNoBallState(input);
@@ -126,7 +132,11 @@ public class IntakeShooter {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		currentState = nextState(input);
+		FSMState state = nextState(input);
+		if (currentState != state) {
+			System.out.println(state);
+		}
+		currentState = state;
 	}
 
 	/* ======================== Private methods ======================== */
@@ -140,6 +150,9 @@ public class IntakeShooter {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.RETRACTED_NO_BALL;
+		}
 		switch (currentState) {
 			case RETRACTED_NO_BALL:
 				if (input.isEjectButtonPressed()) {

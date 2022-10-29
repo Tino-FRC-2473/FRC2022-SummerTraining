@@ -9,12 +9,14 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class FSMSystem {
+public class MotorTesterFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
 		START_STATE,
-		OTHER_STATE
+		FOR_STATE,
+		BETWEEN_STATE,
+		REV_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -24,7 +26,10 @@ public class FSMSystem {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
+	private CANSparkMax motor1;
+	private CANSparkMax motor2;
+	private CANSparkMax motor3;
+	private CANSparkMax motor4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -32,11 +37,16 @@ public class FSMSystem {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
+	public MotorTesterFSM() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		motor1 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR1,
 										CANSparkMax.MotorType.kBrushless);
-
+		motor2 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR2,
+										CANSparkMax.MotorType.kBrushless);
+		motor3 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR3,
+										CANSparkMax.MotorType.kBrushless);
+		motor4 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR4,
+										CANSparkMax.MotorType.kBrushed);
 		// Reset state machine
 		reset();
 	}
@@ -75,8 +85,16 @@ public class FSMSystem {
 				handleStartState(input);
 				break;
 
-			case OTHER_STATE:
+			case FOR_STATE:
 				handleOtherState(input);
+				break;
+
+			case BETWEEN_STATE:
+				handleBetweenState(input);
+				break;
+
+			case REV_STATE:
+				handleReverseState(input);
 				break;
 
 			default:
@@ -99,14 +117,29 @@ public class FSMSystem {
 		switch (currentState) {
 			case START_STATE:
 				if (input != null) {
-					return FSMState.OTHER_STATE;
+					return FSMState.FOR_STATE;
 				} else {
 					return FSMState.START_STATE;
 				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
-
+			case FOR_STATE:
+				if (input != null) {
+					return FSMState.FOR_STATE;
+				} else {
+					return FSMState.BETWEEN_STATE;
+				}
+			case BETWEEN_STATE:
+				if (input != null) {
+					return FSMState.REV_STATE;
+				} else {
+					return FSMState.BETWEEN_STATE;
+				}
+			case REV_STATE:
+				if (input != null) {
+					return FSMState.REV_STATE;
+				} else {
+					return FSMState.START_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -119,7 +152,10 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		exampleMotor.set(0);
+		motor1.set(0);
+		motor2.set(0);
+		motor3.set(0);
+		motor4.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -127,6 +163,23 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+		motor1.set(MOTOR_RUN_POWER);
+		motor2.set(MOTOR_RUN_POWER);
+		motor3.set(MOTOR_RUN_POWER);
+		motor4.set(MOTOR_RUN_POWER);
+	}
+
+	private void handleBetweenState(TeleopInput input) {
+		motor1.set(0);
+		motor2.set(0);
+		motor3.set(0);
+		motor4.set(0);
+	}
+
+	private void handleReverseState(TeleopInput input) {
+		motor1.set(-1 * MOTOR_RUN_POWER);
+		motor2.set(-1 * MOTOR_RUN_POWER);
+		motor3.set(-1 * MOTOR_RUN_POWER);
+		motor4.set(-1 * MOTOR_RUN_POWER);
 	}
 }

@@ -12,18 +12,18 @@ import edu.wpi.first.wpilibj.Joystick;
  */
 public class TeleopInput {
 	/* ======================== Constants ======================== */
-	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int LEFT_JOYSTICK_PORT = 1;
+	private static final int RIGHT_JOYSTICK_PORT = 0;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 
-	private static final int SHOOTER_BUTTON_ID = 1;
-	private static final int INTAKE_BUTTON_ID = 2;
-	private static final int CLIMBER_BUTTON_ID = 3;
-	private static final int EJECT_BUTTON_ID = 4;
+	private static final int SHOOTER_BUTTON_ID = 3;
+	private static final int INTAKE_BUTTON_ID = 4;
+	private static final int CLIMBER_BUTTON_ID = 5;
+	private static final int EJECT_BUTTON_ID = 6;
 
 	/* ======================== Constructor ======================== */
 	/**
