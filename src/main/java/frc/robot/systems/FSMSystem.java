@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import frc.robot.*;
 
 public class FSMSystem {
 	/* ======================== Constants ======================== */
@@ -25,6 +26,9 @@ public class FSMSystem {
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax exampleMotor;
+	private CANSparkMax leftMotor;
+	private CANSparkMax rightMotor;
+	private LimeLight limeLight;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -34,9 +38,11 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		exampleMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_RIGHT,
 										CANSparkMax.MotorType.kBrushless);
-
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_BACK_LEFT,
+										CANSparkMax.MotorType.kBrushless);
+		limeLight = new LimeLight();
 		// Reset state machine
 		reset();
 	}
@@ -70,6 +76,7 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		limeLight.update();
 		switch (currentState) {
 			case START_STATE:
 				handleStartState(input);
@@ -98,11 +105,11 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case START_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
-				} else {
+				// if (input != null) {
+				// 	return FSMState.OTHER_STATE;
+				// } else {
 					return FSMState.START_STATE;
-				}
+				//}
 
 			case OTHER_STATE:
 				return FSMState.OTHER_STATE;
@@ -119,7 +126,22 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
+		if (input != null) return;
 		exampleMotor.set(0);
+		// leftMotor.set(-0.1);
+		// rightMotor.set(0.1);
+		if (limeLight.getTurningDirection() == -1) {
+			//left
+			leftMotor.set(0.1);
+			rightMotor.set(0.1);
+		} else if (limeLight.getTurningDirection() == 1) {
+			//right
+			leftMotor.set(-0.1);
+			rightMotor.set(0.1);
+		} else if (limeLight.getTurningDirection() == 0) {
+			leftMotor.set(0);
+			rightMotor.set(0);
+		}
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
