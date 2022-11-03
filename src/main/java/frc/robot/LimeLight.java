@@ -134,7 +134,7 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getHubDistance() {
-		return table.getEntry("llpython").getDoubleArray(defaultValue)[1];
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[2];
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getTurningDirection() {
-		return table.getEntry("llpython").getDoubleArray(defaultValue)[2];
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[1];
 	}
 
 	/**

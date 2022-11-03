@@ -7,7 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // Systems
-import frc.robot.systems.ShooterFSM;
+//import frc.robot.systems.ShooterFSM;
+import frc.robot.systems.FSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,7 +18,7 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private ShooterFSM fsmSystem;
+	private FSMSystem fsmSystem;
 	private LimeLight limelight;
 
 	// ShuffleBoard and NetworkTables
@@ -36,7 +37,7 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new ShooterFSM();
+		fsmSystem = new FSMSystem();
 
 		limelight = new LimeLight();
 	}
