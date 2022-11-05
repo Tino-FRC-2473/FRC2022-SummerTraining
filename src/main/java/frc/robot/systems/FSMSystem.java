@@ -28,6 +28,8 @@ public class FSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
+	private CANSparkMax leftMotor2;
+	private CANSparkMax rightMotor2;
 
 	private double roboXPos = 0;
 	private double roboYPos = 0;
@@ -40,8 +42,8 @@ public class FSMSystem {
 	private int partitions = 8; // should be even
 	private double[][] waypoints = new double[2][partitions + 1];
 	private int target = 0;
-	private double innerVelocity = 0; // in/s
-	private double outerVelocity = 2; // in/s
+	private double innerVelocity = 1; // in/s
+	private double outerVelocity = 1; // in/s
 	private int pointNum = 0;
 	private double lookAheadDistance = 10;
 	private boolean firstRun = true;
@@ -56,11 +58,14 @@ public class FSMSystem {
 	 */
 	public FSMSystem() {
 		// Perform hardware init
-		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT,
+		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT1,
 										CANSparkMax.MotorType.kBrushless);
-		rightMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT,
+		rightMotor2 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_RIGHT2,
 										CANSparkMax.MotorType.kBrushless);
-
+		leftMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT1,
+										CANSparkMax.MotorType.kBrushless);
+		leftMotor2 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_DRIVE_LEFT2,
+										CANSparkMax.MotorType.kBrushless);
 		gyro = new AHRS(SPI.Port.kMXP);
 
 		// Reset state machine
@@ -122,7 +127,7 @@ public class FSMSystem {
 		switch (currentState) {
 
 			case PURE_PERSUIT:
-				handlePurePursuit(input, 0, 0, 20, 0, 30, 20, 0);
+				handlePurePursuit(input, 0, 0, 48, 0, 70, 20, 0);
 				break;
 
 
@@ -171,16 +176,24 @@ public class FSMSystem {
 		double roboX = -roboXPos;
 		double roboY = roboYPos;
 		double currentAngle = (-gyro.getAngle()) % 360;
+		System.out.println("x: " + roboX + " y: " + roboY);
 		
 		if (firstRun) {
 			calculateWaypoints(x1, y1, mx, my, x2, y2);
 			firstRun = false;
 		}
 
+		if (roboX < x2 + 4 && roboX > x2 - 4 && roboY < y2 + 4 && roboY > y2 - 4) {
+			System.out.println("STOP");
+			resetPurePursuitProperties(8, 10, 0);
+		}
+
 		if (target != findTargetPoint(roboX, roboY)) { // when there is a new target point
 
 			if (target == -1) resetPurePursuitProperties(8, 10, 0);
-
+			if (target == waypoints[0].length - 1) {
+				resetPurePursuitProperties(8, 10, 0);
+			}
 			pointNum++; // robot has advanced to a new point
 			target = findTargetPoint(roboX, roboY);
 			innerVelocity = calculateInnerCurveVelocity(currentAngle, roboX, roboY, waypoints[0][target], waypoints[1][target], outerVelocity);
@@ -188,11 +201,15 @@ public class FSMSystem {
 
 		// set motor powers (note: velcoties must be between [-7.9, +7.9])
 		if (dir == 0) { // turning left
-			leftMotor.set(innerVelocity / 7.95867322835);
+			leftMotor.set(-innerVelocity / 7.95867322835);
+			leftMotor2.set(-innerVelocity / 7.95867322835);
 			rightMotor.set(outerVelocity / 7.95867322835);
+			rightMotor2.set(outerVelocity / 7.95867322835);
 		} else if (dir == 1) { // turning right
-			leftMotor.set(outerVelocity / 7.95867322835);
+			leftMotor.set(-outerVelocity / 7.95867322835);
+			leftMotor2.set(-outerVelocity / 7.95867322835);
 			rightMotor.set(innerVelocity / 7.95867322835);
+			rightMotor2.set(innerVelocity / 7.95867322835);
 		}
 	}
 
@@ -222,15 +239,19 @@ public class FSMSystem {
 				target = i;
 			}
 		}
-		System.out.println(target);
+		System.out.println(waypoints[0][target] + " " + waypoints[1][target]);
 		return target;
 	}
 
 	public double calculateInnerCurveVelocity(double startAngle, double x1, double y1, double x2, double y2, double outerVelocity) {
-		double theta = Math.atan2(y2 - y1, x2 - x1) - startAngle;
+		double theta = Math.atan2(y2 - y1, x2 - x1) - Math.toRadians(startAngle);
+		System.out.println("angle b points " + Math.toDegrees(Math.atan2(y2 - y1, x2 - x1)));
+		System.out.println("theta:" + theta);
+		System.out.println("start angle:" + startAngle);
 		if (theta == 0) return outerVelocity; // innerVelocity = outerVelocity (going straight)
 
-		double radius = Math.tan(theta) * Math.hypot(y2 - y1, x2 - x1) + (1 / Math.tan(theta)) * Math.hypot(y2 - y1, x2 - x1);
+		double radius = (Math.tan(theta) + (1 / Math.tan(theta))) * Math.hypot(y2 - y1, x2 - x1) / 2;
+		System.out.println("radius: " + radius);
 		double innerS = 2 * theta * (radius - ROBOT_WIDTH); // inner curve length
 		double outerS = 2 * theta * (radius + ROBOT_WIDTH); // outer curve length
 		double innerVelocity = outerVelocity * (innerS/outerS); // (ensures that inner velcoity must be <= outer velocity)
@@ -244,7 +265,7 @@ public class FSMSystem {
 		this.lookAheadDistance = lookAheadDistance;
 		target = 0;
 		pointNum = 0;
-		innerVelocity = 0; // in/s
+		innerVelocity = outerVelocity;; // in/s
 		this.outerVelocity = outerVelocity; // in/s
 		firstRun = true;
 		stateCounter++;
