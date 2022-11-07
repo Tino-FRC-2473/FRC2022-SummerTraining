@@ -7,10 +7,6 @@ import com.revrobotics.CANSparkMax;
 // Third party Hardware Imports
 //import com.revrobotics.CANSparkMax;
 
-import com.revrobotics.ColorSensorV3;
-
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.I2C.Port;
 // Robot Imports
 import frc.robot.TeleopInput;
 import com.revrobotics.SparkMaxPIDController;
@@ -26,12 +22,21 @@ public class PIDTesterFSM {
 		RUN_STATE
 	}
 
-	public RelativeEncoder shooterEncoder;
-	public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
+	private RelativeEncoder shooterEncoder;
+	private double kP;
+	private double kI;
+	private double kD;
+	private double kIz;
+	private double kFF;
+	private double kMaxOutput;
+	private double kMinOutput;
+	private double maxRPM;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 	private CANSparkMax shooterMotor;
 	private SparkMaxPIDController pid;
+	private static final double MAX_OUTPUT = 0.3;
+	private static final double MAX_RPM = 500;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -49,14 +54,14 @@ public class PIDTesterFSM {
 		shooterEncoder = shooterMotor.getEncoder();
 
 		// PID coefficients
-		kP = 0.00001; 
+		kP = 0;
 		kI = 0;
-		kD = 0; 
-		kIz = 0; 
-		kFF = 0.000015; 
-		kMaxOutput = 0.3; 
-		kMinOutput = -0.3;
-		maxRPM = 500;
+		kD = 0;
+		kIz = 0;
+		kFF = 0;
+		kMaxOutput = MAX_OUTPUT;
+		kMinOutput = -MAX_OUTPUT;
+		maxRPM = MAX_RPM;
 
 		// set PID coefficients
 		pid.setP(kP);
@@ -130,8 +135,9 @@ public class PIDTesterFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
-		if (input.isShooterButtonPressed())
+		if (input.isShooterButtonPressed()) {
 			return FSMState.RUN_STATE;
+		}
 		return FSMState.STOP_STATE;
 	}
 
@@ -154,18 +160,27 @@ public class PIDTesterFSM {
 		double min = SmartDashboard.getNumber("Min Output", 0);
 
 		// if PID coefficients on SmartDashboard have changed, write new values to controller
-		if ((p != kP)) { pid.setP(p); kP = p; }
-		if ((i != kI)) { pid.setI(i); kI = i; }
-		if ((d != kD)) { pid.setD(d); kD = d; }
-		if ((iz != kIz)) { pid.setIZone(iz); kIz = iz; }
-		if ((ff != kFF)) { pid.setFF(ff); kFF = ff; }
-		if ((max != kMaxOutput) || (min != kMinOutput)) { 
-			pid.setOutputRange(min, max); 
-			kMinOutput = min; kMaxOutput = max; 
+		if ((p != kP)) {
+			pid.setP(p); kP = p;
 		}
-		double setPoint = input.getLeftJoystickY()*maxRPM;
+		if ((i != kI)) {
+			pid.setI(i); kI = i;
+		}
+		if ((d != kD)) {
+			pid.setD(d); kD = d;
+		}
+		if ((iz != kIz)) {
+			pid.setIZone(iz); kIz = iz;
+		}
+		if ((ff != kFF)) {
+			pid.setFF(ff); kFF = ff;
+		}
+		if ((max != kMaxOutput) || (min != kMinOutput)) {
+			pid.setOutputRange(min, max);
+			kMinOutput = min; kMaxOutput = max;
+		}
+		double setPoint = input.getLeftJoystickY() * maxRPM;
 		pid.setReference(setPoint, CANSparkMax.ControlType.kVelocity);
-		
 		SmartDashboard.putNumber("SetPoint", setPoint);
 		SmartDashboard.putNumber("ProcessVariable", shooterEncoder.getVelocity());
 	}
