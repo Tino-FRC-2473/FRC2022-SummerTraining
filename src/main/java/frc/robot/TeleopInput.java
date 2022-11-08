@@ -24,6 +24,8 @@ public class TeleopInput {
 	private static final int INTAKE_BUTTON_ID = 4;
 	private static final int CLIMBER_BUTTON_ID = 5;
 	private static final int EJECT_BUTTON_ID = 6;
+	private static final int EXTENDED_BUTTON_ID = 7;
+	private static final int RETRACTED_BUTTON_ID = 8;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -80,16 +82,36 @@ public class TeleopInput {
 		return leftJoystick.getRawButtonReleased(INTAKE_BUTTON_ID);
 	}
 
-	public boolean isEjectButtonPressed() {
-		return leftJoystick.getRawButton(EJECT_BUTTON_ID);
-	}
-
 	/**
 	 * Get the value of the climber button.
 	 * @return True if button is pressed
 	 */
 	public boolean isClimberButtonPressed() {
 		return leftJoystick.getRawButton(CLIMBER_BUTTON_ID);
+	}
+
+	/**
+	 * NOTIFY WHEN MECHANISM IS EXTENDED.
+	 * @return True if button is pressed
+	 */
+	public boolean maxExtended() {
+		return leftJoystick.getRawButton(EXTENDED_BUTTON_ID);
+	}
+
+	/**
+	 * NOTIFY WHEN MECHANISM IS RETRACTED.
+	 * @return True if button is pressed
+	 */
+	public boolean minRetracted() {
+		return leftJoystick.getRawButton(RETRACTED_BUTTON_ID);
+	}
+
+	/**
+	 * Get the value of the eject button.
+	 * @return True if button is pressed
+	 */
+	public boolean isEjectButtonPressed() {
+		return leftJoystick.getRawButton(EJECT_BUTTON_ID);
 	}
 
 	/**
