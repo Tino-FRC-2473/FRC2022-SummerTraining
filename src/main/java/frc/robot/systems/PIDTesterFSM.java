@@ -21,15 +21,15 @@ public class PIDTesterFSM {
 		RUN_STATE
 	}
 
-	RelativeEncoder shooterEncoder;
-	double kP;
-	double kI;
-	double kD;
-	double kIz;
-	double kFF;
-	double kMaxOutput;
-	double kMinOutput;
-	double maxRPM;
+	private RelativeEncoder shooterEncoder;
+	private double kP;
+	private double kI;
+	private double kD;
+	private double kIz;
+	private double kFF;
+	private double kMaxOutput;
+	private double kMinOutput;
+	private double maxRPM;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 	private CANSparkMax shooterMotor;
