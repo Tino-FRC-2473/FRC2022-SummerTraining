@@ -7,10 +7,10 @@ package frc.robot;
 public final class HardwareMap {
 
 	// ID numbers for devices on the CAN bus
-	public static final int CAN_ID_SPARK_MOTOR1 = 11;
+	public static final int CAN_ID_SPARK_MOTOR1 = 5;
 	public static final int CAN_ID_SPARK_MOTOR2 = 2;
 	public static final int CAN_ID_SPARK_MOTOR3 = 37;
-	public static final int CAN_ID_SPARK_MOTOR4 = 40;
+	public static final int CAN_ID_SPARK_MOTOR4 = 32;
 
 	//Intake
 	public static final int INTAKE_MOTOR = 2;

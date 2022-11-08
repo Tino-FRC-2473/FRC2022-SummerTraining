@@ -6,10 +6,6 @@ import com.revrobotics.CANSparkMax;
 
 // Third party Hardware Imports
 //import com.revrobotics.CANSparkMax;
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 // Robot Imports
 import frc.robot.TeleopInput;
 import com.revrobotics.SparkMaxPIDController;
@@ -25,7 +21,6 @@ public class PIDTesterFSM {
 		RUN_STATE
 	}
 
-<<<<<<< Updated upstream
 	private RelativeEncoder shooterEncoder;
 	private double kP;
 	private double kI;
@@ -35,11 +30,6 @@ public class PIDTesterFSM {
 	private double kMaxOutput;
 	private double kMinOutput;
 	private double maxRPM;
-=======
-	public RelativeEncoder shooterEncoder;
-	//proportion
-	public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
->>>>>>> Stashed changes
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 	private CANSparkMax shooterMotor;

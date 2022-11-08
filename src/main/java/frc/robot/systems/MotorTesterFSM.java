@@ -46,7 +46,7 @@ public class MotorTesterFSM {
 		motor3 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR3,
 										CANSparkMax.MotorType.kBrushless);
 		motor4 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR4,
-										CANSparkMax.MotorType.kBrushed);
+										CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -114,28 +114,31 @@ public class MotorTesterFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.START_STATE;
+		}
 		switch (currentState) {
 			case START_STATE:
-				if (input != null) {
+				if (input.isClimberButtonPressed()) {
 					return FSMState.FOR_STATE;
 				} else {
 					return FSMState.START_STATE;
 				}
 
 			case FOR_STATE:
-				if (input != null) {
+				if (input.isClimberButtonPressed()) {
 					return FSMState.FOR_STATE;
 				} else {
 					return FSMState.BETWEEN_STATE;
 				}
 			case BETWEEN_STATE:
-				if (input != null) {
+				if (input.isClimberButtonPressed()) {
 					return FSMState.REV_STATE;
 				} else {
 					return FSMState.BETWEEN_STATE;
 				}
 			case REV_STATE:
-				if (input != null) {
+				if (input.isClimberButtonPressed()) {
 					return FSMState.REV_STATE;
 				} else {
 					return FSMState.START_STATE;
