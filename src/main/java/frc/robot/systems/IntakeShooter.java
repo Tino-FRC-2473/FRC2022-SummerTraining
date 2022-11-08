@@ -66,8 +66,8 @@ public class IntakeShooter {
 		*!
 		*DONT EXPLODE MOTOR!!!!!!!!!!!!!
 		*/
-		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushed);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
 		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
@@ -108,6 +108,9 @@ public class IntakeShooter {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		updateDashboard(input);
+		//System.out.println(currentState);
+		//System.out.println(input.isIntakeButtonPressed());
 		//updateDashboard(input);
 		switch (currentState) {
 			case RETRACTED_NO_BALL:
@@ -311,7 +314,7 @@ public class IntakeShooter {
 			SmartDashboard.putBoolean("Button Pressed", input.isIntakeButtonPressed());
 		}
 		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
-		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+		//SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
 		SmartDashboard.putString("Current State", currentState + "");
 	}
 
