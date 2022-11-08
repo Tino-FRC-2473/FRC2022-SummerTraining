@@ -170,7 +170,7 @@ public class ClimberFSM {
 				//else, stay in idle
 				return FSMState.IDLE;
 			case EXTEND_TO_MAX:
-				if (getFirstCondition()) {
+				if (input.maxExtended()) {
 					return FSMState.IDLE_MAX_EXTENDED;
 				}
 				return FSMState.EXTEND_TO_MAX;
@@ -182,7 +182,7 @@ public class ClimberFSM {
 				//climber button pressed, return to previous state
 				return FSMState.RETRACTING_TO_MIN;
 			case RETRACTING_TO_MIN:
-				if (getSecondCondition()) {
+				if (input.minRetracted()) {
 					//if climber button is pressed stay in current state
 					//drivers need to release the button
 					return FSMState.CLIMBER_ARM_HANG;
@@ -225,7 +225,7 @@ public class ClimberFSM {
 				//climber button pressed, go to previous state
 				return FSMState.EXTENDING_TILT;
 			case EXTENDING_TILT:
-				if (!getFirstCondition() && input.isClimberButtonPressed()) {
+				if (!input.maxExtended() && input.isClimberButtonPressed()) {
 					return FSMState.EXTENDING_TILT;
 				} else if (!input.isClimberButtonPressed()) {
 					return FSMState.IDLE_TILT;
@@ -309,14 +309,6 @@ public class ClimberFSM {
 	private void handleHitNextHookState(TeleopInput input) {
 		armMotor.set(0);
 		armSolenoid.set(Value.kReverse);
-	}
-
-	private boolean getFirstCondition() {
-		return armLimitSwitchExtend.isPressed();
-	}
-
-	private boolean getSecondCondition() {
-		return armLimitSwitchRetract.isPressed();
 	}
 
 	// private void updateDashboard(TeleopInput input) {
