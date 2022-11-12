@@ -18,9 +18,7 @@ public class MotorTesterFSM {
 		BETWEEN_STATE,
 		REV_STATE
 	}
-
 	private static final float MOTOR_RUN_POWER = 0.1f;
-
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -147,6 +145,7 @@ public class MotorTesterFSM {
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
+	
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**

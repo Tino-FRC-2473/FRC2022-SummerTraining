@@ -38,6 +38,7 @@ public class IntakeShooter {
 	private static final double RETRACTED_RUNNING_DELAY = 1;
 	private static final double SHOOT_POWER = 0.1;
 	private static final double MAX_SHOOT_POWER = 0.1;
+	private Value preferredValue = Value.kReverse;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
@@ -112,6 +113,7 @@ public class IntakeShooter {
 		//System.out.println(currentState);
 		//System.out.println(input.isIntakeButtonPressed());
 		//updateDashboard(input);
+		Value oldValue = preferredValue;
 		switch (currentState) {
 			case RETRACTED_NO_BALL:
 				handleRetractedNoBallState(input);
@@ -135,13 +137,13 @@ public class IntakeShooter {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		FSMState state = nextState(input);
-		if (currentState != state) {
-			System.out.println(state);
-		}
-		currentState = state;
+		if (oldValue != preferredValue)
+			armSolenoid.set(preferredValue);
+		else
+			armSolenoid.set(Value.kOff);
+		currentState = nextState(input);
 	}
-
+	
 	/* ======================== Private methods ======================== */
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs
@@ -255,28 +257,28 @@ public class IntakeShooter {
 	 */
 	private void handleEjectState(TeleopInput input) {
 		intakeMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(INTER2_RUN_POWER);
 		shooterMotor.set(MAX_SHOOT_POWER);
 	}
 	private void handleExtendedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kForward);
+		preferredValue = Value.kForward;
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(0);
 		shooterMotor.set(0);
 	}
 	private void handleRetractedBallState(TeleopInput input) {
 		intakeMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(0);
 	}
 	private void handleRetractedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(0);
 		shooterMotor.set(0);
@@ -284,7 +286,7 @@ public class IntakeShooter {
 
 	private void handleRetractedNoBallState(TeleopInput input) {
 		intakeMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(0);
@@ -292,7 +294,7 @@ public class IntakeShooter {
 
 	private void handlePrepMotorState(TeleopInput input) {
 		intakeMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(SHOOT_POWER);
@@ -303,7 +305,7 @@ public class IntakeShooter {
 		intakeMotor.set(0);
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(INTER2_RUN_POWER);
-		armSolenoid.set(Value.kReverse);
+		preferredValue = Value.kReverse;
 		shooterMotor.set(SHOOT_POWER);
 	}
 
