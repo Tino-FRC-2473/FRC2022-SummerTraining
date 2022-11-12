@@ -244,6 +244,15 @@ public class ClimberFSM {
 		}
 
 	}
+
+	private void pulseSolenoid(DoubleSolenoid.Value value, TeleopInput input) {
+		FSMState state = nextState(input);
+		if (currentState != state) {
+			armSolenoid.set(value);
+		}
+		armSolenoid.set(Value.kOff);
+	}
+
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
@@ -252,7 +261,7 @@ public class ClimberFSM {
 	 */
 	private void handleIdleState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kReverse, input);
 	}
 	/**
 	 * Handle behavior in first retract state.
@@ -262,53 +271,53 @@ public class ClimberFSM {
 
 	private void handleExtendToMaxState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 	private void handleIdleMaxExtendedState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 	private void handleRetractingToMinState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_RETRACT_POWER);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 	private void handleClimberArmHangState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 
 	private void handleAttachStaticHangState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		armSolenoid.set(Value.kReverse);
+		armSolenoid.set(Value.kOff);
 	}
 
 	private void handleStaticHangState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		armSolenoid.set(Value.kOff);
 	}
 
 	private void handlePneumaticActivateState(TeleopInput input) {
-		armSolenoid.set(Value.kForward);
+		pulseSolenoid(Value.kForward, input);
 		armMotor.set(0);
 	}
 
 	private void handleIdleTiltState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kForward);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 	private void handleExtendingTiltState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		armSolenoid.set(Value.kForward);
+		pulseSolenoid(Value.kOff, input);
 	}
 
 	private void handleHitNextHookState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kReverse);
+		pulseSolenoid(Value.kReverse, input);
 	}
 
 	// private void updateDashboard(TeleopInput input) {
