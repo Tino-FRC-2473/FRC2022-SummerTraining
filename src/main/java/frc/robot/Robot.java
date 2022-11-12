@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 // Systems
 //import frc.robot.systems.ShooterFSM;
 import frc.robot.systems.FSMSystem;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.

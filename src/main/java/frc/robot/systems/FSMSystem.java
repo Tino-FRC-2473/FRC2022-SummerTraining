@@ -34,7 +34,7 @@ public class FSMSystem {
 	private CANSparkMax leftMotor2;
 	private CANSparkMax rightMotor2;
 	private LimeLight limeLight;
-	private String mode = "SHOOT";
+	private String mode = "";
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -164,14 +164,16 @@ public class FSMSystem {
 				rightMotor2.set(0);
 			}
 		} else if (mode == "SHOOT") {
-			if(){
-
-			
+			if (limeLight.getTurningPower() != LimeLight.INVALID_RETURN) {
+				rightMotor.set(limeLight.getTurningPower());
+				rightMotor2.set(limeLight.getTurningPower());
+				leftMotor.set(limeLight.getTurningPower());
+				leftMotor2.set(limeLight.getTurningPower());
 			} else {
-				leftMotor.set(-MOTOR_SEEK_POWER);
-				rightMotor.set(-MOTOR_SEEK_POWER);
-				leftMotor2.set(-MOTOR_SEEK_POWER);
-				rightMotor2.set(-MOTOR_SEEK_POWER);
+				leftMotor.set(0);
+				rightMotor.set(0);
+				leftMotor2.set(0);
+				rightMotor2.set(0);
 			}
 		}
 	}
