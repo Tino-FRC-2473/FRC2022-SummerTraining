@@ -145,7 +145,7 @@ public class MotorTesterFSM {
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
-	
+
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**

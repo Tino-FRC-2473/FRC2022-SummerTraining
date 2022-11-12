@@ -137,13 +137,14 @@ public class IntakeShooter {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		if (oldValue != preferredValue)
+		if (oldValue != preferredValue) {
 			armSolenoid.set(preferredValue);
-		else
+		} else {
 			armSolenoid.set(Value.kOff);
+		}
 		currentState = nextState(input);
 	}
-	
+
 	/* ======================== Private methods ======================== */
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs

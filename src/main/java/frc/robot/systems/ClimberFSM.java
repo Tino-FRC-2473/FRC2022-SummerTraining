@@ -37,6 +37,7 @@ public class ClimberFSM {
 	private static int cycleCount = 0;
 	private static final int MAX_CYCLE = 4;
 	private FSMState currentState;
+	private Value preferredValue = Value.kReverse;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -101,6 +102,7 @@ public class ClimberFSM {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+		Value oldValue = preferredValue;
 		switch (currentState) {
 			case IDLE:
 				handleIdleState(input);
@@ -138,7 +140,11 @@ public class ClimberFSM {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-
+		if (preferredValue != oldValue) {
+			armSolenoid.set(preferredValue);
+		} else {
+			armSolenoid.set(Value.kOff);
+		}
 		FSMState state = nextState(input);
 		if (currentState != state) {
 			System.out.println(state);
@@ -245,13 +251,13 @@ public class ClimberFSM {
 
 	}
 
-	private void pulseSolenoid(DoubleSolenoid.Value value, TeleopInput input) {
-		FSMState state = nextState(input);
-		if (currentState != state) {
-			armSolenoid.set(value);
-		}
-		armSolenoid.set(Value.kOff);
-	}
+	// private void pulseSolenoid(DoubleSolenoid.Value value, TeleopInput input) {
+	// 	FSMState state = nextState(input);
+	// 	if (currentState != state) {
+	// 		armSolenoid.set(value);
+	// 	}
+	// 	armSolenoid.set(Value.kOff);
+	// }
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
@@ -261,7 +267,8 @@ public class ClimberFSM {
 	 */
 	private void handleIdleState(TeleopInput input) {
 		armMotor.set(0);
-		pulseSolenoid(Value.kReverse, input);
+		//pulseSolenoid(Value.kReverse, input);
+		preferredValue = Value.kReverse;
 	}
 	/**
 	 * Handle behavior in first retract state.
@@ -271,53 +278,63 @@ public class ClimberFSM {
 
 	private void handleExtendToMaxState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kReverse;
 	}
 
 	private void handleIdleMaxExtendedState(TeleopInput input) {
 		armMotor.set(0);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kReverse;
 	}
 
 	private void handleRetractingToMinState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_RETRACT_POWER);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kReverse;
 	}
 
 	private void handleClimberArmHangState(TeleopInput input) {
 		armMotor.set(0);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kReverse;
 	}
 
 
 	private void handleAttachStaticHangState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		armSolenoid.set(Value.kOff);
+		//armSolenoid.set(Value.kOff);
+		preferredValue = Value.kReverse;
 	}
 
 	private void handleStaticHangState(TeleopInput input) {
 		armMotor.set(0);
-		armSolenoid.set(Value.kOff);
+		//armSolenoid.set(Value.kOff);
+		preferredValue = Value.kReverse;
 	}
 
 	private void handlePneumaticActivateState(TeleopInput input) {
-		pulseSolenoid(Value.kForward, input);
+		//pulseSolenoid(Value.kForward, input);
+		preferredValue = Value.kForward;
 		armMotor.set(0);
 	}
 
 	private void handleIdleTiltState(TeleopInput input) {
 		armMotor.set(0);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kForward;
 	}
 
 	private void handleExtendingTiltState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		pulseSolenoid(Value.kOff, input);
+		//pulseSolenoid(Value.kOff, input);
+		preferredValue = Value.kForward;
 	}
 
 	private void handleHitNextHookState(TeleopInput input) {
 		armMotor.set(0);
-		pulseSolenoid(Value.kReverse, input);
+		//pulseSolenoid(Value.kReverse, input);
+		preferredValue = Value.kReverse;
 	}
 
 	// private void updateDashboard(TeleopInput input) {
