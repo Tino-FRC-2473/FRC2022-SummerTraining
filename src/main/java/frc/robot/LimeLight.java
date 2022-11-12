@@ -3,10 +3,12 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 
 public class LimeLight {
-	private static LimeLight mLimeLight;
 
+	private PhotonCamera camera = new PhotonCamera("photonvision");
 	private NetworkTable table;
 
 	private NetworkTableEntry tx;
@@ -15,6 +17,12 @@ public class LimeLight {
 
 	private double[] defaultValue = new double[] {-1, -1, -1};
 
+	private static final double CAMERA_ANGLE = Math.toRadians(26); //RADIANS
+	private static final double HUB_HEIGHT = 26; //METERS
+	private static final double CAMERA_HEIGHT = 26; //METERS
+	private static final double SIGMOID_CONST1 = 0.5;
+	private static final double SIGMOID_CONST2 = 10;
+	private static final double INVALID_RETURN = -2;
 
 
 	/**
@@ -84,16 +92,6 @@ public class LimeLight {
 		return table.getEntry("tcorny").getDoubleArray(new double[] {0, 0, 0, 0});
 	}
 
-	/**
-	 * Get the instance of LimeLight. Makes new instance if null.
-	 * @return The LimeLight instance
-	 */
-	public static LimeLight getInstance() {
-		if (mLimeLight == null) {
-			mLimeLight = new LimeLight();
-		}
-		return mLimeLight;
-	}
 
 	/**
 	 * Updates limelight data by calling outputToShuffleboard.
@@ -134,22 +132,42 @@ public class LimeLight {
 	 * @return a double
 	 */
 	public double getHubDistance() {
-		return table.getEntry("llpython").getDoubleArray(defaultValue)[2];
+		var result = camera.getLatestResult();
+		if (result.hasTargets()) {
+			return PhotonUtils.calculateDistanceToTargetMeters(
+								CAMERA_HEIGHT,
+								HUB_HEIGHT,
+								CAMERA_ANGLE,
+								Math.toRadians(result.getBestTarget().getPitch()));
+		}
+		return -1;
 	}
 
 	/**
 	 * Gets Turning Direction.
 	 * @return a double
 	 */
-	public double getTurningDirection() {
-		return table.getEntry("llpython").getDoubleArray(defaultValue)[1];
+	public double getTurningPower() {
+		var result = camera.getLatestResult();
+		if (!result.hasTargets()) {
+			return INVALID_RETURN;
+		}
+		double angle = result.getBestTarget().getYaw();
+		return (1 / (1 + Math.exp(-angle / SIGMOID_CONST2))) - SIGMOID_CONST1;
 	}
 
 	/**
-	 * Gets data about the Shooter Motor Power.
+	 * Which direction to turn for aligning with the ball.
 	 * @return a double
 	 */
-	public double getMotorPower() {
+	public double getBallTurnDirection() {
 		return table.getEntry("llpython").getDoubleArray(defaultValue)[0];
+	}
+	/**
+	 * Whether we are close enough to intake the ball or not.
+	 * @return a double
+	 */
+	public double getIntakeStatus() {
+		return table.getEntry("llpython").getDoubleArray(defaultValue)[1];
 	}
 }

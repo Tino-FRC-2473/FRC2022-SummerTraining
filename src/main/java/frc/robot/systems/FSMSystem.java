@@ -8,7 +8,7 @@ import com.revrobotics.CANSparkMax;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
-import frc.robot.*;
+import frc.robot.LimeLight;
 
 public class FSMSystem {
 	/* ======================== Constants ======================== */
@@ -18,21 +18,23 @@ public class FSMSystem {
 		OTHER_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
+	private static final float MOTOR_ALIGN_POWER = 0.05f;
+	private static final float MOTOR_MOVE_POWER = 0.15f;
+	private static final float MOTOR_SEEK_POWER = 0.05f;
+
+
 
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax exampleMotor;
 	private CANSparkMax leftMotor;
 	private CANSparkMax rightMotor;
 	private CANSparkMax leftMotor2;
 	private CANSparkMax rightMotor2;
 	private LimeLight limeLight;
-
-	//private boolean 
+	private String mode = "SHOOT";
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -73,9 +75,6 @@ public class FSMSystem {
 	 */
 	public void reset() {
 		currentState = FSMState.START_STATE;
-
-		// Call one tick of update to ensure outputs reflect start state
-		update(null);
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -109,11 +108,7 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case START_STATE:
-				// if (input != null) {
-				// 	return FSMState.OTHER_STATE;
-				// } else {
-					return FSMState.START_STATE;
-				//}
+				return FSMState.START_STATE;
 
 			case OTHER_STATE:
 				return FSMState.OTHER_STATE;
@@ -130,39 +125,54 @@ public class FSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
-		if (input == null) return;
-		// leftMotor.set(0);
-		// rightMotor.set(0);
-		// leftMotor2.set(0);
-		// rightMotor2.set(0);
-		if (limeLight.getTurningDirection() == -1) {
-			//left
-			leftMotor.set(0.1);
-			rightMotor.set(0.1);
-			leftMotor2.set(0.1);
-			rightMotor2.set(0.1);
-		} else if (limeLight.getTurningDirection() == 1) {
-			//right
-			leftMotor.set(-0.1);
-			rightMotor.set(-0.1);
-			leftMotor2.set(-0.1);
-			rightMotor2.set(-0.1);
-		} else if (limeLight.getTurningDirection() == 0 || limeLight.getTurningDirection() == -2) {
-			System.out.println("Stop");
-			leftMotor.set(0);
-			rightMotor.set(0);
-			leftMotor2.set(0);
-			rightMotor2.set(0);
+		if (input == null) {
+			return;
 		}
+		if (mode == "COLLECT") {
+			if (limeLight.getBallTurnDirection() == 1) {
+				leftMotor.set(-MOTOR_ALIGN_POWER);
+				rightMotor.set(-MOTOR_ALIGN_POWER);
+				leftMotor2.set(-MOTOR_ALIGN_POWER);
+				rightMotor2.set(-MOTOR_ALIGN_POWER);
+			} else if (limeLight.getBallTurnDirection() == -1) {
+				leftMotor.set(MOTOR_ALIGN_POWER);
+				rightMotor.set(MOTOR_ALIGN_POWER);
+				leftMotor2.set(MOTOR_ALIGN_POWER);
+				rightMotor2.set(MOTOR_ALIGN_POWER);
+			} else if (limeLight.getBallTurnDirection() == 0) {
+				if (limeLight.getIntakeStatus() == 1) {
+					leftMotor.set(0.0);
+					rightMotor.set(0.0);
+					leftMotor2.set(0.0);
+					rightMotor2.set(0.0);
+					//INTAKE BALL
+					//mode = "SHOOT";
+				} else {
+					leftMotor.set(-MOTOR_MOVE_POWER);
+					rightMotor.set(MOTOR_MOVE_POWER);
+					leftMotor2.set(-MOTOR_MOVE_POWER);
+					rightMotor2.set(MOTOR_MOVE_POWER);
+				}
+			} else {
+				//leftMotor.set(-MOTOR_SEEK_POWER);
+				//rightMotor.set(-MOTOR_SEEK_POWER);
+				//leftMotor2.set(-MOTOR_SEEK_POWER);
+				//rightMotor2.set(-MOTOR_SEEK_POWER);
+				leftMotor.set(0);
+				rightMotor.set(0);
+				leftMotor2.set(0);
+				rightMotor2.set(0);
+			}
+		} else if (mode == "SHOOT") {
+			if(){
 
-		System.out.println(limeLight.getTurningDirection());
-	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleOtherState(TeleopInput input) {
-		exampleMotor.set(MOTOR_RUN_POWER);
+			
+			} else {
+				leftMotor.set(-MOTOR_SEEK_POWER);
+				rightMotor.set(-MOTOR_SEEK_POWER);
+				leftMotor2.set(-MOTOR_SEEK_POWER);
+				rightMotor2.set(-MOTOR_SEEK_POWER);
+			}
+		}
 	}
 }
