@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends TimedRobot {
 	private TeleopInput input;
+	private LimeLight limelight;
 
 	// Systems
 	private FSMSystem fsmSystem;
@@ -27,6 +28,7 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
 		System.out.println("robotInit");
 		input = new TeleopInput();
+		limelight = new LimeLight();
 
 		// Instantiate all systems here
 		fsmSystem = new FSMSystem();
@@ -52,7 +54,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		fsmSystem.update(input);
+		limelight.update();
 	}
 
 	@Override
