@@ -34,7 +34,9 @@ public class FSMSystem {
 	private CANSparkMax leftMotor2;
 	private CANSparkMax rightMotor2;
 	private LimeLight limeLight;
-	private String mode = "";
+	private String mode = "SHOOT";
+	private boolean negative = false;
+	private boolean done = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -75,6 +77,11 @@ public class FSMSystem {
 	 */
 	public void reset() {
 		currentState = FSMState.START_STATE;
+		if (limeLight.getBallTurnDirection() < 0) {
+			negative = true;
+		} else {
+			negative = false;
+		}
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -128,6 +135,14 @@ public class FSMSystem {
 		if (input == null) {
 			return;
 		}
+		if (negative != (limeLight.getTurningPower() < 0)) {
+			done = true;
+		}
+		if (limeLight.getTurningPower() < 0) {
+			negative = true;
+		} else {
+			negative = false;
+		}
 		if (mode == "COLLECT") {
 			if (limeLight.getBallTurnDirection() == 1) {
 				leftMotor.set(-MOTOR_ALIGN_POWER);
@@ -165,10 +180,10 @@ public class FSMSystem {
 			}
 		} else if (mode == "SHOOT") {
 			if (limeLight.getTurningPower() != LimeLight.INVALID_RETURN) {
-				rightMotor.set(limeLight.getTurningPower());
-				rightMotor2.set(limeLight.getTurningPower());
-				leftMotor.set(limeLight.getTurningPower());
-				leftMotor2.set(limeLight.getTurningPower());
+				rightMotor.set(0.1 * limeLight.getTurningPower());
+				rightMotor2.set(0.1 * limeLight.getTurningPower());
+				leftMotor.set(0.1 * limeLight.getTurningPower());
+				leftMotor2.set(0.1 * limeLight.getTurningPower());
 			} else {
 				leftMotor.set(0);
 				rightMotor.set(0);

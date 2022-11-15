@@ -18,7 +18,7 @@ public class LimeLight {
 
 	private double[] defaultValue = new double[] {-1, -1, -1};
 
-	private static final double CAMERA_ANGLE = Math.toRadians(14.5); //RADIANS
+	private static final double CAMERA_ANGLE = Math.toRadians(14); //RADIANS
 	private static final double HUB_HEIGHT = 0.96; //METERS
 	private static final double CAMERA_HEIGHT = 0.565; //METERS
 	private static final double SIGMOID_CONST1 = 0.5;
@@ -157,7 +157,10 @@ public class LimeLight {
 			return INVALID_RETURN;
 		}
 		double angle = result.getBestTarget().getYaw();
-		return (1 / (1 + Math.exp(angle / SIGMOID_CONST2))) - SIGMOID_CONST1;
+		if (Math.abs(angle) < 6) {
+			return 0;
+		}
+		return Math.abs(angle) / -angle;
 	}
 
 	/**
