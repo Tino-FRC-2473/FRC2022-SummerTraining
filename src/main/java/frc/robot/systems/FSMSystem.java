@@ -41,9 +41,10 @@ public class FSMSystem {
 	private int stateCounter = 1;
 	private int partitions = 8; // should be even
 	private double[][] waypoints = new double[2][partitions + 1];
-	private int target = 0;
+	private int target = -1;
 	private double innerVelocity = 1; // in/s
 	private double outerVelocity = 1; // in/s
+	private int direction = 1;
 	private int pointNum = 0;
 	private double lookAheadDistance = 10;
 	private boolean firstRun = true;
@@ -118,18 +119,15 @@ public class FSMSystem {
 	public void update(TeleopInput input) {
 
 		gyroAngleForOdo = gyro.getAngle();
-
 		currentEncoderPos = ((leftMotor.getEncoder().getPosition()
 				- rightMotor.getEncoder().getPosition()) / 2.0);
-
 		updateLineOdometryTele(gyro.getAngle(), currentEncoderPos);
 
 		switch (currentState) {
 
 			case PURE_PERSUIT:
-				handlePurePursuit(input, 0, 0, 48, 0, 70, 20, 0);
+				handlePurePursuit(input, 0, 0, 25, -10, 40, -20); 
 				break;
-
 
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -167,9 +165,14 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	public void handlePurePursuit(TeleopInput input, double x1, double y1, double mx, double my, double x2, double y2, int dir) {
+	public void handlePurePursuit(TeleopInput input, double x1, double y1, double mx, double my, double x2, double y2) {
 
 		if (input != null) {
+			System.out.println("Teleop");
+			leftMotor.set(0);
+			leftMotor2.set(0);
+			rightMotor.set(0);
+			rightMotor2.set(0);
 			return;			
 		}
 
@@ -190,22 +193,18 @@ public class FSMSystem {
 
 		if (target != findTargetPoint(roboX, roboY)) { // when there is a new target point
 
-			if (target == -1) resetPurePursuitProperties(8, 10, 0);
-			if (target == waypoints[0].length - 1) {
-				resetPurePursuitProperties(8, 10, 0);
-			}
 			pointNum++; // robot has advanced to a new point
 			target = findTargetPoint(roboX, roboY);
 			innerVelocity = calculateInnerCurveVelocity(currentAngle, roboX, roboY, waypoints[0][target], waypoints[1][target], outerVelocity);
 		}
 
 		// set motor powers (note: velcoties must be between [-7.9, +7.9])
-		if (dir == 0) { // turning left
+		if (direction == -1) { // turning left
 			leftMotor.set(-innerVelocity / 7.95867322835);
 			leftMotor2.set(-innerVelocity / 7.95867322835);
 			rightMotor.set(outerVelocity / 7.95867322835);
 			rightMotor2.set(outerVelocity / 7.95867322835);
-		} else if (dir == 1) { // turning right
+		} else if (direction == 1) { // turning right
 			leftMotor.set(-outerVelocity / 7.95867322835);
 			leftMotor2.set(-outerVelocity / 7.95867322835);
 			rightMotor.set(innerVelocity / 7.95867322835);
@@ -245,16 +244,22 @@ public class FSMSystem {
 
 	public double calculateInnerCurveVelocity(double startAngle, double x1, double y1, double x2, double y2, double outerVelocity) {
 		double theta = Math.atan2(y2 - y1, x2 - x1) - Math.toRadians(startAngle);
-		System.out.println("angle b points " + Math.toDegrees(Math.atan2(y2 - y1, x2 - x1)));
-		System.out.println("theta:" + theta);
+		System.out.println("atan" + Math.toDegrees(Math.atan2(y2 - y1, x2 - x1)));
+		System.out.println("theta:" + Math.toDegrees(theta));
 		System.out.println("start angle:" + startAngle);
 		if (theta == 0) return outerVelocity; // innerVelocity = outerVelocity (going straight)
 
 		double radius = (Math.tan(theta) + (1 / Math.tan(theta))) * Math.hypot(y2 - y1, x2 - x1) / 2;
 		System.out.println("radius: " + radius);
-		double innerS = 2 * theta * (radius - ROBOT_WIDTH); // inner curve length
-		double outerS = 2 * theta * (radius + ROBOT_WIDTH); // outer curve length
-		double innerVelocity = outerVelocity * (innerS/outerS); // (ensures that inner velcoity must be <= outer velocity)
+		double arcRatio;
+		if (radius > 0) {
+			direction = -1; //left
+			arcRatio = (radius - ROBOT_WIDTH)/(radius + ROBOT_WIDTH); // ratio of inner and outer arc lengths
+		} else {
+			direction = 1; //right
+			arcRatio = (radius + ROBOT_WIDTH)/(radius - ROBOT_WIDTH);
+		}
+		double innerVelocity = outerVelocity * (arcRatio); // (ensures that inner velcoity must be <= outer velocity)
 		System.out.println(innerVelocity);
 		return innerVelocity;
 	}
@@ -263,7 +268,7 @@ public class FSMSystem {
 		this.partitions = partitions; // should be even
 		waypoints = new double[2][partitions + 1];
 		this.lookAheadDistance = lookAheadDistance;
-		target = 0;
+		target = -1;
 		pointNum = 0;
 		innerVelocity = outerVelocity;; // in/s
 		this.outerVelocity = outerVelocity; // in/s
