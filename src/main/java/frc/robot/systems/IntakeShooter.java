@@ -28,10 +28,10 @@ public class IntakeShooter {
 		SHOOT,
 		EJECT
 	}
-
-	private static final double PROXIMITY_THRESHOLD = 0;
+	private static double currentDist;
+	private static final double PROXIMITY_THRESHOLD = 300;
 	private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final float INTER1_RUN_POWER = 0.1f;
+	private static final float INTER1_RUN_POWER = 0.05f;
 	private static final float INTER2_RUN_POWER = 0.1f;
 	private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
 	private static final double SHOOT_DELAY = 1;
@@ -76,6 +76,8 @@ public class IntakeShooter {
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										CANSparkMax.MotorType.kBrushless);
 		color = new ColorSensorV3(Port.kOnboard);
+		shooterTimer = new Timer();
+		shooterTimer.start();
 		// Reset state machine
 		reset();
 	}
@@ -132,8 +134,10 @@ public class IntakeShooter {
 				break;
 			case RETRACTED_RUNNING:
 				handleRetractedRunningState(input);
+				break;
 			case EJECT:
 				handleEjectState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -245,7 +249,7 @@ public class IntakeShooter {
 		return shooterTimer.hasElapsed(SHOOT_DELAY);
 	}
 	private boolean ballInIntermediate() {
-		if (color.getProximity() < PROXIMITY_THRESHOLD) {
+		if (color.getProximity() > PROXIMITY_THRESHOLD) {
 			return true;
 		}
 		return false;
@@ -311,14 +315,18 @@ public class IntakeShooter {
 	}
 
 	private void updateDashboard(TeleopInput input) {
+		//System.out.println(currentState);
+		//System.out.println(color.getProximity());
+		SmartDashboard.putNumber("Current Proximity", color.getProximity());
 		if (input == null) {
 			SmartDashboard.putBoolean("Button Pressed", false);
 		} else {
 			SmartDashboard.putBoolean("Button Pressed", input.isIntakeButtonPressed());
 		}
 		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
-		//SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+		SmartDashboard.putString("Solenoid Extended", armSolenoid.get().toString());
 		SmartDashboard.putString("Current State", currentState + "");
+		SmartDashboard.updateValues();
 	}
 
 }
