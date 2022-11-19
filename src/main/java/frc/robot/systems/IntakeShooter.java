@@ -46,6 +46,7 @@ public class IntakeShooter {
 	// be private to their owner system and may not be used elsewhere.
 	private CANSparkMax intakeMotor;
 	private DoubleSolenoid armSolenoid;
+	private DoubleSolenoid armSolenoid2;
 	private CANSparkMax interMotor1;
 	private CANSparkMax interMotor2;
 	private CANSparkMax shooterMotor;
@@ -68,9 +69,12 @@ public class IntakeShooter {
 		*DONT EXPLODE MOTOR!!!!!!!!!!!!!
 		*/
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
+		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
+		armSolenoid2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
+		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2,
+		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2);
 		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
 		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
@@ -143,8 +147,10 @@ public class IntakeShooter {
 		}
 		if (oldValue != preferredValue) {
 			armSolenoid.set(preferredValue);
+			armSolenoid2.set(preferredValue);
 		} else {
 			armSolenoid.set(Value.kOff);
+			armSolenoid2.set(Value.kOff);
 		}
 		currentState = nextState(input);
 	}

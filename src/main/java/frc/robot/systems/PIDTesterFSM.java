@@ -53,7 +53,7 @@ public class PIDTesterFSM {
 		shooterEncoder = shooterMotor.getEncoder();
 
 		// PID coefficients
-		kP = 0;
+		kP = 1;
 		kI = 0;
 		kD = 0;
 		kIz = 0;
@@ -134,6 +134,9 @@ public class PIDTesterFSM {
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.STOP_STATE;
+		}
 		if (input.isShooterButtonPressed()) {
 			return FSMState.RUN_STATE;
 		}
@@ -178,7 +181,7 @@ public class PIDTesterFSM {
 			pid.setOutputRange(min, max);
 			kMinOutput = min; kMaxOutput = max;
 		}
-		double setPoint = input.getLeftJoystickY() * maxRPM;
+		double setPoint = 500;
 		pid.setReference(setPoint, CANSparkMax.ControlType.kVelocity);
 		SmartDashboard.putNumber("SetPoint", setPoint);
 		SmartDashboard.putNumber("ProcessVariable", shooterEncoder.getVelocity());
