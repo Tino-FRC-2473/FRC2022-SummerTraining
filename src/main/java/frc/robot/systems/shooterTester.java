@@ -16,12 +16,11 @@ import com.revrobotics.ColorSensorV3;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-
 public class shooterTester {
     public enum FSMState {
-		IDLE,
+        IDLE,
         RUNNING
-	}
+    }
 
     private static final float intakePower = 0.1f;
     private static final float prepMotorPower = 0.3f;
@@ -30,26 +29,26 @@ public class shooterTester {
     private FSMState currentState;
 
     private CANSparkMax interMotor1;
-	private CANSparkMax interMotor2;
+    private CANSparkMax interMotor2;
     private CANSparkMax prepMotor;
-	private CANSparkMax shooterMotor;
+    private CANSparkMax shooterMotor;
 
-    public shooterTester(){
+    public shooterTester() {
         interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
-		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
+        interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
         prepMotor = new CANSparkMax(HardwareMap.PREP, CANSparkMax.MotorType.kBrushless);
-		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
+        shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
     }
 
     public void reset() {
-		currentState = FSMState.IDLE;
-		// Call one tick of update to ensure outputs reflect start state
-		//updateDashboard(null);
-		update(null);
-	}
+        currentState = FSMState.IDLE;
+        // Call one tick of update to ensure outputs reflect start state
+        // updateDashboard(null);
+        update(null);
+    }
 
-    public void update(TeleopInput input){
-        switch(currentState){
+    public void update(TeleopInput input) {
+        switch (currentState) {
             case IDLE:
                 interMotor1.set(0);
                 interMotor2.set(0);
@@ -63,21 +62,20 @@ public class shooterTester {
                 shooterMotor.set(shooterPower);
                 break;
             default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
+                throw new IllegalStateException("Invalid state: " + currentState.toString());
 
-            
         }
 
         currentState = nextState(input);
     }
 
     private FSMState nextState(TeleopInput input) {
-		if (input == null) {
-			return FSMState.IDLE;
-		}
-		if(input.isIntakeButtonPressed()){
+        if (input == null) {
+            return FSMState.IDLE;
+        }
+        if (input.isIntakeButtonPressed()) {
             return FSMState.RUNNING;
         }
         return FSMState.IDLE;
-	}
+    }
 }

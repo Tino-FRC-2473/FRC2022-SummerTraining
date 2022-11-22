@@ -28,6 +28,7 @@ public class IntakeShooter {
 		SHOOT,
 		EJECT
 	}
+
 	private static double currentDist;
 	private static final double PROXIMITY_THRESHOLD = 300;
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -63,25 +64,26 @@ public class IntakeShooter {
 	 */
 	public IntakeShooter() {
 		// Perform hardware init
-		/*IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		*BRUSHED OR BRUSHLESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		*!
-		*!
-		*!
-		*DONT EXPLODE MOTOR!!!!!!!!!!!!!
-		*/
+		/*
+		 * IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 * BRUSHED OR BRUSHLESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 * !
+		 * !
+		 * !
+		 * DONT EXPLODE MOTOR!!!!!!!!!!!!!
+		 */
 		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
+				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
+				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
 		armSolenoid2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2);
+				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2,
+				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2);
 		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
 		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
 		prepMotor = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushed);
+				CANSparkMax.MotorType.kBrushed);
 		color = new ColorSensorV3(Port.kOnboard);
 		shooterTimer = new Timer();
 		shooterTimer.start();
@@ -92,11 +94,13 @@ public class IntakeShooter {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -108,20 +112,22 @@ public class IntakeShooter {
 	public void reset() {
 		currentState = FSMState.RETRACTED_NO_BALL;
 		// Call one tick of update to ensure outputs reflect start state
-		//updateDashboard(null);
+		// updateDashboard(null);
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		updateDashboard(input);
-		//System.out.println(currentState);
-		//System.out.println(input.isIntakeButtonPressed());
-		//updateDashboard(input);
+		// System.out.println(currentState);
+		// System.out.println(input.isIntakeButtonPressed());
+		// updateDashboard(input);
 		Value oldValue = preferredValue;
 		switch (currentState) {
 			case RETRACTED_NO_BALL:
@@ -164,8 +170,9 @@ public class IntakeShooter {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -251,23 +258,28 @@ public class IntakeShooter {
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 	}
+
 	private boolean shooterReady() {
 		return shooterTimer.hasElapsed(PREP_SHOOTER_MOTOR_DELAY);
 	}
+
 	private boolean shooterFinished() {
 		return shooterTimer.hasElapsed(SHOOT_DELAY);
 	}
+
 	private boolean ballInIntermediate() {
 		if (color.getProximity() > PROXIMITY_THRESHOLD) {
 			return true;
 		}
 		return false;
 	}
+
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	private void handleEjectState(TeleopInput input) {
 		intakeMotor.set(0);
@@ -276,6 +288,7 @@ public class IntakeShooter {
 		interMotor2.set(INTER2_RUN_POWER);
 		shooterMotor.set(MAX_SHOOT_POWER);
 	}
+
 	private void handleExtendedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		preferredValue = Value.kForward;
@@ -284,6 +297,7 @@ public class IntakeShooter {
 		shooterMotor.set(0);
 		prepMotor.set(0);
 	}
+
 	private void handleRetractedBallState(TeleopInput input) {
 		intakeMotor.set(0);
 		preferredValue = Value.kReverse;
@@ -292,6 +306,7 @@ public class IntakeShooter {
 		shooterMotor.set(0);
 		prepMotor.set(0);
 	}
+
 	private void handleRetractedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		preferredValue = Value.kReverse;
@@ -317,7 +332,7 @@ public class IntakeShooter {
 		interMotor2.set(0);
 		shooterMotor.set(SHOOT_POWER);
 		prepMotor.set(PREP_RUN_POWER);
-		//change shoot power to be cv power
+		// change shoot power to be cv power
 	}
 
 	private void handleShoot(TeleopInput input) {
@@ -330,8 +345,8 @@ public class IntakeShooter {
 	}
 
 	private void updateDashboard(TeleopInput input) {
-		//System.out.println(currentState);
-		//System.out.println(color.getProximity());
+		// System.out.println(currentState);
+		// System.out.println(color.getProximity());
 		SmartDashboard.putNumber("Current Proximity", color.getProximity());
 		if (input == null) {
 			SmartDashboard.putBoolean("Button Pressed", false);

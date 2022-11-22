@@ -31,6 +31,7 @@ public class ClimberFSM {
 		EXTENDING_TILT,
 		HIT_NEXT_HOOK
 	}
+
 	private static final float ARM_MOTOR_EXTEND_POWER = 0.1f;
 	private static final float ARM_MOTOR_RETRACT_POWER = 0.1f;
 	private static final double MAX_ENCODER = 50;
@@ -55,15 +56,15 @@ public class ClimberFSM {
 	 */
 	public ClimberFSM() {
 		armMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER,
-			CANSparkMax.MotorType.kBrushless);
+				CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
-			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
-			HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
+				HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
+				HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		pneumaticTimer = new Timer();
 		armLimitSwitchExtend = armMotor.getForwardLimitSwitch(
-								SparkMaxLimitSwitch.Type.kNormallyClosed);
+				SparkMaxLimitSwitch.Type.kNormallyClosed);
 		armLimitSwitchRetract = armMotor.getReverseLimitSwitch(
-								SparkMaxLimitSwitch.Type.kNormallyClosed);
+				SparkMaxLimitSwitch.Type.kNormallyClosed);
 		armLimitSwitchExtend.enableLimitSwitch(true);
 		armLimitSwitchRetract.enableLimitSwitch(true);
 		reset();
@@ -72,11 +73,13 @@ public class ClimberFSM {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -95,11 +98,13 @@ public class ClimberFSM {
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		Value oldValue = preferredValue;
@@ -159,8 +164,9 @@ public class ClimberFSM {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -170,10 +176,10 @@ public class ClimberFSM {
 		switch (currentState) {
 			case IDLE:
 				if (input.isClimberButtonPressed()) {
-					//if climber button is pressed, continue to next state
+					// if climber button is pressed, continue to next state
 					return FSMState.EXTEND_TO_MAX;
 				}
-				//else, stay in idle
+				// else, stay in idle
 				return FSMState.IDLE;
 			case EXTEND_TO_MAX:
 				if (input.maxExtended()) {
@@ -182,25 +188,25 @@ public class ClimberFSM {
 				return FSMState.EXTEND_TO_MAX;
 			case IDLE_MAX_EXTENDED:
 				if (!input.isClimberButtonPressed()) {
-					//climber button not pressed, stay in idle
+					// climber button not pressed, stay in idle
 					return FSMState.IDLE_MAX_EXTENDED;
 				}
-				//climber button pressed, return to previous state
+				// climber button pressed, return to previous state
 				return FSMState.RETRACTING_TO_MIN;
 			case RETRACTING_TO_MIN:
 				if (input.minRetracted()) {
-					//if climber button is pressed stay in current state
-					//drivers need to release the button
+					// if climber button is pressed stay in current state
+					// drivers need to release the button
 					return FSMState.CLIMBER_ARM_HANG;
 				}
-				//button is released continue to next state
+				// button is released continue to next state
 				return FSMState.RETRACTING_TO_MIN;
 			case CLIMBER_ARM_HANG:
 				if (!input.isClimberButtonPressed()) {
-					//button needs to be repressed to continue to next state, if not stay in IDLE2
+					// button needs to be repressed to continue to next state, if not stay in IDLE2
 					return FSMState.CLIMBER_ARM_HANG;
 				}
-				//button is pressed so continue to next state
+				// button is pressed so continue to next state
 				armMotor.getEncoder().setPosition(0);
 				return FSMState.ATTACH_STATIC_HANG;
 			case ATTACH_STATIC_HANG:
@@ -211,10 +217,10 @@ public class ClimberFSM {
 				return FSMState.ATTACH_STATIC_HANG;
 			case STATIC_HANG:
 				if (!input.isClimberButtonPressed() || cycleCount == MAX_CYCLE) {
-					//climber button not pressed, stay in idle
+					// climber button not pressed, stay in idle
 					return FSMState.STATIC_HANG;
 				}
-				//climber button pressed return to previous state
+				// climber button pressed return to previous state
 				pneumaticTimer.reset();
 				pneumaticTimer.start();
 				return FSMState.PNEUMATIC_ACTIVATE;
@@ -225,10 +231,10 @@ public class ClimberFSM {
 				return FSMState.PNEUMATIC_ACTIVATE;
 			case IDLE_TILT:
 				if (!input.isClimberButtonPressed()) {
-					//climber button not pressed, stay idle
+					// climber button not pressed, stay idle
 					return FSMState.IDLE_TILT;
 				}
-				//climber button pressed, go to previous state
+				// climber button pressed, go to previous state
 				return FSMState.EXTENDING_TILT;
 			case EXTENDING_TILT:
 				if (!input.maxExtended() && input.isClimberButtonPressed()) {
@@ -252,105 +258,112 @@ public class ClimberFSM {
 	}
 
 	// private void pulseSolenoid(DoubleSolenoid.Value value, TeleopInput input) {
-	// 	FSMState state = nextState(input);
-	// 	if (currentState != state) {
-	// 		armSolenoid.set(value);
-	// 	}
-	// 	armSolenoid.set(Value.kOff);
+	// FSMState state = nextState(input);
+	// if (currentState != state) {
+	// armSolenoid.set(value);
+	// }
+	// armSolenoid.set(Value.kOff);
 	// }
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
 		armMotor.set(0);
-		//pulseSolenoid(Value.kReverse, input);
+		// pulseSolenoid(Value.kReverse, input);
 		preferredValue = Value.kReverse;
 	}
+
 	/**
 	 * Handle behavior in first retract state.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 
 	private void handleExtendToMaxState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
 
 	private void handleIdleMaxExtendedState(TeleopInput input) {
 		armMotor.set(0);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
 
 	private void handleRetractingToMinState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_RETRACT_POWER);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
 
 	private void handleClimberArmHangState(TeleopInput input) {
 		armMotor.set(0);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
 
-
 	private void handleAttachStaticHangState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		//armSolenoid.set(Value.kOff);
+		// armSolenoid.set(Value.kOff);
 		preferredValue = Value.kReverse;
 	}
 
 	private void handleStaticHangState(TeleopInput input) {
 		armMotor.set(0);
-		//armSolenoid.set(Value.kOff);
+		// armSolenoid.set(Value.kOff);
 		preferredValue = Value.kReverse;
 	}
 
 	private void handlePneumaticActivateState(TeleopInput input) {
-		//pulseSolenoid(Value.kForward, input);
+		// pulseSolenoid(Value.kForward, input);
 		preferredValue = Value.kForward;
 		armMotor.set(0);
 	}
 
 	private void handleIdleTiltState(TeleopInput input) {
 		armMotor.set(0);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kForward;
 	}
 
 	private void handleExtendingTiltState(TeleopInput input) {
 		armMotor.set(ARM_MOTOR_EXTEND_POWER);
-		//pulseSolenoid(Value.kOff, input);
+		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kForward;
 	}
 
 	private void handleHitNextHookState(TeleopInput input) {
 		armMotor.set(0);
-		//pulseSolenoid(Value.kReverse, input);
+		// pulseSolenoid(Value.kReverse, input);
 		preferredValue = Value.kReverse;
 	}
 
 	// private void updateDashboard(TeleopInput input) {
-	// 	if (input == null) {
-	// 		SmartDashboard.putBoolean("Climber Button Pressed", false);
-	// 	} else {
-	// 		SmartDashboard.putBoolean("Climber Button Pressed", input.isClimberButtonPressed());
-	// 	}
-	// 	SmartDashboard.putNumber("Cycle Count", cycleCount);
-	// 	SmartDashboard.putNumber("Motor Encoder Position", armMotor.getEncoder().getPosition());
-	// 	SmartDashboard.putBoolean("Extension Limit Switch", armLimitSwitchFirst.isPressed());
-	// 	SmartDashboard.putBoolean("Retraction Limit Switch", armLimitSwitchSecond.isPressed());
-	// 	SmartDashboard.putNumber("Motor Power", armMotor.get());
-	// 	SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
-	// 	SmartDashboard.putString("Current State", currentState + "");
-	// 	SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
+	// if (input == null) {
+	// SmartDashboard.putBoolean("Climber Button Pressed", false);
+	// } else {
+	// SmartDashboard.putBoolean("Climber Button Pressed",
+	// input.isClimberButtonPressed());
+	// }
+	// SmartDashboard.putNumber("Cycle Count", cycleCount);
+	// SmartDashboard.putNumber("Motor Encoder Position",
+	// armMotor.getEncoder().getPosition());
+	// SmartDashboard.putBoolean("Extension Limit Switch",
+	// armLimitSwitchFirst.isPressed());
+	// SmartDashboard.putBoolean("Retraction Limit Switch",
+	// armLimitSwitchSecond.isPressed());
+	// SmartDashboard.putNumber("Motor Power", armMotor.get());
+	// SmartDashboard.putNumber("Pneumatic Timer", pneumaticTimer.get());
+	// SmartDashboard.putString("Current State", currentState + "");
+	// SmartDashboard.putBoolean("Solenoid Extended",
+	// armSolenoid.get().equals(Value.kForward));
 	// }
 
 }
