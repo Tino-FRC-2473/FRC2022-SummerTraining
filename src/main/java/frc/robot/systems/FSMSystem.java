@@ -14,7 +14,7 @@ public class FSMSystem {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		START_STATE,
+		SHOOT_STATE,
 		OTHER_STATE
 	}
 
@@ -34,9 +34,6 @@ public class FSMSystem {
 	private CANSparkMax leftMotor2;
 	private CANSparkMax rightMotor2;
 	private LimeLight limeLight;
-	private String mode = "SHOOT";
-	private boolean negative = false;
-	private boolean done = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -76,12 +73,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.START_STATE;
-		if (limeLight.getBallTurnDirection() < 0) {
-			negative = true;
-		} else {
-			negative = false;
-		}
+		currentState = FSMState.SHOOT_STATE;
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -92,8 +84,8 @@ public class FSMSystem {
 	public void update(TeleopInput input) {
 		limeLight.update();
 		switch (currentState) {
-			case START_STATE:
-				handleStartState(input);
+			case SHOOT_STATE:
+				handleShootState(input);
 				break;
 
 			default:
@@ -114,8 +106,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case START_STATE:
-				return FSMState.START_STATE;
+			case SHOOT_STATE:
+				return FSMState.SHOOT_STATE;
 
 			case OTHER_STATE:
 				return FSMState.OTHER_STATE;
@@ -131,65 +123,18 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
-		if (input == null) {
-			return;
-		}
-		if (negative != (limeLight.getTurningPower() < 0)) {
-			done = true;
-		}
-		if (limeLight.getTurningPower() < 0) {
-			negative = true;
+	private void handleShootState(TeleopInput input) {
+		if (limeLight.getTurningPower() != LimeLight.INVALID_RETURN) {
+			rightMotor.set(0.1 * limeLight.getTurningPower());
+			rightMotor2.set(0.1 * limeLight.getTurningPower());
+			leftMotor.set(0.1 * limeLight.getTurningPower());
+			leftMotor2.set(0.1 * limeLight.getTurningPower());
 		} else {
-			negative = false;
-		}
-		if (mode == "COLLECT") {
-			if (limeLight.getBallTurnDirection() == 1) {
-				leftMotor.set(-MOTOR_ALIGN_POWER);
-				rightMotor.set(-MOTOR_ALIGN_POWER);
-				leftMotor2.set(-MOTOR_ALIGN_POWER);
-				rightMotor2.set(-MOTOR_ALIGN_POWER);
-			} else if (limeLight.getBallTurnDirection() == -1) {
-				leftMotor.set(MOTOR_ALIGN_POWER);
-				rightMotor.set(MOTOR_ALIGN_POWER);
-				leftMotor2.set(MOTOR_ALIGN_POWER);
-				rightMotor2.set(MOTOR_ALIGN_POWER);
-			} else if (limeLight.getBallTurnDirection() == 0) {
-				if (limeLight.getIntakeStatus() == 1) {
-					leftMotor.set(0.0);
-					rightMotor.set(0.0);
-					leftMotor2.set(0.0);
-					rightMotor2.set(0.0);
-					//INTAKE BALL
-					//mode = "SHOOT";
-				} else {
-					leftMotor.set(-MOTOR_MOVE_POWER);
-					rightMotor.set(MOTOR_MOVE_POWER);
-					leftMotor2.set(-MOTOR_MOVE_POWER);
-					rightMotor2.set(MOTOR_MOVE_POWER);
-				}
-			} else {
-				//leftMotor.set(-MOTOR_SEEK_POWER);
-				//rightMotor.set(-MOTOR_SEEK_POWER);
-				//leftMotor2.set(-MOTOR_SEEK_POWER);
-				//rightMotor2.set(-MOTOR_SEEK_POWER);
-				leftMotor.set(0);
-				rightMotor.set(0);
-				leftMotor2.set(0);
-				rightMotor2.set(0);
-			}
-		} else if (mode == "SHOOT") {
-			if (limeLight.getTurningPower() != LimeLight.INVALID_RETURN) {
-				rightMotor.set(0.1 * limeLight.getTurningPower());
-				rightMotor2.set(0.1 * limeLight.getTurningPower());
-				leftMotor.set(0.1 * limeLight.getTurningPower());
-				leftMotor2.set(0.1 * limeLight.getTurningPower());
-			} else {
-				leftMotor.set(0);
-				rightMotor.set(0);
-				leftMotor2.set(0);
-				rightMotor2.set(0);
-			}
+			//no targets found
+			leftMotor.set(0);
+			rightMotor.set(0);
+			leftMotor2.set(0);
+			rightMotor2.set(0);
 		}
 	}
 }

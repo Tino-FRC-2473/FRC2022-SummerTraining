@@ -47,11 +47,14 @@ public class Robot extends TimedRobot {
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
 		//fsmSystem.reset();
+		fsmSystem.reset();
+
 	}
 
 	@Override
 	public void autonomousPeriodic() {
 		//fsmSystem.update(null);
+		fsmSystem.update(input);
 	}
 
 	@Override
@@ -62,7 +65,7 @@ public class Robot extends TimedRobot {
 
 		//final double invalidPower = -6;
 		//SmartDashboard.putNumber("Shooting Power", invalidPower);
-		fsmSystem.reset();
+		//fsmSystem.reset();
 	}
 
 	@Override
@@ -70,7 +73,7 @@ public class Robot extends TimedRobot {
 		//shootPower = limelight.getMotorPower();
 		//turnDirection = limelight.getTurningDirection();
 		//distanceToHub = limelight.getHubDistance();
-		limelight.update();
+		//limelight.update();
 		fsmSystem.update(input);
 
 		//if (shootPower <= 1 && shootPower >= -1) {

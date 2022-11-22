@@ -18,11 +18,9 @@ public class LimeLight {
 
 	private double[] defaultValue = new double[] {-1, -1, -1};
 
-	private static final double CAMERA_ANGLE = Math.toRadians(14); //RADIANS
-	private static final double HUB_HEIGHT = 0.96; //METERS
-	private static final double CAMERA_HEIGHT = 0.565; //METERS
-	private static final double SIGMOID_CONST1 = 0.5;
-	private static final double SIGMOID_CONST2 = 10;
+	private static final double CAMERA_ANGLE = Math.toRadians(30.25); //RADIANS
+	private static final double HUB_HEIGHT = 2.6; //METERS
+	private static final double CAMERA_HEIGHT = 0.55; //METERS
 	public static final double INVALID_RETURN = -2;
 
 
@@ -35,6 +33,37 @@ public class LimeLight {
 		tx = table.getEntry("tx");
 		ty = table.getEntry("ty");
 		ta = table.getEntry("ta");
+	}
+		/**
+	 * Gets data about the Hub Distance.
+	 * @return a double
+	 */
+	public double getHubDistance() {
+		var result = camera.getLatestResult();
+		if (result.hasTargets()) {
+			return PhotonUtils.calculateDistanceToTargetMeters(
+								CAMERA_HEIGHT,
+								HUB_HEIGHT,
+								CAMERA_ANGLE,
+								Math.toRadians(result.getBestTarget().getPitch()));
+		}
+		return -1;
+	}
+
+	/**
+	 * Gets Turning Direction.
+	 * @return a double
+	 */
+	public double getTurningPower() {
+		var result = camera.getLatestResult();
+		if (!result.hasTargets()) {
+			return INVALID_RETURN;
+		}
+		double angle = result.getBestTarget().getYaw();
+		if (Math.abs(angle) < 6) {
+			return 0;
+		}
+		return Math.abs(angle) / -angle;
 	}
 
 	/**
@@ -100,7 +129,7 @@ public class LimeLight {
 	public void update() {
 		SmartDashboard.putNumber("Turn power", getTurningPower());
 		SmartDashboard.putNumber("Distance", getHubDistance());
-		//SmartDashboard.updateValues();
+		SmartDashboard.updateValues();
 
 	}
 
@@ -131,37 +160,6 @@ public class LimeLight {
 		return table.getEntry("llpython").getDoubleArray(defaultValue);
 	}
 
-	/**
-	 * Gets data about the Hub Distance.
-	 * @return a double
-	 */
-	public double getHubDistance() {
-		var result = camera.getLatestResult();
-		if (result.hasTargets()) {
-			return PhotonUtils.calculateDistanceToTargetMeters(
-								CAMERA_HEIGHT,
-								HUB_HEIGHT,
-								CAMERA_ANGLE,
-								Math.toRadians(result.getBestTarget().getPitch()));
-		}
-		return -1;
-	}
-
-	/**
-	 * Gets Turning Direction.
-	 * @return a double
-	 */
-	public double getTurningPower() {
-		var result = camera.getLatestResult();
-		if (!result.hasTargets()) {
-			return INVALID_RETURN;
-		}
-		double angle = result.getBestTarget().getYaw();
-		if (Math.abs(angle) < 6) {
-			return 0;
-		}
-		return Math.abs(angle) / -angle;
-	}
 
 	/**
 	 * Which direction to turn for aligning with the ball.
