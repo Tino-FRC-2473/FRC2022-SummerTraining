@@ -18,6 +18,7 @@ public class MotorTesterFSM {
 		BETWEEN_STATE,
 		REV_STATE
 	}
+
 	private static final float MOTOR_RUN_POWER = 0.1f;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -38,13 +39,13 @@ public class MotorTesterFSM {
 	public MotorTesterFSM() {
 		// Perform hardware init
 		motor1 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR1,
-										CANSparkMax.MotorType.kBrushless);
+				CANSparkMax.MotorType.kBrushless);
 		motor2 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR2,
-										CANSparkMax.MotorType.kBrushless);
+				CANSparkMax.MotorType.kBrushless);
 		motor3 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR3,
-										CANSparkMax.MotorType.kBrushless);
+				CANSparkMax.MotorType.kBrushless);
 		motor4 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR4,
-										CANSparkMax.MotorType.kBrushless);
+				CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -52,11 +53,13 @@ public class MotorTesterFSM {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -71,11 +74,13 @@ public class MotorTesterFSM {
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		switch (currentState) {
@@ -107,8 +112,9 @@ public class MotorTesterFSM {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
@@ -146,12 +152,12 @@ public class MotorTesterFSM {
 		}
 	}
 
-
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	private void handleStartState(TeleopInput input) {
 		motor1.set(0);
@@ -159,10 +165,12 @@ public class MotorTesterFSM {
 		motor3.set(0);
 		motor4.set(0);
 	}
+
 	/**
 	 * Handle behavior in OTHER_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	private void handleOtherState(TeleopInput input) {
 		motor1.set(MOTOR_RUN_POWER);

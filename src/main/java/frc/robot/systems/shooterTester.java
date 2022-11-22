@@ -1,16 +1,7 @@
 package frc.robot.systems;
 
-// WPILib Imports
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.I2C.Port;
-
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.ColorSensorV3;
 
 // Robot Imports
 import frc.robot.TeleopInput;
