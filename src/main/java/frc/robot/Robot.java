@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 // Systems
 //import frc.robot.systems.IntakeShooter;
 import frc.robot.systems.IntakeShooter;
+import frc.robot.systems.shooterTester;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to

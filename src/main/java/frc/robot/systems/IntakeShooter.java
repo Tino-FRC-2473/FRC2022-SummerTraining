@@ -38,6 +38,7 @@ public class IntakeShooter {
 	private static final double RETRACTED_RUNNING_DELAY = 1;
 	private static final double SHOOT_POWER = 0.1;
 	private static final double MAX_SHOOT_POWER = 0.1;
+	private static final float PREP_RUN_POWER = 0.3f;
 	private Value preferredValue = Value.kReverse;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
@@ -49,6 +50,7 @@ public class IntakeShooter {
 	private DoubleSolenoid armSolenoid2;
 	private CANSparkMax interMotor1;
 	private CANSparkMax interMotor2;
+	private CANSparkMax prepMotor;
 	private CANSparkMax shooterMotor;
 	private ColorSensorV3 color;
 	private Timer shooterTimer;
@@ -77,8 +79,9 @@ public class IntakeShooter {
 		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2);
 		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
 		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
+		prepMotor = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
+										CANSparkMax.MotorType.kBrushed);
 		color = new ColorSensorV3(Port.kOnboard);
 		shooterTimer = new Timer();
 		shooterTimer.start();
@@ -279,6 +282,7 @@ public class IntakeShooter {
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(0);
 		shooterMotor.set(0);
+		prepMotor.set(0);
 	}
 	private void handleRetractedBallState(TeleopInput input) {
 		intakeMotor.set(0);
@@ -286,6 +290,7 @@ public class IntakeShooter {
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(0);
+		prepMotor.set(0);
 	}
 	private void handleRetractedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
@@ -293,6 +298,7 @@ public class IntakeShooter {
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(0);
 		shooterMotor.set(0);
+		prepMotor.set(0);
 	}
 
 	private void handleRetractedNoBallState(TeleopInput input) {
@@ -301,6 +307,7 @@ public class IntakeShooter {
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(0);
+		prepMotor.set(0);
 	}
 
 	private void handlePrepMotorState(TeleopInput input) {
@@ -309,6 +316,7 @@ public class IntakeShooter {
 		interMotor1.set(0);
 		interMotor2.set(0);
 		shooterMotor.set(SHOOT_POWER);
+		prepMotor.set(PREP_RUN_POWER);
 		//change shoot power to be cv power
 	}
 
@@ -317,6 +325,7 @@ public class IntakeShooter {
 		interMotor1.set(INTER1_RUN_POWER);
 		interMotor2.set(INTER2_RUN_POWER);
 		preferredValue = Value.kReverse;
+		prepMotor.set(PREP_RUN_POWER);
 		shooterMotor.set(SHOOT_POWER);
 	}
 
