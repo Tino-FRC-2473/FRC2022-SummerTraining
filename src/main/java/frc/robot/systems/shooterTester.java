@@ -25,9 +25,9 @@ public class shooterTester {
     private CANSparkMax shooterMotor;
 
     public shooterTester() {
-        interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
-        interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
-        prepMotor = new CANSparkMax(HardwareMap.PREP, CANSparkMax.MotorType.kBrushless);
+        interMotor1 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_LEFT, CANSparkMax.MotorType.kBrushless);
+        interMotor2 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_RIGHT, CANSparkMax.MotorType.kBrushless);
+        prepMotor = new CANSparkMax(HardwareMap.INTER, CANSparkMax.MotorType.kBrushless);
         shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
     }
 
