@@ -32,8 +32,8 @@ public class IntakeShooter {
 	private static double currentDist;
 	private static final double PROXIMITY_THRESHOLD = 300;
 	private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final float INTER1_RUN_POWER = 0.05f;
-	private static final float INTER2_RUN_POWER = 0.1f;
+	private static final float TRANSFER_RUN_POWER = 0.05f;
+	private static final float INTER_RUN_POWER = 0.1f;
 	private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
 	private static final double SHOOT_DELAY = 1;
 	private static final double RETRACTED_RUNNING_DELAY = 1;
@@ -49,9 +49,9 @@ public class IntakeShooter {
 	private CANSparkMax intakeMotor;
 	private DoubleSolenoid armSolenoid;
 	private DoubleSolenoid armSolenoid2;
-	private CANSparkMax interMotor1;
-	private CANSparkMax interMotor2;
-	private CANSparkMax prepMotor;
+	private CANSparkMax transferMotor1;
+	private CANSparkMax transferMotor2;
+	private CANSparkMax interMotor;
 	private CANSparkMax shooterMotor;
 	private ColorSensorV3 color;
 	private Timer shooterTimer;
@@ -79,9 +79,11 @@ public class IntakeShooter {
 		armSolenoid2 = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2);
-		interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
-		interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
-		prepMotor = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
+		transferMotor1 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_LEFT,
+							CANSparkMax.MotorType.kBrushless);
+		transferMotor2 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_RIGHT,
+							CANSparkMax.MotorType.kBrushless);
+		interMotor = new CANSparkMax(HardwareMap.INTER, CANSparkMax.MotorType.kBrushless);
 		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
 				CANSparkMax.MotorType.kBrushed);
 		color = new ColorSensorV3(Port.kOnboard);
@@ -94,7 +96,7 @@ public class IntakeShooter {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 * 
+	 *
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -119,7 +121,7 @@ public class IntakeShooter {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -170,7 +172,7 @@ public class IntakeShooter {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
@@ -277,70 +279,71 @@ public class IntakeShooter {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
 	private void handleEjectState(TeleopInput input) {
 		intakeMotor.set(0);
 		preferredValue = Value.kReverse;
-		interMotor1.set(INTER1_RUN_POWER);
-		interMotor2.set(INTER2_RUN_POWER);
+		transferMotor1.set(TRANSFER_RUN_POWER);
+		transferMotor2.set(TRANSFER_RUN_POWER);
 		shooterMotor.set(MAX_SHOOT_POWER);
+		interMotor.set(INTER_RUN_POWER);
 	}
 
 	private void handleExtendedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		preferredValue = Value.kForward;
-		interMotor1.set(INTER1_RUN_POWER);
-		interMotor2.set(0);
+		transferMotor1.set(TRANSFER_RUN_POWER);
+		transferMotor2.set(TRANSFER_RUN_POWER);
 		shooterMotor.set(0);
-		prepMotor.set(0);
+		interMotor.set(0);
 	}
 
 	private void handleRetractedBallState(TeleopInput input) {
 		intakeMotor.set(0);
 		preferredValue = Value.kReverse;
-		interMotor1.set(0);
-		interMotor2.set(0);
+		transferMotor1.set(0);
+		transferMotor2.set(0);
 		shooterMotor.set(0);
-		prepMotor.set(0);
+		interMotor.set(0);
 	}
 
 	private void handleRetractedRunningState(TeleopInput input) {
 		intakeMotor.set(MOTOR_RUN_POWER);
 		preferredValue = Value.kReverse;
-		interMotor1.set(INTER1_RUN_POWER);
-		interMotor2.set(0);
+		transferMotor1.set(TRANSFER_RUN_POWER);
+		transferMotor2.set(TRANSFER_RUN_POWER);
 		shooterMotor.set(0);
-		prepMotor.set(0);
+		interMotor.set(0);
 	}
 
 	private void handleRetractedNoBallState(TeleopInput input) {
 		intakeMotor.set(0);
 		preferredValue = Value.kReverse;
-		interMotor1.set(0);
-		interMotor2.set(0);
+		transferMotor1.set(0);
+		transferMotor2.set(0);
 		shooterMotor.set(0);
-		prepMotor.set(0);
+		interMotor.set(0);
 	}
 
 	private void handlePrepMotorState(TeleopInput input) {
 		intakeMotor.set(0);
 		preferredValue = Value.kReverse;
-		interMotor1.set(0);
-		interMotor2.set(0);
+		transferMotor1.set(0);
+		transferMotor2.set(0);
 		shooterMotor.set(SHOOT_POWER);
-		prepMotor.set(PREP_RUN_POWER);
+		interMotor.set(0);
 		// change shoot power to be cv power
 	}
 
 	private void handleShoot(TeleopInput input) {
 		intakeMotor.set(0);
-		interMotor1.set(INTER1_RUN_POWER);
-		interMotor2.set(INTER2_RUN_POWER);
+		transferMotor1.set(TRANSFER_RUN_POWER);
+		transferMotor2.set(TRANSFER_RUN_POWER);
 		preferredValue = Value.kReverse;
-		prepMotor.set(PREP_RUN_POWER);
+		interMotor.set(INTER_RUN_POWER);
 		shooterMotor.set(SHOOT_POWER);
 	}
 

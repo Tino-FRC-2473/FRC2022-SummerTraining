@@ -19,9 +19,9 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 3;
 	//Shooter
 	public static final int CAN_ID_SPARK_SHOOTER = 40;
-	public static final int INTER1 = 33;
-	public static final int INTER2 = 34;
-	public static final int PREP = 11;
+	public static final int TRANSFER_MOTOR_LEFT = 33;
+	public static final int TRANSFER_MOTOR_RIGHT = 34;
+	public static final int INTER = 11;
 	//Climber
 	public static final int CAN_ID_SPARK_CLIMBER = 2;
 

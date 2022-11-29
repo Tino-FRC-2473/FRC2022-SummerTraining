@@ -181,7 +181,7 @@ public class PIDTesterFSM {
 			pid.setOutputRange(min, max);
 			kMinOutput = min; kMaxOutput = max;
 		}
-		double setPoint = 500;
+		double setPoint = 0;
 		pid.setReference(setPoint, CANSparkMax.ControlType.kVelocity);
 		SmartDashboard.putNumber("SetPoint", setPoint);
 		SmartDashboard.putNumber("ProcessVariable", shooterEncoder.getVelocity());
