@@ -8,9 +8,9 @@ public class LimeLight {
 
 	private PhotonCamera camera;
 	private static final double HUB_CAMERA_ANGLE = Math.toRadians(30.25); //RADIANS
-	private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
+	//private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
 	private static final double HUB_HEIGHT = 2.6; //METERS
-	private static final double BALL_HEIGHT = ; //METERS
+	//private static final double BALL_HEIGHT = ; //METERS
 	private static final double CAMERA_HEIGHT = 0.55; //METERS
 	public static final double INVALID_RETURN = -2;
 	//Vision pipeline: 0 is reflective tape, 1 is ball, 2 is april tag  
@@ -39,7 +39,8 @@ public class LimeLight {
 		}
 		return -1;
 	}
-
+	
+	/* 
 	public double getBallDistance() {
 		camera.setPipelineIndex(1);
 		var result = camera.getLatestResult();
@@ -52,7 +53,7 @@ public class LimeLight {
 		}
 		return -1;
 	}
-
+	*/
 	
 	public double getHubTurningPower() {
 		camera.setPipelineIndex(0);
@@ -66,7 +67,7 @@ public class LimeLight {
 		}
 		return Math.abs(angle) / -angle;
 	}
-
+	/*
 	public double getBallTurningPower() {
 		camera.setPipelineIndex(1);
 		var result = camera.getLatestResult();
@@ -79,4 +80,5 @@ public class LimeLight {
 		}
 		return Math.abs(angle) / -angle;
 	}
+	*/
 }

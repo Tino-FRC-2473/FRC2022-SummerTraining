@@ -89,10 +89,10 @@ public class FSMSystem {
 				handleAimState(input);
 				break;
 			case BALL_COLLECT:
-				handleBallCollectState(input);
+				//handleBallCollectState(input);
 				break;
 			case BALL_ALIGN:
-				handleBallAlignState(input);
+				//handleBallAlignState(input);
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -175,7 +175,7 @@ public class FSMSystem {
 		//double power = LimeLight.distanceToPower(limeLight.getHubDistance());
 		//run shooter mech
 	}
-
+	/*
 	private void handleBallAlignState(TeleopInput input) {
 		//moveCameraToBallLevel();
 		if (limeLight.getBallTurningPower() != LimeLight.INVALID_RETURN) {
@@ -192,7 +192,7 @@ public class FSMSystem {
 	}
 
 	private void handleBallCollectState(TeleopInput input) {
-		moveCameraToBallLevel();
+		//moveCameraToBallLevel();
 		if (limeLight.getBallDistance() >= 0.2) {
 			leftMotor.set(-0.3);
 			rightMotor.set(0.3);
@@ -206,4 +206,5 @@ public class FSMSystem {
 			//run intake mech
 		}
 	}
+	*/
 }
