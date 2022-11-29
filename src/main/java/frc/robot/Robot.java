@@ -36,6 +36,7 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
 		System.out.println("robotInit");
 		input = new TeleopInput();
+		limelight = new LimeLight();
 
 		// Instantiate all systems here
 		fsmSystem = new FSMSystem();
