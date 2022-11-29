@@ -13,9 +13,9 @@ public class shooterTester {
         RUNNING
     }
 
-    private static final float intakePower = 0.1f;
-    private static final float prepMotorPower = 0.3f;
-    private static final float shooterPower = 0.8f;
+    private static final float intakePower = 0.2f;
+    private static final float prepMotorPower = 0.5f;
+    private static final float shooterPower = 0.95f;
 
     private FSMState currentState;
 

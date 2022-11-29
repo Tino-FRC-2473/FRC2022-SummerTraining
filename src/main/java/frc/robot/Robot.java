@@ -19,7 +19,7 @@ public class Robot extends TimedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private IntakeShooter fsmSystem;
+	private shooterTester fsmSystem;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		fsmSystem = new IntakeShooter();
+		fsmSystem = new shooterTester();
 	}
 
 	@Override
