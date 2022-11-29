@@ -130,15 +130,15 @@ public class CVFSM {
 				}
 
 			case BALL_COLLECT:
-				if (limeLight.getBallTurningPower() != 0) {
-					return FSMState.BALL_ALIGN;
-				}else{
-					//if (finished intaking){
-						//return FSMState.AIM_STATE;
-					//}else{
-						//return FSMState.BALL_COLLECT;
-					//}
-				}
+				// if (limeLight.getBallTurningPower() != 0) {
+				// 	return FSMState.BALL_ALIGN;
+				// }else{
+				// 	//if (finished intaking){
+				// 		//return FSMState.AIM_STATE;
+				// 	//}else{
+				// 		//return FSMState.BALL_COLLECT;
+				// 	//}
+				// }
 			case BALL_ALIGN:
 				//if (limeLight.getBallTurningPower() == 0) {
 					//return FSMState.BALL_COLLECT;

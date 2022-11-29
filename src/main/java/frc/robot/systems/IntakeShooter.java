@@ -15,6 +15,7 @@ import com.revrobotics.ColorSensorV3;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import frc.robot.LimeLight;
 
 public class IntakeShooter {
 	/* ======================== Constants ======================== */
@@ -29,6 +30,8 @@ public class IntakeShooter {
 		EJECT
 	}
 
+
+	
 	private static double currentDist;
 	private static final double PROXIMITY_THRESHOLD = 300;
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -37,7 +40,7 @@ public class IntakeShooter {
 	private static final double PREP_SHOOTER_MOTOR_DELAY = 1;
 	private static final double SHOOT_DELAY = 1;
 	private static final double RETRACTED_RUNNING_DELAY = 1;
-	private static final double SHOOT_POWER = 0.1;
+	//private static final double SHOOT_POWER = 0.1;
 	private static final double MAX_SHOOT_POWER = 0.1;
 	private static final float PREP_RUN_POWER = 0.3f;
 	private Value preferredValue = Value.kReverse;
@@ -55,6 +58,7 @@ public class IntakeShooter {
 	private CANSparkMax shooterMotor;
 	private ColorSensorV3 color;
 	private Timer shooterTimer;
+	private LimeLight limeLight;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -72,7 +76,8 @@ public class IntakeShooter {
 		 * !
 		 * DONT EXPLODE MOTOR!!!!!!!!!!!!!
 		 */
-		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
+		limeLight = new LimeLight();
+		 intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
@@ -96,7 +101,7 @@ public class IntakeShooter {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 *
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -121,7 +126,7 @@ public class IntakeShooter {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 *
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -172,7 +177,7 @@ public class IntakeShooter {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 *
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
@@ -279,7 +284,7 @@ public class IntakeShooter {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 *
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -333,7 +338,7 @@ public class IntakeShooter {
 		preferredValue = Value.kReverse;
 		transferMotor1.set(0);
 		transferMotor2.set(0);
-		shooterMotor.set(SHOOT_POWER);
+		shooterMotor.set(limeLight.getShootingPower());
 		interMotor.set(0);
 		// change shoot power to be cv power
 	}
@@ -344,7 +349,7 @@ public class IntakeShooter {
 		transferMotor2.set(TRANSFER_RUN_POWER);
 		preferredValue = Value.kReverse;
 		interMotor.set(INTER_RUN_POWER);
-		shooterMotor.set(SHOOT_POWER);
+		shooterMotor.set(limeLight.getShootingPower());
 	}
 
 	private void updateDashboard(TeleopInput input) {
