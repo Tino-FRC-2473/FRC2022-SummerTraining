@@ -15,12 +15,10 @@ public class FSMSystem {
 	// FSM state definitions
 	public enum FSMState {
 		SHOOT_STATE,
-		OTHER_STATE
+		AIM_STATE,
+		BALL_ALIGN,
+		BALL_COLLECT
 	}
-
-	private static final float MOTOR_ALIGN_POWER = 0.05f;
-	private static final float MOTOR_MOVE_POWER = 0.15f;
-	private static final float MOTOR_SEEK_POWER = 0.05f;
 
 
 
@@ -73,7 +71,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.SHOOT_STATE;
+		currentState = FSMState.AIM_STATE;
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -87,7 +85,15 @@ public class FSMSystem {
 			case SHOOT_STATE:
 				handleShootState(input);
 				break;
-
+			case AIM_STATE:
+				handleAimState(input);
+				break;
+			case BALL_COLLECT:
+				handleBallCollectState(input);
+				break;
+			case BALL_ALIGN:
+				handleBallAlignState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -107,11 +113,38 @@ public class FSMSystem {
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
 			case SHOOT_STATE:
-				return FSMState.SHOOT_STATE;
+				if (limeLight.getHubTurningPower() ==0) {
+					//if (finished shooting) {
+						//return FSMState.BALL_ALIGN;
+					//}else{
+						return FSMState.SHOOT_STATE;
+				} else {
+					return FSMState.AIM_STATE;
+				}
 
-			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+			case AIM_STATE:
+				if (limeLight.getHubTurningPower() == 0) {
+					return FSMState.SHOOT_STATE;
+				}else{
+					return FSMState.AIM_STATE;
+				}
 
+			case BALL_COLLECT:
+				if (limeLight.getBallTurningPower() != 0) {
+					return FSMState.BALL_ALIGN;
+				}else{
+					//if (finished intaking){
+						//return FSMState.AIM_STATE;
+					//}else{
+						//return FSMState.BALL_COLLECT;
+					//}
+				}
+			case BALL_ALIGN:
+				//if (limeLight.getBallTurningPower() == 0) {
+					//return FSMState.BALL_COLLECT;
+				//}else{
+					//return FSMState.BALL_ALIGN;
+				//}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -123,18 +156,54 @@ public class FSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleShootState(TeleopInput input) {
-		if (limeLight.getTurningPower() != LimeLight.INVALID_RETURN) {
-			rightMotor.set(0.1 * limeLight.getTurningPower());
-			rightMotor2.set(0.1 * limeLight.getTurningPower());
-			leftMotor.set(0.1 * limeLight.getTurningPower());
-			leftMotor2.set(0.1 * limeLight.getTurningPower());
+	private void handleAimState(TeleopInput input) {
+		//moveCameraToHubLevel();
+		if (limeLight.getHubTurningPower() != LimeLight.INVALID_RETURN) {
+			rightMotor.set(0.1 * limeLight.getHubTurningPower());
+			rightMotor2.set(0.1 * limeLight.getHubTurningPower());
+			leftMotor.set(0.1 * limeLight.getHubTurningPower());
+			leftMotor2.set(0.1 * limeLight.getHubTurningPower());
 		} else {
-			//no targets found
-			leftMotor.set(0);
-			rightMotor.set(0);
-			leftMotor2.set(0);
-			rightMotor2.set(0);
+			leftMotor.set(0.2);
+			rightMotor.set(0.2);
+			leftMotor2.set(0.2);
+			rightMotor2.set(0.2);
+		}
+	}
+	private void handleShootState(TeleopInput input) {
+		//moveCameraToHubLevel();
+		//double power = LimeLight.distanceToPower(limeLight.getHubDistance());
+		//run shooter mech
+	}
+
+	private void handleBallAlignState(TeleopInput input) {
+		//moveCameraToBallLevel();
+		if (limeLight.getBallTurningPower() != LimeLight.INVALID_RETURN) {
+			rightMotor.set(0.1 * limeLight.getBallTurningPower());
+			rightMotor2.set(0.1 * limeLight.getBallTurningPower());
+			leftMotor.set(0.1 * limeLight.getBallTurningPower());
+			leftMotor2.set(0.1 * limeLight.getBallTurningPower());
+		} else {
+			leftMotor.set(0.2);
+			rightMotor.set(0.2);
+			leftMotor2.set(0.2);
+			rightMotor2.set(0.2);
+		}
+	}
+
+	private void handleBallCollectState(TeleopInput input) {
+		moveCameraToBallLevel();
+		if (limeLight.getBallDistance() >= 0.2) {
+			leftMotor.set(-0.3);
+			rightMotor.set(0.3);
+			leftMotor2.set(-0.3);
+			rightMotor2.set(0.3);
+		} else {
+			leftMotor.set(-0.05);
+			rightMotor.set(0.05);
+			leftMotor2.set(-0.05);
+			rightMotor2.set(0.05);
+			//run intake mech
 		}
 	}
 }

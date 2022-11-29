@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
 
 		//final double invalidPower = -6;
 		//SmartDashboard.putNumber("Shooting Power", invalidPower);
-		//fsmSystem.reset();
+		fsmSystem.reset();
 	}
 
 	@Override
