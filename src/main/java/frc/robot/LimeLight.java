@@ -7,9 +7,10 @@ import org.photonvision.PhotonUtils;
 public class LimeLight {
 
 	private PhotonCamera camera;
-	private static final double HUB_CAMERA_ANGLE = Math.toRadians(30.25); //RADIANS
+	private static final double HUB_CAMERA_ANGLE = Math.toRadians(11); //RADIANS //30.25
 	//private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
 	private static final double HUB_HEIGHT = 2.6; //METERS
+	private static final double APRIL_TAG_HEIGHT = 0.61; //METERS
 	//private static final double BALL_HEIGHT = ; //METERS
 	private static final double CAMERA_HEIGHT = 0.55; //METERS
 	public static final double INVALID_RETURN = -2;
@@ -66,6 +67,32 @@ public class LimeLight {
 			return 0;
 		}
 		return Math.abs(angle) / -angle;
+	}
+
+	public double getAprilTagTurningPower() {
+		camera.setPipelineIndex(1);
+		var result = camera.getLatestResult();
+		if (!result.hasTargets()) {
+			return INVALID_RETURN;
+		}
+		double angle = result.getBestTarget().getYaw();
+		if (Math.abs(angle) < 6) {
+			return 0;
+		}
+		return Math.abs(angle) / -angle;
+	}
+
+	public double getAprilTagDistance() {
+		camera.setPipelineIndex(1);
+		var result = camera.getLatestResult();
+		if (result.hasTargets()) {
+			return PhotonUtils.calculateDistanceToTargetMeters(
+								CAMERA_HEIGHT,
+								APRIL_TAG_HEIGHT,
+								HUB_CAMERA_ANGLE,
+								Math.toRadians(result.getBestTarget().getPitch()));
+		}
+		return -1;
 	}
 	/*
 	public double getBallTurningPower() {

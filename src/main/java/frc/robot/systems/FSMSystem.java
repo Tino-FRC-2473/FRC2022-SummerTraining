@@ -17,7 +17,8 @@ public class FSMSystem {
 		SHOOT_STATE,
 		AIM_STATE,
 		BALL_ALIGN,
-		BALL_COLLECT
+		BALL_COLLECT,
+		APRIL_TAG_FOLLOW
 	}
 
 
@@ -71,7 +72,7 @@ public class FSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.AIM_STATE;
+		currentState = FSMState.APRIL_TAG_FOLLOW;
 	}
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
@@ -94,6 +95,8 @@ public class FSMSystem {
 			case BALL_ALIGN:
 				//handleBallAlignState(input);
 				break;
+			case APRIL_TAG_FOLLOW:
+				handleAprilTagState(input);
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -112,6 +115,8 @@ public class FSMSystem {
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
+			case APRIL_TAG_FOLLOW:
+				return FSMState.APRIL_TAG_FOLLOW;
 			case SHOOT_STATE:
 				if (limeLight.getHubTurningPower() ==0) {
 					//if (finished shooting) {
@@ -130,15 +135,15 @@ public class FSMSystem {
 				}
 
 			case BALL_COLLECT:
-				if (limeLight.getBallTurningPower() != 0) {
-					return FSMState.BALL_ALIGN;
-				}else{
+				//if (limeLight.getBallTurningPower() != 0) {
+					//return FSMState.BALL_ALIGN;
+				//}else{
 					//if (finished intaking){
 						//return FSMState.AIM_STATE;
 					//}else{
 						//return FSMState.BALL_COLLECT;
 					//}
-				}
+				//}
 			case BALL_ALIGN:
 				//if (limeLight.getBallTurningPower() == 0) {
 					//return FSMState.BALL_COLLECT;
@@ -175,6 +180,25 @@ public class FSMSystem {
 		//double power = LimeLight.distanceToPower(limeLight.getHubDistance());
 		//run shooter mech
 	}
+	private void handleAprilTagState(TeleopInput input) {
+		if (limeLight.getAprilTagTurningPower() != LimeLight.INVALID_RETURN) {
+			rightMotor.set(0.1 * limeLight.getAprilTagTurningPower());
+			rightMotor2.set(0.1 * limeLight.getAprilTagTurningPower());
+			leftMotor.set(0.1 * limeLight.getAprilTagTurningPower());
+			leftMotor2.set(0.1 * limeLight.getAprilTagTurningPower());
+		} else if (limeLight.getAprilTagDistance() > 2) {
+			leftMotor.set(0.2);
+			rightMotor.set(0.2);
+			leftMotor2.set(0.2);
+			rightMotor2.set(0.2);
+		} else {
+			leftMotor.set(0);
+			rightMotor.set(0);
+			leftMotor2.set(0);
+			rightMotor2.set(0);
+		}
+	}
+
 	/*
 	private void handleBallAlignState(TeleopInput input) {
 		//moveCameraToBallLevel();
