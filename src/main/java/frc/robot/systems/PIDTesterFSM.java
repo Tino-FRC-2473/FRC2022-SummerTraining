@@ -47,7 +47,7 @@ public class PIDTesterFSM {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public PIDTesterFSM() {
-		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
+		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_PID,
 										CANSparkMax.MotorType.kBrushless);
 		pid = shooterMotor.getPIDController();
 		shooterEncoder = shooterMotor.getEncoder();

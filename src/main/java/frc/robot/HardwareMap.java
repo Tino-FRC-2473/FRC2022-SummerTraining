@@ -22,6 +22,7 @@ public final class HardwareMap {
 	public static final int TRANSFER_MOTOR_LEFT = 33;
 	public static final int TRANSFER_MOTOR_RIGHT = 34;
 	public static final int INTER = 11;
+	public static final int CAN_ID_SPARK_PID = 5;
 	//Climber
 	public static final int CAN_ID_SPARK_CLIMBER = 2;
 

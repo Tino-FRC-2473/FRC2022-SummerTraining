@@ -7,7 +7,9 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class shooterTester {
+public class ShooterTester {
+    
+    
     public enum FSMState {
         IDLE,
         RUNNING
@@ -24,10 +26,10 @@ public class shooterTester {
     private CANSparkMax prepMotor;
     private CANSparkMax shooterMotor;
 
-    public shooterTester() {
-        interMotor1 = new CANSparkMax(HardwareMap.INTER1, CANSparkMax.MotorType.kBrushless);
-        interMotor2 = new CANSparkMax(HardwareMap.INTER2, CANSparkMax.MotorType.kBrushless);
-        prepMotor = new CANSparkMax(HardwareMap.PREP, CANSparkMax.MotorType.kBrushless);
+    public ShooterTester() {
+        interMotor1 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_LEFT, CANSparkMax.MotorType.kBrushless);
+        interMotor2 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_RIGHT, CANSparkMax.MotorType.kBrushless);
+        prepMotor = new CANSparkMax(HardwareMap.INTER, CANSparkMax.MotorType.kBrushless);
         shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
     }
 
