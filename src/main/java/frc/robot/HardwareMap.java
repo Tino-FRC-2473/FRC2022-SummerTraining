@@ -27,12 +27,12 @@ public final class HardwareMap {
 
 	// Pneumatics channel numbers
 
-	//Intake
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND = 1;
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT = 0;
+	//Intake - for pneumatics: Odds are Forward, Evens are Retract - PKS + Sid
+	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND = 1; // kForward
+	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT = 0; // kRetract
 
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2 = 3;
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2 = 2;
+	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND2 = 3; // kForward
+	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT2 = 2; // kRetract
 	//Climber
 	public static final int PCM_CHANNEL_ARM_CYLINDER_EXTEND = 1;
 	public static final int PCM_CHANNEL_ARM_CYLINDER_RETRACT = 0;
