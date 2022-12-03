@@ -97,6 +97,7 @@ public class FSMSystem {
 				break;
 			case APRIL_TAG_FOLLOW:
 				handleAprilTagState(input);
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -181,22 +182,28 @@ public class FSMSystem {
 		//run shooter mech
 	}
 	private void handleAprilTagState(TeleopInput input) {
-		if (limeLight.getAprilTagTurningPower() != LimeLight.INVALID_RETURN) {
-			rightMotor.set(0.1 * limeLight.getAprilTagTurningPower());
-			rightMotor2.set(0.1 * limeLight.getAprilTagTurningPower());
-			leftMotor.set(0.1 * limeLight.getAprilTagTurningPower());
-			leftMotor2.set(0.1 * limeLight.getAprilTagTurningPower());
-		} else if (limeLight.getAprilTagDistance() > 2) {
-			leftMotor.set(0.2);
-			rightMotor.set(0.2);
-			leftMotor2.set(0.2);
-			rightMotor2.set(0.2);
-		} else {
-			leftMotor.set(0);
+		if(limeLight.getAprilTagTurningPower() == LimeLight.INVALID_RETURN) {
 			rightMotor.set(0);
-			leftMotor2.set(0);
 			rightMotor2.set(0);
-		}
+			leftMotor.set(0);
+			leftMotor2.set(0);
+		} else if (limeLight.getAprilTagTurningPower() != LimeLight.INVALID_RETURN) {
+			rightMotor.set(0.05 * limeLight.getAprilTagTurningPower());
+			rightMotor2.set(0.05 * limeLight.getAprilTagTurningPower());
+			leftMotor.set(0.05 * limeLight.getAprilTagTurningPower());
+			leftMotor2.set(0.05 * limeLight.getAprilTagTurningPower());
+			if(limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() < 10) {
+				leftMotor.set(-0.05);
+				rightMotor.set(0.05);
+				leftMotor2.set(-0.05);
+				rightMotor2.set(0.05);
+			} else {
+				leftMotor.set(0);
+				rightMotor.set(0);
+				leftMotor2.set(0);
+				rightMotor2.set(0);
+			}
+		} 
 	}
 
 	/*
