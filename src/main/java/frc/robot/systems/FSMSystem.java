@@ -39,14 +39,14 @@ public class FSMSystem {
 	private AHRS gyro;
 
 	private int stateCounter = 1;
-	private int partitions = 8; // should be even
+	private int partitions = 12; // should be even
 	private double[][] waypoints = new double[2][partitions + 1];
 	private int target = -1;
-	private double innerVelocity = 1; // in/s
-	private double outerVelocity = 1; // in/s
+	private double innerVelocity = 0.5; // in/s
+	private double outerVelocity = 0.5; // in/s
 	private int direction = 1;
 	private int pointNum = 0;
-	private double lookAheadDistance = 10;
+	private double lookAheadDistance = 20;
 	private boolean firstRun = true;
 
 	private static final double ROBOT_WIDTH = 20;
@@ -126,7 +126,7 @@ public class FSMSystem {
 		switch (currentState) {
 
 			case PURE_PERSUIT:
-				handlePurePursuit(input, 0, 0, 25, -10, 40, -20); 
+				handlePurePursuit(input, 0, 0, 50, 0, 90, -30); 
 				break;
 
 			default:
