@@ -127,7 +127,7 @@ public class HomemadePID {
         double velocity = calc(motor.getEncoder().getVelocity());
         velocity = Math.min(velocity, MAX_SPEED);
         velocity = Math.max(velocity, -MAX_SPEED);
-        motor.set(0.1);
+        motor.set(velocity);
         System.out.println(motor.getEncoder().getVelocity());
     }
 }
