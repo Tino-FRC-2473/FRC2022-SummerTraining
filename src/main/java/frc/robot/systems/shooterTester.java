@@ -26,12 +26,12 @@ public class ShooterTester {
     private CANSparkMax prepMotor;
     private CANSparkMax shooterMotor;
 
-    public ShooterTester() {
-        interMotor1 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_LEFT, CANSparkMax.MotorType.kBrushless);
-        interMotor2 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_RIGHT, CANSparkMax.MotorType.kBrushless);
+	public ShooterTester() {
+		interMotor1 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_LEFT, CANSparkMax.MotorType.kBrushless);
+		interMotor2 = new CANSparkMax(HardwareMap.TRANSFER_MOTOR_RIGHT, CANSparkMax.MotorType.kBrushless);
         prepMotor = new CANSparkMax(HardwareMap.INTER, CANSparkMax.MotorType.kBrushless);
-        shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
-    }
+		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER, CANSparkMax.MotorType.kBrushed);
+	}
 
     public void reset() {
         currentState = FSMState.IDLE;
