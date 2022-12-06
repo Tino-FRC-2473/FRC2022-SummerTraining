@@ -7,12 +7,12 @@ import org.photonvision.PhotonUtils;
 public class LimeLight {
 
 	private PhotonCamera camera;
-	private static final double HUB_CAMERA_ANGLE = Math.toRadians(20); //RADIANS //30.25
+	private static final double HUB_CAMERA_ANGLE = Math.toRadians(10); //RADIANS //30.25
 	//private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
 	private static final double HUB_HEIGHT = 2.6; //METERS
-	private static final double APRIL_TAG_HEIGHT = 0.4445; //METERS
+	private static final double APRIL_TAG_HEIGHT = 0.4826; //METERS
 	//private static final double BALL_HEIGHT = ; //METERS
-	private static final double CAMERA_HEIGHT = 0.55; //METERS
+	private static final double CAMERA_HEIGHT = 0.508; //METERS
 	public static final double INVALID_RETURN = -2;
 	//Vision pipeline: 0 is reflective tape, 1 is ball, 2 is april tag  
 	/**
@@ -23,7 +23,7 @@ public class LimeLight {
 	}
 
 	public void update() {
-		SmartDashboard.putNumber("Distance", getHubDistance());
+		SmartDashboard.putNumber("Distance", getAprilTagDistance());
 		SmartDashboard.updateValues();
 
 	}
@@ -79,18 +79,24 @@ public class LimeLight {
 		if (Math.abs(angle) < 10) {
 			return 0;
 		}
-		return Math.abs(angle) / -angle;
+		return Math.abs(angle) / -angle; // return - if angle is +
 	}
 
 	public double getAprilTagDistance() {
 		camera.setPipelineIndex(1);
 		var result = camera.getLatestResult();
 		if (result.hasTargets()) {
+			SmartDashboard.putNumber("angle", result.getBestTarget().getPitch());
+			SmartDashboard.updateValues();
+			/*
 			return PhotonUtils.calculateDistanceToTargetMeters(
 								CAMERA_HEIGHT,
 								APRIL_TAG_HEIGHT,
 								HUB_CAMERA_ANGLE,
 								Math.toRadians(result.getBestTarget().getPitch()));
+			*/
+
+			return (APRIL_TAG_HEIGHT - CAMERA_HEIGHT)/Math.tan(HUB_CAMERA_ANGLE+Math.toRadians(result.getBestTarget().getPitch()));
 		}
 		return -1;
 	}

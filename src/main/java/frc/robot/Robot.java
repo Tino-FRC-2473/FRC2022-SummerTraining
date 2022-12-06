@@ -63,6 +63,7 @@ public class Robot extends TimedRobot {
 		System.out.println("-------- Teleop Init --------");
 		//SmartDashboard.putString("Turn Direction", "Invalid");
 		//SmartDashboard.putNumber("Distance To Hub", -1.0);
+		//
 
 		//final double invalidPower = -6;
 		//SmartDashboard.putNumber("Shooting Power", invalidPower);
