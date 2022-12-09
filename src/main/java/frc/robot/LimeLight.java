@@ -14,7 +14,8 @@ public class LimeLight {
 	//private static final double BALL_HEIGHT = ; //METERS
 	private static final double CAMERA_HEIGHT = 0.508; //METERS
 	public static final double INVALID_RETURN = -2;
-	//Vision pipeline: 0 is reflective tape, 1 is ball, 2 is april tag  
+	private double last_seen_location = -1;
+	//Vision pipeline: 0 is reflective tape, 1 is april tag, 2 is ball  
 	/**
 	 * LimeLight Constructor.
 	 */
@@ -71,15 +72,21 @@ public class LimeLight {
 
 	public double getAprilTagTurningPower() {
 		camera.setPipelineIndex(1);
-		var result = camera.getLatestResult();
 		if (!result.hasTargets()) {
-			return INVALID_RETURN;
+			return last_seen_location;
 		}
 		double angle = result.getBestTarget().getYaw();
-		if (Math.abs(angle) < 10) {
-			return 0;
+		//if (Math.abs(angle) < 6) {
+			//return 0;
+		//}
+		//last_seen_location =  Math.abs(angle) / -angle;
+		//return last_seen_location;
+		if (angle < 0){
+			last_seen_location = 1 - (1/((x * x / 10) + 1));
+		}else{
+			last_seen_location = (1/((x * x / 10) + 1)) - 1;
 		}
-		return Math.abs(angle) / -angle; // return - if angle is +
+		return last_seen_location;
 	}
 
 	public double getAprilTagDistance() {
@@ -95,8 +102,8 @@ public class LimeLight {
 								HUB_CAMERA_ANGLE,
 								Math.toRadians(result.getBestTarget().getPitch()));
 			*/
-
 			return (APRIL_TAG_HEIGHT - CAMERA_HEIGHT)/Math.tan(HUB_CAMERA_ANGLE+Math.toRadians(result.getBestTarget().getPitch()));
+
 		}
 		return -1;
 	}
