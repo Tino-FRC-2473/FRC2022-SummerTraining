@@ -8,9 +8,9 @@ import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
 public class ShooterTester {
-    
-    
-    public enum FSMState {
+
+
+	public enum FSMState {
         IDLE,
         RUNNING
     }

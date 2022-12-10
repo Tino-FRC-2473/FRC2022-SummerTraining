@@ -29,8 +29,8 @@ public class ClimberTester {
 		STATIC_HANG,
 	}
 
-	private static final float ARM_MOTOR_EXTEND_POWER = 0.1f;
-	private static final float ARM_MOTOR_RETRACT_POWER = -0.1f;
+	private static final float ARM_MOTOR_EXTEND_POWER = 0.25f;
+	private static final float ARM_MOTOR_RETRACT_POWER = -0.25f;
 	private static final double MAX_ENCODER = 50;
 	private static int cycleCount = 0;
 	private static final int MAX_CYCLE = 4;
@@ -61,12 +61,12 @@ public class ClimberTester {
 				//HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
 				//HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
 		//pneumaticTimer = new Timer();
-		armLimitSwitchExtend = armMotorLeft.getForwardLimitSwitch(
-				SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchRetract = armMotorRight.getReverseLimitSwitch(
-				SparkMaxLimitSwitch.Type.kNormallyClosed);
-		armLimitSwitchExtend.enableLimitSwitch(true);
-		armLimitSwitchRetract.enableLimitSwitch(true);
+		// armLimitSwitchExtend = armMotorLeft.getForwardLimitSwitch(
+		// 		SparkMaxLimitSwitch.Type.kNormallyClosed);
+		// armLimitSwitchRetract = armMotorRight.getReverseLimitSwitch(
+		// 		SparkMaxLimitSwitch.Type.kNormallyClosed);
+		//armLimitSwitchExtend.enableLimitSwitch(true);
+		//armLimitSwitchRetract.enableLimitSwitch(true);
 		reset();
 	}
 
@@ -94,7 +94,7 @@ public class ClimberTester {
 		armMotorRight.getEncoder().setPosition(0);
 		cycleCount = 0;
 		//armSolenoid.set(Value.kReverse); // reset piston
-		pneumaticTimer.reset();
+		//pneumaticTimer.reset();
 		updateDashboard(null);
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -108,7 +108,7 @@ public class ClimberTester {
 	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		Value oldValue = preferredValue;
+		//Value oldValue = preferredValue;
 		updateDashboard(input);
 		switch (currentState) {
 			case IDLE:
@@ -135,11 +135,11 @@ public class ClimberTester {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
-		if (preferredValue != oldValue) {
-			armSolenoid.set(preferredValue);
-		} else {
-			armSolenoid.set(Value.kOff);
-		}
+		// if (preferredValue != oldValue) {
+		// 	armSolenoid.set(preferredValue);
+		// } else {
+		// 	armSolenoid.set(Value.kOff);
+		// }
 		FSMState state = nextState(input);
 		if (currentState != state) {
 			System.out.println(state);
@@ -251,8 +251,8 @@ public class ClimberTester {
 	 */
 
 	private void handleExtendToMaxState(TeleopInput input) {
-		armMotorRight.set(ARM_MOTOR_EXTEND_POWER);
-		armMotorLeft.set(-ARM_MOTOR_EXTEND_POWER);
+		armMotorRight.set(-ARM_MOTOR_EXTEND_POWER);
+		armMotorLeft.set(ARM_MOTOR_EXTEND_POWER);
 		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
@@ -265,8 +265,8 @@ public class ClimberTester {
 	}
 
 	private void handleRetractingToMinState(TeleopInput input) {
-		armMotorLeft.set(-ARM_MOTOR_RETRACT_POWER);
-		armMotorRight.set(ARM_MOTOR_RETRACT_POWER);
+		armMotorLeft.set(ARM_MOTOR_RETRACT_POWER);
+		armMotorRight.set(-ARM_MOTOR_RETRACT_POWER);
 		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
@@ -279,8 +279,8 @@ public class ClimberTester {
 	}
 
 	private void handleAttachStaticHangState(TeleopInput input) {
-		armMotorLeft.set(-ARM_MOTOR_EXTEND_POWER);
-		armMotorRight.set(ARM_MOTOR_EXTEND_POWER);
+		armMotorLeft.set(ARM_MOTOR_EXTEND_POWER);
+		armMotorRight.set(-ARM_MOTOR_EXTEND_POWER);
 		// armSolenoid.set(Value.kOff);
 		preferredValue = Value.kReverse;
 	}
