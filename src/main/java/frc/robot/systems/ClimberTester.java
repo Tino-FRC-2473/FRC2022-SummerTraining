@@ -2,7 +2,7 @@ package frc.robot.systems;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
+//import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
@@ -30,7 +30,7 @@ public class ClimberTester {
 	}
 
 	private static final float ARM_MOTOR_EXTEND_POWER = 0.1f;
-	private static final float ARM_MOTOR_RETRACT_POWER = 0.1f;
+	private static final float ARM_MOTOR_RETRACT_POWER = -0.1f;
 	private static final double MAX_ENCODER = 50;
 	private static int cycleCount = 0;
 	private static final int MAX_CYCLE = 4;
@@ -56,11 +56,11 @@ public class ClimberTester {
 		armMotorLeft = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER_LEFT,
 				CANSparkMax.MotorType.kBrushless);
 		armMotorRight = new CANSparkMax(HardwareMap.CAN_ID_SPARK_CLIMBER_RIGHT,
-		CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
-				HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
-				HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
-		pneumaticTimer = new Timer();
+				CANSparkMax.MotorType.kBrushless);
+		//armSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM,
+				//HardwareMap.PCM_CHANNEL_ARM_CYLINDER_EXTEND,
+				//HardwareMap.PCM_CHANNEL_ARM_CYLINDER_RETRACT);
+		//pneumaticTimer = new Timer();
 		armLimitSwitchExtend = armMotorLeft.getForwardLimitSwitch(
 				SparkMaxLimitSwitch.Type.kNormallyClosed);
 		armLimitSwitchRetract = armMotorRight.getReverseLimitSwitch(
@@ -93,7 +93,7 @@ public class ClimberTester {
 		armMotorLeft.getEncoder().setPosition(0);
 		armMotorRight.getEncoder().setPosition(0);
 		cycleCount = 0;
-		armSolenoid.set(Value.kReverse); // reset piston
+		//armSolenoid.set(Value.kReverse); // reset piston
 		pneumaticTimer.reset();
 		updateDashboard(null);
 		// Call one tick of update to ensure outputs reflect start state
@@ -252,7 +252,7 @@ public class ClimberTester {
 
 	private void handleExtendToMaxState(TeleopInput input) {
 		armMotorRight.set(ARM_MOTOR_EXTEND_POWER);
-		armMotorLeft.set(ARM_MOTOR_EXTEND_POWER);
+		armMotorLeft.set(-ARM_MOTOR_EXTEND_POWER);
 		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
@@ -265,8 +265,8 @@ public class ClimberTester {
 	}
 
 	private void handleRetractingToMinState(TeleopInput input) {
-		armMotorLeft.set(ARM_MOTOR_RETRACT_POWER);
-		armMotorRight.set(ARM_MOTOR_EXTEND_POWER);
+		armMotorLeft.set(-ARM_MOTOR_RETRACT_POWER);
+		armMotorRight.set(ARM_MOTOR_RETRACT_POWER);
 		// pulseSolenoid(Value.kOff, input);
 		preferredValue = Value.kReverse;
 	}
@@ -279,7 +279,7 @@ public class ClimberTester {
 	}
 
 	private void handleAttachStaticHangState(TeleopInput input) {
-		armMotorLeft.set(ARM_MOTOR_EXTEND_POWER);
+		armMotorLeft.set(-ARM_MOTOR_EXTEND_POWER);
 		armMotorRight.set(ARM_MOTOR_EXTEND_POWER);
 		// armSolenoid.set(Value.kOff);
 		preferredValue = Value.kReverse;
