@@ -20,10 +20,10 @@ public class TeleopInput {
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 
-	private static final int SHOOTER_BUTTON_ID = 3;
+	private static final int SHOOTER_BUTTON_ID = 6;
 	private static final int INTAKE_BUTTON_ID = 4;
 	private static final int CLIMBER_BUTTON_ID = 5;
-	private static final int EJECT_BUTTON_ID = 6;
+	private static final int EJECT_BUTTON_ID = 3;
 	private static final int EXTENDED_BUTTON_ID = 7;
 	private static final int RETRACTED_BUTTON_ID = 8;
 
@@ -73,6 +73,8 @@ public class TeleopInput {
 	public boolean isIntakeButtonPressed() {
 		return leftJoystick.getRawButton(INTAKE_BUTTON_ID);
 	}
+
+
 
 	/**
 	 * Get the value of the intake button.

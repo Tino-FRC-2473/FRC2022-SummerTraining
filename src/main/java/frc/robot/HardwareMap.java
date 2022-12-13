@@ -28,6 +28,7 @@ public final class HardwareMap {
 	// Pneumatics channel numbers
 
 	//Intake
+	
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_EXTEND = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_RETRACT = 0;
 
