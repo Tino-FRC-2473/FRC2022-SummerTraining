@@ -20,6 +20,13 @@ public class TeleopInput {
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 
+	private static final int SHOOTER_BUTTON_ID = 1;
+	private static final int INTAKE_BUTTON_ID = 4;
+	private static final int CLIMBER_BUTTON_ID = 5;
+	private static final int EJECT_BUTTON_ID = 6;
+	private static final int EXTENDED_BUTTON_ID = 7;
+	private static final int RETRACTED_BUTTON_ID = 8;
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create a TeleopInput and register input devices. Note that while inputs
@@ -57,15 +64,64 @@ public class TeleopInput {
 	 * @return True if button is pressed
 	 */
 	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(1);
+		return leftJoystick.getRawButton(SHOOTER_BUTTON_ID);
 	}
 	/**
 	 * Get the value of the intake button.
 	 * @return True if button is pressed
 	 */
 	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(2);
+		return leftJoystick.getRawButton(INTAKE_BUTTON_ID);
 	}
+
+	/**
+	 * Get the value of the intake button.
+	 * @return True if button is released
+	 */
+	public boolean isIntakeButtonReleased() {
+		return leftJoystick.getRawButtonReleased(INTAKE_BUTTON_ID);
+	}
+
+	/**
+	 * Get the value of the climber button.
+	 * @return True if button is pressed
+	 */
+	public boolean isClimberButtonPressed() {
+		return leftJoystick.getRawButton(CLIMBER_BUTTON_ID);
+	}
+
+	/**
+	 * NOTIFY WHEN MECHANISM IS EXTENDED.
+	 * @return True if button is pressed
+	 */
+	public boolean maxExtended() {
+		return leftJoystick.getRawButton(EXTENDED_BUTTON_ID);
+	}
+
+	/**
+	 * NOTIFY WHEN MECHANISM IS RETRACTED.
+	 * @return True if button is pressed
+	 */
+	public boolean minRetracted() {
+		return leftJoystick.getRawButton(RETRACTED_BUTTON_ID);
+	}
+
+	/**
+	 * Get the value of the eject button.
+	 * @return True if button is pressed
+	 */
+	public boolean isEjectButtonPressed() {
+		return leftJoystick.getRawButton(EJECT_BUTTON_ID);
+	}
+
+	/**
+	 * Get the value of the climber button.
+	 * @return True if button is released
+	 */
+	public boolean isClimberButtonReleased() {
+		return leftJoystick.getRawButtonReleased(CLIMBER_BUTTON_ID);
+	}
+
 
 	/* ------------------------ Right Joystick ------------------------ */
 	/**

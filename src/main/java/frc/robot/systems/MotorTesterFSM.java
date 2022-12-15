@@ -1,7 +1,6 @@
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // Third party Hardware Imports
 import com.revrobotics.CANSparkMax;
@@ -10,24 +9,26 @@ import com.revrobotics.CANSparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
 
-public class ShooterFSM {
+public class MotorTesterFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		INIT_STATE,
-		TRANSFER_STATE,
-		SHOOT
+		START_STATE,
+		FOR_STATE,
+		BETWEEN_STATE,
+		REV_STATE
 	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
-
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax shooterMotor;
-	private CANSparkMax interMotor;
+	private CANSparkMax motor1;
+	private CANSparkMax motor2;
+	private CANSparkMax motor3;
+	private CANSparkMax motor4;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -35,12 +36,16 @@ public class ShooterFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public ShooterFSM() {
+	public MotorTesterFSM() {
 		// Perform hardware init
-		shooterMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										CANSparkMax.MotorType.kBrushless);
-		interMotor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_INTER,
-										CANSparkMax.MotorType.kBrushless);
+		motor1 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR1,
+				CANSparkMax.MotorType.kBrushless);
+		motor2 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR2,
+				CANSparkMax.MotorType.kBrushless);
+		motor3 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR3,
+				CANSparkMax.MotorType.kBrushless);
+		motor4 = new CANSparkMax(HardwareMap.CAN_ID_SPARK_MOTOR4,
+				CANSparkMax.MotorType.kBrushless);
 		// Reset state machine
 		reset();
 	}
@@ -48,11 +53,13 @@ public class ShooterFSM {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 *
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -62,30 +69,37 @@ public class ShooterFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.INIT_STATE;
-		updateDashboard(null);
+		currentState = FSMState.START_STATE;
+
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		updateDashboard(input);
 		switch (currentState) {
-			case INIT_STATE:
-				handleInitState(input);
+			case START_STATE:
+				handleStartState(input);
 				break;
 
-			case TRANSFER_STATE:
-				handleTransferState(input);
+			case FOR_STATE:
+				handleOtherState(input);
 				break;
-			case SHOOT:
-				handleShootState(input);
+
+			case BETWEEN_STATE:
+				handleBetweenState(input);
 				break;
+
+			case REV_STATE:
+				handleReverseState(input);
+				break;
+
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -98,31 +112,41 @@ public class ShooterFSM {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return FSMState.START_STATE;
+		}
 		switch (currentState) {
-			case INIT_STATE:
-				if (ballInIntermediate()) {
-					return FSMState.TRANSFER_STATE;
+			case START_STATE:
+				if (input.isClimberButtonPressed()) {
+					return FSMState.FOR_STATE;
 				} else {
-					return FSMState.INIT_STATE;
+					return FSMState.START_STATE;
 				}
 
-			case TRANSFER_STATE:
-				if (!shooterReady() || !input.isShooterButtonPressed()) {
-					return FSMState.TRANSFER_STATE;
+			case FOR_STATE:
+				if (input.isClimberButtonPressed()) {
+					return FSMState.FOR_STATE;
 				} else {
-					return FSMState.SHOOT;
+					return FSMState.BETWEEN_STATE;
 				}
-
-			case SHOOT:
-				if (input.isShooterButtonPressed()) {
-					return FSMState.SHOOT;
+			case BETWEEN_STATE:
+				if (input.isClimberButtonPressed()) {
+					return FSMState.REV_STATE;
+				} else {
+					return FSMState.BETWEEN_STATE;
 				}
-				return FSMState.INIT_STATE;
+			case REV_STATE:
+				if (input.isClimberButtonPressed()) {
+					return FSMState.REV_STATE;
+				} else {
+					return FSMState.START_STATE;
+				}
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -131,47 +155,41 @@ public class ShooterFSM {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
-	private void handleInitState(TeleopInput input) {
-		shooterMotor.set(0);
-		interMotor.set(0);
+	private void handleStartState(TeleopInput input) {
+		motor1.set(0);
+		motor2.set(0);
+		motor3.set(0);
+		motor4.set(0);
 	}
+
 	/**
 	 * Handle behavior in OTHER_STATE.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
-	private void handleTransferState(TeleopInput input) {
-		shooterMotor.set(MOTOR_RUN_POWER);
-		interMotor.set(0);
+	private void handleOtherState(TeleopInput input) {
+		motor1.set(MOTOR_RUN_POWER);
+		motor2.set(MOTOR_RUN_POWER);
+		motor3.set(MOTOR_RUN_POWER);
+		motor4.set(MOTOR_RUN_POWER);
 	}
 
-	private void handleShootState(TeleopInput input) {
-		interMotor.set(MOTOR_RUN_POWER);
-		shooterMotor.set(MOTOR_RUN_POWER);
+	private void handleBetweenState(TeleopInput input) {
+		motor1.set(0);
+		motor2.set(0);
+		motor3.set(0);
+		motor4.set(0);
 	}
 
-	private boolean shooterReady() {
-		return true;
-	}
-
-	private boolean ballInIntermediate() {
-		return true;
-	}
-
-	private void updateDashboard(TeleopInput input) {
-		if (input != null) {
-			SmartDashboard.putBoolean("Shooter Button Pressed", input.isShooterButtonPressed());
-		} else {
-			SmartDashboard.putBoolean("Shooter Button Pressed", false);
-		}
-		SmartDashboard.putNumber("Shooter Motor Power", shooterMotor.get());
-		SmartDashboard.putNumber("Intermediate Motor Power", interMotor.get());
-		SmartDashboard.putBoolean("Shooter Ready", shooterReady());
-		SmartDashboard.putBoolean("Ball In Intermediate", ballInIntermediate());
-		SmartDashboard.putString("Current State", currentState + "");
+	private void handleReverseState(TeleopInput input) {
+		motor1.set(-1 * MOTOR_RUN_POWER);
+		motor2.set(-1 * MOTOR_RUN_POWER);
+		motor3.set(-1 * MOTOR_RUN_POWER);
+		motor4.set(-1 * MOTOR_RUN_POWER);
 	}
 }
-

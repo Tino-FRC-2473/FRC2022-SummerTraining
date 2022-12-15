@@ -1,36 +1,29 @@
 package frc.robot.systems;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 
 // Third party Hardware Imports
-import com.revrobotics.CANSparkMax;
+//import com.revrobotics.CANSparkMax;
 
+import com.revrobotics.ColorSensorV3;
+
+import edu.wpi.first.wpilibj.I2C.Port;
 // Robot Imports
 import frc.robot.TeleopInput;
-import frc.robot.HardwareMap;
 
-public class BallIntakeFSM {
+public class ColorSensorTesterFSM {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum FSMState {
-		EXTENDED,
-		RETRACTED
+		START_STATE
 	}
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
-
+	private ColorSensorV3 color;
 	/* ======================== Private variables ======================== */
 	private FSMState currentState;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private CANSparkMax intakeMotor;
-	private DoubleSolenoid armSolenoid;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,12 +31,9 @@ public class BallIntakeFSM {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public BallIntakeFSM() {
+	public ColorSensorTesterFSM() {
 		// Perform hardware init
-		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
-		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
-		HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
+		color = new ColorSensorV3(Port.kOnboard);
 		// Reset state machine
 		reset();
 	}
@@ -51,11 +41,13 @@ public class BallIntakeFSM {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 * 
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
 		return currentState;
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -65,26 +57,23 @@ public class BallIntakeFSM {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = FSMState.RETRACTED;
+		currentState = FSMState.START_STATE;
+
 		// Call one tick of update to ensure outputs reflect start state
-		updateDashboard(null);
 		update(null);
 	}
+
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		updateDashboard(input);
-
 		switch (currentState) {
-			case EXTENDED:
-				handleExtendedState(input);
-				break;
-			case RETRACTED:
-				handleRetractedState(input);
+			case START_STATE:
+				handleStartState(input);
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -98,22 +87,15 @@ public class BallIntakeFSM {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private FSMState nextState(TeleopInput input) {
 		switch (currentState) {
-			case EXTENDED:
-				if (input.isIntakeButtonReleased()) {
-					return FSMState.RETRACTED;
-				}
-				return FSMState.EXTENDED;
-			case RETRACTED:
-				if (input.isIntakeButtonReleased()) {
-					return FSMState.EXTENDED;
-				}
-				return FSMState.RETRACTED;
+			case START_STATE:
+				return FSMState.START_STATE;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -122,32 +104,11 @@ public class BallIntakeFSM {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
+	 * 
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
-	private void handleExtendedState(TeleopInput input) {
-		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kReverse);
+	private void handleStartState(TeleopInput input) {
+		System.out.println(color.getProximity());
 	}
-	/**
-	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleRetractedState(TeleopInput input) {
-		intakeMotor.set(MOTOR_RUN_POWER);
-		armSolenoid.set(Value.kForward);
-	}
-
-	private void updateDashboard(TeleopInput input) {
-		if (input == null) {
-			SmartDashboard.putBoolean("Button Pressed", false);
-		} else {
-			SmartDashboard.putBoolean("Button Pressed", input.isIntakeButtonPressed());
-		}
-		SmartDashboard.putNumber("Motor Power", intakeMotor.get());
-		SmartDashboard.putBoolean("Solenoid Extended", armSolenoid.get().equals(Value.kForward));
-		SmartDashboard.putString("Current State", currentState + "");
-	}
-
 }
