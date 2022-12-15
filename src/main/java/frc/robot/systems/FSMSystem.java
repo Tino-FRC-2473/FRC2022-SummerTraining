@@ -119,6 +119,12 @@ public class FSMSystem {
 		if (input == null) {
 			return;
 		}
+
+		
+		if(input.getLeftJoystickY() > 0.5 || input.getLeftJoystickY() < -.5){
+			System.out.println("Running Drive");
+		}
+
 		rightMotor.set(input.getRightJoystickY());
 		leftMotor.set(-input.getLeftJoystickY());
 	}
