@@ -19,19 +19,19 @@
 // public class TraversalFSM {
 // 	/* ======================== Constants ======================== */
 // 	// FSM state definitions
-// 	public enum FSMState {
+//public enum FSMState {
 // 		IDLE,
-// 		EXTEND_TOTAL, //grabbers extend to max height
-// 		IDLE_MAX_EXTENDED,
-// 		RETRACTING_TO_MIN,
-// 		REST_STATE,
-// 		EXTEND_PARTIAL,
-// 		STATIC_HANG,
-// 		PNEUMATIC_ACTIVATE,
-// 		IDLE_TILT,
-// 		EXTENDING_TILT,
-// 		IDLE_MAX_EXTENDED2
-// 	}
+//		EXTEND_TOTAL, //grabbers extend to max height
+//		IDLE_MAX_EXTENDED,
+//		RETRACTING_TO_MIN,
+//		REST_STATE,
+//		EXTEND_PARTIAL,
+//		STATIC_HANG,
+//		PNEUMATIC_ACTIVATE,
+ //		IDLE_TILT,
+ 	//	EXTENDING_TILT,
+ 	//	IDLE_MAX_EXTENDED2
+//  }
 
 // 	private static final double ARM_MOTOR_RETRACT_POWER = -0.1;
 // 	private static final double ARM_MOTOR_EXTEND_POWER = 0.1;

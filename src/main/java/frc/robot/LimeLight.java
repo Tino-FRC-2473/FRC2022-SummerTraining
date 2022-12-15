@@ -10,9 +10,9 @@ public class LimeLight {
 	private static final double HUB_CAMERA_ANGLE = Math.toRadians(10); //RADIANS //30.25
 	//private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
 	private static final double HUB_HEIGHT = 2.6; //METERS
-	private static final double APRIL_TAG_HEIGHT = 0.4826; //METERS
+	private static final double APRIL_TAG_HEIGHT = 0.4699; //METERS
 	//private static final double BALL_HEIGHT = ; //METERS
-	private static final double CAMERA_HEIGHT = 0.508; //METERS
+	private static final double CAMERA_HEIGHT = 0.584; //METERS
 	public static final double INVALID_RETURN = -2;
 	private double last_seen_location = -1;
 	//Vision pipeline: 0 is reflective tape, 1 is april tag, 2 is ball  
@@ -72,6 +72,7 @@ public class LimeLight {
 
 	public double getAprilTagTurningPower() {
 		camera.setPipelineIndex(1);
+		var result = camera.getLatestResult();
 		if (!result.hasTargets()) {
 			return last_seen_location;
 		}
@@ -81,11 +82,21 @@ public class LimeLight {
 		//}
 		//last_seen_location =  Math.abs(angle) / -angle;
 		//return last_seen_location;
-		if (angle < 0){
-			last_seen_location = 1 - (1/((x * x / 10) + 1));
+		if (Math.abs(angle) < 6) {
+			last_seen_location = 0;
 		}else{
-			last_seen_location = (1/((x * x / 10) + 1)) - 1;
+			last_seen_location = Math.abs(angle) / -angle;
 		}
+		/*
+		if (angle < 0) {
+			last_seen_location = 1 - (1/((angle * angle / 10) + 1));
+		} else {
+			last_seen_location = (1 / ((angle * angle / 10) + 1)) - 1;
+		}
+		*/
+		SmartDashboard.putNumber("Turning Power", last_seen_location);
+		System.out.println(angle);
+		SmartDashboard.updateValues();
 		return last_seen_location;
 	}
 
@@ -93,8 +104,8 @@ public class LimeLight {
 		camera.setPipelineIndex(1);
 		var result = camera.getLatestResult();
 		if (result.hasTargets()) {
-			SmartDashboard.putNumber("angle", result.getBestTarget().getPitch());
-			SmartDashboard.updateValues();
+			//SmartDashboard.putNumber("angle", result.getBestTarget().getPitch());
+			//SmartDashboard.updateValues();
 			/*
 			return PhotonUtils.calculateDistanceToTargetMeters(
 								CAMERA_HEIGHT,
