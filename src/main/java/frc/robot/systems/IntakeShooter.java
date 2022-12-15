@@ -31,7 +31,7 @@ public class IntakeShooter {
 	}
 
 
-	
+
 	private static double currentDist;
 	private static final double PROXIMITY_THRESHOLD = 300;
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -77,7 +77,7 @@ public class IntakeShooter {
 		 * DONT EXPLODE MOTOR!!!!!!!!!!!!!
 		 */
 		limeLight = new LimeLight();
-		 intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
+		intakeMotor = new CANSparkMax(HardwareMap.INTAKE_MOTOR, CANSparkMax.MotorType.kBrushless);
 		armSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_EXTEND,
 				HardwareMap.PCM_CHANNEL_INTAKE_CYLINDER_RETRACT);
@@ -101,7 +101,7 @@ public class IntakeShooter {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
-	 * 
+	 *
 	 * @return Current FSM state
 	 */
 	public FSMState getCurrentState() {
@@ -126,7 +126,7 @@ public class IntakeShooter {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */
@@ -177,7 +177,7 @@ public class IntakeShooter {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
@@ -284,7 +284,7 @@ public class IntakeShooter {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 * 
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *              the robot is in autonomous mode.
 	 */

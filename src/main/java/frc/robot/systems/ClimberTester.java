@@ -201,7 +201,7 @@ public class ClimberTester {
 				armMotorRight.getEncoder().setPosition(0);
 				return FSMState.ATTACH_STATIC_HANG;
 			case ATTACH_STATIC_HANG:
-				if (input.isClimberButtonPressed()) {
+				if (input.isClimberButtonReleased()) {
 					cycleCount++;
 					System.out.println(armMotorRight.getEncoder().getPosition());
 					System.out.println(armMotorLeft.getEncoder().getPosition());
