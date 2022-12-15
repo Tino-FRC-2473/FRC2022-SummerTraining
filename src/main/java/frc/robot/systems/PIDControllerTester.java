@@ -9,6 +9,8 @@ import edu.wpi.first.math.controller.PIDController;
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.HardwareMap;
+import edu.wpi.first.wpilibj.Timer;
+
  
 public class PIDControllerTester {
     /* ======================== Constants ======================== */
@@ -17,9 +19,10 @@ public class PIDControllerTester {
         REST,
         SHOOT
     }
+    private Timer shooterTimer;
     private static final float MAX_SPEED = 0.15f;
-    private static final float DESIRED_SPEED = 0.1f;
-    private static final double kP = 1f, kI = 0f, kD = 0f;
+    private static final float DESIRED_SPEED = 1000;
+    private static final double kP = 0.00022f, kI = 0.000055f, kD = 0.000008f;
     /* ======================== Private variables ======================== */
     private FSMState currentState;
  
@@ -35,6 +38,8 @@ public class PIDControllerTester {
      */
     public PIDControllerTester() {
         // Perform hardware init
+        shooterTimer = new Timer();
+        shooterTimer.start();
         motor = new CANSparkMax(HardwareMap.CAN_ID_SPARK_SHOOTER,
                 CANSparkMax.MotorType.kBrushless);
         pid = new PIDController(kP, kI, kD);
@@ -122,8 +127,27 @@ public class PIDControllerTester {
     }
     private void handleShootState(TeleopInput input)
     {
-        motor.set(pid.calculate(motor.getEncoder().getVelocity(), DESIRED_SPEED));
-        System.out.println(pid.getVelocityError());
+
+        double pow = pid.calculate(motor.getEncoder().getVelocity(), DESIRED_SPEED);
+        if (pow > 0.3 || pow < -0.3)
+        {
+            System.out.println(pid.getVelocityError());
+            System.out.println("TR");
+            System.out.println(motor.getEncoder().getVelocity() + " " + DESIRED_SPEED);
+            System.out.println(pow);
+            System.out.println("BAD");
+            return;
+        }
+        if (shooterTimer.hasElapsed(0.1))
+        {
+            System.out.println(pid.getVelocityError());
+            System.out.println("TR");
+            System.out.println(motor.getEncoder().getVelocity() + " " + DESIRED_SPEED);
+            System.out.println(pow);
+            shooterTimer.reset();
+        }
+        
+        motor.set(pow);
     }
 }
 
