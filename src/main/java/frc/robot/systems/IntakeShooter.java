@@ -94,7 +94,7 @@ public class IntakeShooter {
 		color = new ColorSensorV3(Port.kOnboard);
 		shooterTimer = new Timer();
 		shooterTimer.start();
-		
+
 		// Reset state machine
 		reset();
 	}
