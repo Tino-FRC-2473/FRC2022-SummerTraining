@@ -185,26 +185,44 @@ public class FSMSystem {
 		//run shooter mech
 	}
 	private void handleAprilTagState(TeleopInput input) {
-			if (limeLight.getAprilTagTurningPower() == 0){
-				if (limeLight.getAprilTagDistance() > -2.7){
-					rightMotor.set(0.05);
-					rightMotor2.set(0.05);
-					leftMotor.set(-0.05);
-					leftMotor2.set(-0.05);
-				}else{
-					rightMotor.set(0);
-					rightMotor2.set(0);
-					leftMotor.set(0);
-					leftMotor2.set(0);
-				}
-			}else{
-				
-				rightMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				rightMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				leftMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				leftMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+		if(limeLight.getAprilTagTurningPower() == LimeLight.INVALID_RETURN) {
+			// rightMotor.set(TURN_POW);
+			// rightMotor2.set(TURN_POW);
+			// leftMotor.set(TURN_POW);
+			// leftMotor2.set(TURN_POW);
+			leftMotor.set(0);
+			rightMotor.set(0);
+			leftMotor2.set(0);
+			rightMotor2.set(0);
+		} else {
+			// rightMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+			// rightMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+			// leftMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+			// leftMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+			leftMotor.set(0);
+			rightMotor.set(0);
+			leftMotor2.set(0);
+			rightMotor2.set(0);
+			if(limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() > 0.5) {
+				// //drive forward
+				// leftMotor.set(-0.05);
+				// rightMotor.set(0.05);
+				// leftMotor2.set(-0.05);
+				// rightMotor2.set(0.05);
+				leftMotor.set(0);
+				rightMotor.set(0);
+				leftMotor2.set(0);
+				rightMotor2.set(0);
+			} else if (limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() >= 10){
+				leftMotor.set(0);
+				rightMotor.set(0);
+				leftMotor2.set(0);
+				rightMotor2.set(0);
 			}
+		}
 	}
+
+}
 
 	/*
 	private void handleBallAlignState(TeleopInput input) {
@@ -238,4 +256,3 @@ public class FSMSystem {
 		}
 	}
 	*/
-}

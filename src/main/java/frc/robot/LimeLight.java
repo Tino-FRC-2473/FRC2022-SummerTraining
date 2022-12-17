@@ -82,21 +82,11 @@ public class LimeLight {
 		//}
 		//last_seen_location =  Math.abs(angle) / -angle;
 		//return last_seen_location;
-		if (Math.abs(angle) < 6) {
-			last_seen_location = 0;
-		}else{
-			last_seen_location = Math.abs(angle) / -angle;
-		}
-		/*
-		if (angle < 0) {
-			last_seen_location = 1 - (1/((angle * angle / 10) + 1));
-		} else {
-			last_seen_location = (1 / ((angle * angle / 10) + 1)) - 1;
-		}
-		*/
-		SmartDashboard.putNumber("Turning Power", last_seen_location);
-		System.out.println(angle);
-		SmartDashboard.updateValues();
+		// if (angle < 0){
+		// 	last_seen_location = 1 - (1/((x * x / 10) + 1));
+		// }else{
+		// 	last_seen_location = (1/((x * x / 10) + 1)) - 1;
+		// }
 		return last_seen_location;
 	}
 
@@ -113,8 +103,9 @@ public class LimeLight {
 								HUB_CAMERA_ANGLE,
 								Math.toRadians(result.getBestTarget().getPitch()));
 			*/
-			return (APRIL_TAG_HEIGHT - CAMERA_HEIGHT)/Math.tan(HUB_CAMERA_ANGLE+Math.toRadians(result.getBestTarget().getPitch()));
-
+			//39.3701 inches = 1 meter
+			double visionDist = 39.3701 * (APRIL_TAG_HEIGHT - CAMERA_HEIGHT)/Math.tan(HUB_CAMERA_ANGLE+Math.toRadians(result.getBestTarget().getPitch()));
+			return 820 + 190*visionDist + 11.2*visionDist*visionDist; //within 5-7 inches from actual value
 		}
 		return -1;
 	}
