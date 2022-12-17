@@ -196,10 +196,11 @@ public class FSMSystem {
 			// rightMotor2.set(0);
 		} else {
 			if(limeLight.getAprilTagTurningPower() != 0) {
-				rightMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				rightMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				leftMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-				leftMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+				double sign = Math.signum(limeLight.getAprilTagTurningPower());
+				rightMotor.set(ALIGN_TURN_POW * sign*Math.log(Math.abs(limeLight.getAprilTagTurningPower())));
+				rightMotor2.set(ALIGN_TURN_POW * sign*Math.log(Math.abs(limeLight.getAprilTagTurningPower())));
+				leftMotor.set(ALIGN_TURN_POW * sign*Math.log(Math.abs(limeLight.getAprilTagTurningPower())));
+				leftMotor2.set(ALIGN_TURN_POW * sign*Math.log(Math.abs(limeLight.getAprilTagTurningPower())));
 				// leftMotor.set(0);
 				// rightMotor.set(0);
 				// leftMotor2.set(0);
