@@ -12,7 +12,7 @@ import frc.robot.LimeLight;
 
 public class FSMSystem {
 	/* ======================== Constants ======================== */
-	private static final double TURN_POW = 0.1;
+	private static final double TURN_POW = 0.05;
 	private static final double ALIGN_TURN_POW = 0.05;
 
 	// FSM state definitions
@@ -185,35 +185,36 @@ public class FSMSystem {
 		//run shooter mech
 	}
 	private void handleAprilTagState(TeleopInput input) {
-		if(limeLight.getAprilTagTurningPower() == LimeLight.INVALID_RETURN) {
-			// rightMotor.set(TURN_POW);
-			// rightMotor2.set(TURN_POW);
-			// leftMotor.set(TURN_POW);
-			// leftMotor2.set(TURN_POW);
-			leftMotor.set(0);
-			rightMotor.set(0);
-			leftMotor2.set(0);
-			rightMotor2.set(0);
+		if(limeLight.getAprilTagTurningPower() == -1) {
+			rightMotor.set(TURN_POW);
+			rightMotor2.set(TURN_POW);
+			leftMotor.set(TURN_POW);
+			leftMotor2.set(TURN_POW);
+			// leftMotor.set(0);
+			// rightMotor.set(0);
+			// leftMotor2.set(0);
+			// rightMotor2.set(0);
 		} else {
-			// rightMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-			// rightMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-			// leftMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-			// leftMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
-			leftMotor.set(0);
-			rightMotor.set(0);
-			leftMotor2.set(0);
-			rightMotor2.set(0);
-			if(limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() > 0.5) {
+			if(limeLight.getAprilTagTurningPower() != 0) {
+				rightMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+				rightMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+				leftMotor.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+				leftMotor2.set(ALIGN_TURN_POW * limeLight.getAprilTagTurningPower());
+				// leftMotor.set(0);
+				// rightMotor.set(0);
+				// leftMotor2.set(0);
+				// rightMotor2.set(0);
+			}else if(limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() > 40) {
 				// //drive forward
-				// leftMotor.set(-0.05);
-				// rightMotor.set(0.05);
-				// leftMotor2.set(-0.05);
-				// rightMotor2.set(0.05);
-				leftMotor.set(0);
-				rightMotor.set(0);
-				leftMotor2.set(0);
-				rightMotor2.set(0);
-			} else if (limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() >= 10){
+				leftMotor.set(-0.05);
+				rightMotor.set(0.05);
+				leftMotor2.set(-0.05);
+				rightMotor2.set(0.05);
+				// leftMotor.set(0);
+				// rightMotor.set(0);
+				// leftMotor2.set(0);
+				// rightMotor2.set(0);
+			} else if (limeLight.getAprilTagTurningPower() == 0 && limeLight.getAprilTagDistance() <= 40){
 				leftMotor.set(0);
 				rightMotor.set(0);
 				leftMotor2.set(0);

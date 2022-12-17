@@ -7,7 +7,7 @@ import org.photonvision.PhotonUtils;
 public class LimeLight {
 
 	private PhotonCamera camera;
-	private static final double HUB_CAMERA_ANGLE = Math.toRadians(10); //RADIANS //30.25
+	private static final double HUB_CAMERA_ANGLE = Math.toRadians(0); //RADIANS //30.25
 	//private static final double BALL_CAMERA_ANGLE = Math.toRadians(); //RADIANS
 	private static final double HUB_HEIGHT = 2.6; //METERS
 	private static final double APRIL_TAG_HEIGHT = 0.4699; //METERS
@@ -25,6 +25,7 @@ public class LimeLight {
 
 	public void update() {
 		SmartDashboard.putNumber("Distance", getAprilTagDistance());
+		SmartDashboard.putNumber("Turning Pow", getAprilTagTurningPower());
 		SmartDashboard.updateValues();
 
 	}
@@ -77,9 +78,12 @@ public class LimeLight {
 			return last_seen_location;
 		}
 		double angle = result.getBestTarget().getYaw();
-		//if (Math.abs(angle) < 6) {
-			//return 0;
-		//}
+		
+		if (Math.abs(angle) < 6) {
+			return 0;
+		}
+
+		return angle;
 		//last_seen_location =  Math.abs(angle) / -angle;
 		//return last_seen_location;
 		// if (angle < 0){
@@ -87,7 +91,7 @@ public class LimeLight {
 		// }else{
 		// 	last_seen_location = (1/((x * x / 10) + 1)) - 1;
 		// }
-		return last_seen_location;
+		//return last_seen_location;
 	}
 
 	public double getAprilTagDistance() {
@@ -105,7 +109,7 @@ public class LimeLight {
 			*/
 			//39.3701 inches = 1 meter
 			double visionDist = 39.3701 * (APRIL_TAG_HEIGHT - CAMERA_HEIGHT)/Math.tan(HUB_CAMERA_ANGLE+Math.toRadians(result.getBestTarget().getPitch()));
-			return 820 + 190*visionDist + 11.2*visionDist*visionDist; //within 5-7 inches from actual value
+			return 13.2*Math.exp(0.0168*visionDist); //within 5 inches except when distance is 4.5-7.3 ft
 		}
 		return -1;
 	}
